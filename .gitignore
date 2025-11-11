@@ -1,0 +1,5 @@
+# Indica a Git quins fitxers i carpetes NO s'han de pujar al repositori
+
+node_modules
+.env
+.DS_Store
