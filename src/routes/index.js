@@ -1,0 +1,14 @@
+// Pàgina inicial. 
+
+const express = require('express');
+const router = express.Router();
+
+// si hi ha sessió, mostra el nom; si no, convida a fer login
+router.get('/', (req, res) => {
+  res.render('index', {
+    title: 'EntraSecure Tenant Portal',
+    user: req.session.user || null, // vindrà del login (MSAL)
+  });
+});
+
+module.exports = router;
