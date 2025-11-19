@@ -1,51 +1,135 @@
 <!DOCTYPE html>
 <html lang="ca">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title><%= title %> · EntraSecure</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>
+    <%= title %> · EntraSecure
+  </title>
   <!-- Enllaça el CSS servit des de /public/css/styles.css -->
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
+
 <body>
   <!-- Navbar senzilla -->
   <nav class="navbar">
-    <div class="brand">EntraSecure Tenant Portal</div>
-    <ul>
-      <li><a href="/">Home</a></li>
-      <!-- placeholders per a futurs mòduls -->
-      <li><span class="muted">My Identity</span></li>
-      <li><span class="muted">Tenant Explorer</span></li>
-      <li><span class="muted">Security</span></li>
-    </ul>
-    <div class="auth">
+    <div class="navbar-left">
+      <div class="brand">EntraSecure Tenant Portal</div>
+      <ul class="nav-links">
+        <li>
+          <a href="/" class="nav-link nav-link-active">Home</a>
+        </li>
+        <% if (user) { %>
+          <li><a href="/me" class="nav-link">My Identity</a></li>
+          <li><a href="/tenant" class="nav-link">Tenant Explorer</a></li>
+          <li><a href="/security" class="nav-link">Security</a></li>
+          <% } %>
+      </ul>
+    </div>
+    <div class="navbar-right">
       <% if (user) { %>
-        <!-- Si hi ha sessió, mostrem el nom i un logout -->
-        <span>Hola, <%= user.name || user.username || 'usuari' %></span>
-        <a href="/auth/logout">Logout</a>
-      <% } else { %>
-        <!-- Si no hi ha sessió, oferim login -->
-        <a class="btn" href="/auth/login">Login (MSAL)</a>
-      <% } %>
+        <div class="user-pill">
+          <span class="user-initial">
+            <% if (user.name) { %>
+              <%= user.name.charAt(0).toUpperCase() %>
+                <% } else if (user.username) { %>
+                  <%= user.username.charAt(0).toUpperCase() %>
+                    <% } else { %>
+                      U
+                      <% } %>
+          </span>
+          <span class="user-name">
+            <%= user.name || user.username || 'Usuari' %>
+          </span>
+        </div>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-outline-light">Login</a>
+          <% } %>
     </div>
   </nav>
 
-  <main class="container">
-    <h1>Benvingut/da 👋</h1>
-    <p>Base del TFG: Express + EJS + sessions. Preparat per integrar MSAL/Graph.</p>
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-inner">
+        <h1>Benvingut/da a EntraSecure Tenant Portal</h1>
+        <p class="hero-subtitle">
+          Portal de demostració per aprendre a integrar Microsoft Entra ID (Azure AD)
+          amb aplicacions web Node.js, Express i Microsoft Graph.
+        </p>
 
-    <div class="card">
-      <h2>Estat</h2>
-      <ul>
-        <li>Express configurat amb EJS</li>
-        <li>Sessions preparades</li>
-        <li>Rutes: <code>/</code>, <code>/auth/login</code>, <code>/auth/redirect</code>, <code>/auth/logout</code></li>
-      </ul>
-    </div>
+        <% if (!user) { %>
+          <div class="hero-cta-wrapper">
+            <a href="/auth/login" class="btn btn-primary hero-cta">
+              Inicia sessió amb Microsoft Entra ID
+            </a>
+          </div>
+          <% } else { %>
+            <div class="profile-card">
+              <div class="profile-avatar">
+                <span>
+                  <% if (user.name) { %>
+                    <%= user.name.charAt(0).toUpperCase() %>
+                      <% } else if (user.username) { %>
+                        <%= user.username.charAt(0).toUpperCase() %>
+                          <% } else { %>
+                            U
+                            <% } %>
+                </span>
+              </div>
+              <div class="profile-info">
+                <div class="profile-name">
+                  <%= user.name || 'Usuari autenticat' %>
+                </div>
+                <div class="profile-upn">
+                  <%= user.username || '' %>
+                </div>
+              </div>
+            </div>
+            <% } %>
+      </div>
+    </section>
+
+    <!-- Info del projecte -->
+    <section class="info-section">
+      <div class="info-intro">
+        <h2>Sobre aquest portal</h2>
+        <p>
+          EntraSecure Tenant Portal és el meu Treball de Fi de Grau d'Enginyeria Telemàtica:
+          una aplicació de demostració que mostra com integrar autenticació, autorització i
+          accés a dades d'un tenant de Microsoft Entra ID.
+        </p>
+      </div>
+
+      <div class="info-grid">
+        <article class="card">
+          <h3>Objectiu del projecte</h3>
+          <p>
+            Crear una demo funcional i didàctica que il·lustri:
+          </p>
+          <ul>
+            <li>FALTA FICAR</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Tecnologies clau</h3>
+          <ul class="tech-list">
+            <li><strong>Node.js</strong> v20.17.0</li>
+            <li><strong>Express</strong> 5 + <strong>EJS</strong> com a view engine</li>
+            <li><strong>MSAL Node</strong> per a l'autenticació OIDC / OAuth2</li>
+            <li><strong>Microsoft Graph API</strong> per accedir a dades del tenant</li>
+            <li><strong>express-session</strong> per gestionar la sessió d'usuari</li>
+          </ul>
+        </article>
+      </div>
+    </section>
   </main>
 
   <footer class="footer">
     <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
   </footer>
 </body>
+
 </html>

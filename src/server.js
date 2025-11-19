@@ -41,9 +41,11 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 // Rutes
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
+//const identityRoutes = require('./routes/identity');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
+//app.use('/', identityRoutes);
 
 // Healthcheck
 app.get('/health', (_req, res) => {
