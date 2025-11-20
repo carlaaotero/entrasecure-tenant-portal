@@ -1,0 +1,41 @@
+/* Botons genèrics */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease,
+    color 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--color3);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(103, 137, 166, 0.35);
+}
+
+.btn-primary:hover {
+  background: #567894;
+  box-shadow: 0 14px 26px rgba(103, 137, 166, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-outline-light {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  color: #ffffff;
+}
+
+.btn-outline-light:hover {
+  background: #ffffff;
+  color: var(--color3);
+}

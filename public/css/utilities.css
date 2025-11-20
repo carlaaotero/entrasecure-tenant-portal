@@ -1,0 +1,44 @@
+/* Utilitats genèriques i reutilitzables */
+
+/* Text */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+/* Marges */
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+/* Amplades màximes */
+.max-w-sm   { max-width: 24rem; }
+.max-w-md   { max-width: 32rem; }
+.max-w-lg   { max-width: 48rem; }
+.max-w-xl   { max-width: 60rem; }
+.max-w-2xl  { max-width: 72rem; }
+
+/* Layout helpers */
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.section {
+  padding: 2rem 1.5rem;
+}

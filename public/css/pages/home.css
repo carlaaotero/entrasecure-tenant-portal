@@ -1,0 +1,96 @@
+/* HOME */
+
+/* Hero */
+
+.hero {
+  min-height: 40vh; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.2rem 1.5rem 1.5rem;
+}
+
+.hero-inner {
+  max-width: 720px;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 2.2rem;
+  margin-bottom: 0.75rem;
+  color: var(--color1);
+}
+
+.hero-subtitle {
+  margin: 0 auto 1.5rem; 
+  max-width: 48rem;
+  color: var(--color2);
+  font-size: 0.98rem;
+}
+
+.hero-cta-wrapper {
+  margin-top: 0.5rem;
+}
+
+/* Targeta de perfil (quan l'usuari està autenticat) */
+
+.profile-card {
+  margin: 1.5rem auto 0;
+  padding: 1.5rem 1.25rem;
+  max-width: 360px;
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.profile-info {
+  text-align: center;
+}
+
+.profile-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color1);
+}
+
+.profile-upn {
+  font-size: 0.9rem;
+  color: var(--color2);
+}
+
+/* Secció d'informació inferior */
+
+.info-section {
+  padding: 0 1.5rem 2rem; 
+}
+
+.info-intro {
+  max-width: 720px;
+  margin: 0 auto 1rem;
+  text-align: center;
+}
+
+.info-intro h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color1);
+}
+
+.info-intro p {
+  margin: 0;
+  color: var(--color2);
+  font-size: 0.96rem;
+}
+
+/* Footer */
+
+.footer {
+  text-align: center;
+  padding: 1.5rem 1rem 2rem;
+  font-size: 0.8rem;
+  color: var(--color2);
+}
