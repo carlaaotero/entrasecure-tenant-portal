@@ -24,9 +24,11 @@ function requireAuth(req, res, next) {
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const account = req.session.user;
+    console.log('[IDENTITY] account de sessió:', account);
 
     // 1) Access token per Graph
     const accessToken = await getTokenForGraph(account);
+    console.log('[IDENTITY] accessToken (primeres 40 lletres):', accessToken.slice(0, 40), '...');
 
     // 2) Crides en paral·lel a Graph
     const [userProfile, memberOfRaw, appRoleAssignments, devices] =
@@ -37,6 +39,11 @@ router.get('/me', requireAuth, async (req, res) => {
         getUserDevices(accessToken),
       ]);
 
+    console.log('[IDENTITY] /me profile rebut:', JSON.stringify(userProfile, null, 2));
+    console.log('[IDENTITY] memberOf count:', memberOfRaw.length);
+    console.log('[IDENTITY] appRoleAssignments count:', appRoleAssignments.length);
+    console.log('[IDENTITY] devices count:', devices.length);
+
     // 3) Separar grups i directory roles a partir de memberOf
     const groups = memberOfRaw.filter(
       (o) => o['@odata.type'] === '#microsoft.graph.group'
@@ -45,6 +52,9 @@ router.get('/me', requireAuth, async (req, res) => {
     const directoryRoles = memberOfRaw.filter(
       (o) => o['@odata.type'] === '#microsoft.graph.directoryRole'
     );
+    
+    console.log('[IDENTITY] groups filtrats:', groups.length);
+    console.log('[IDENTITY] directoryRoles filtrats:', directoryRoles.length);
 
     // 4) Preparar dades per la vista
     const roles = directoryRoles; // per ara, mostrem ROLES de directori tal qual

@@ -7,6 +7,8 @@ async function callGraph(endpoint, accessToken) {
   const url = endpoint.startsWith('http')
     ? endpoint
     : `${GRAPH_BASE_URL}${endpoint}`;
+  
+  console.log('[GRAPH] GET', url);
 
   const response = await fetch(url, {
     headers: {
@@ -15,18 +17,45 @@ async function callGraph(endpoint, accessToken) {
     },
   });
 
+  console.log('[GRAPH] status', response.status, response.statusText);
+
   if (!response.ok) {
     const text = await response.text();
     throw new Error(`Graph call failed (${url}): ${response.status} ${text}`);
   }
+  
+  const json = await response.json();
 
-  return await response.json();
+  //només mostrem la longitud:
+  if (Array.isArray(json.value)) {
+    console.log('[GRAPH] resposta té', json.value.length, 'elements');
+  } else {
+    console.log('[GRAPH] resposta objecte:', JSON.stringify(json, null, 2));
+  }
+
+  return json;
+  //return await response.json();
 }
 
+// Propietats que volem del /me
+const PROFILE_SELECT = [
+  'id',
+  'displayName',
+  'userPrincipalName',
+  'userType',
+  'createdDateTime',
+  'mailNickname',
+  'lastPasswordChangeDateTime'
+].join(',');
 
 //Retorna identity /me de Graph amb un accessToken vàlid
 async function getUserIdentity(accessToken) {
-  return await callGraph('/me', accessToken);
+  const endpoint = `/me?$select=${PROFILE_SELECT}`;
+  const json = await callGraph(endpoint, accessToken);
+
+  console.log('[GRAPH] /me (select) rebut:', JSON.stringify(json, null, 2));
+
+  return json;
 }
 
 
