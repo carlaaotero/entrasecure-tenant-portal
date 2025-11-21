@@ -1,0 +1,218 @@
+
+
+ <!DOCTYPE html>
+<html lang="ca">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>
+    <%= title %>
+  </title>
+
+  <!-- Design foundation -->
+  <link rel="stylesheet" href="/css/foundation.css" />
+  <!-- Utilities -->
+  <link rel="stylesheet" href="/css/utilities.css" />
+
+  <!-- Components -->
+  <link rel="stylesheet" href="/css/components/navbar.css" />
+  <link rel="stylesheet" href="/css/components/button.css" />
+  <link rel="stylesheet" href="/css/components/card.css" />
+  <link rel="stylesheet" href="/css/components/avatar.css" />
+
+  <!-- Page-specific -->
+  <link rel="stylesheet" href="/css/pages/identity.css" />
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <div class="brand">EntraSecure Tenant Portal</div>
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <% if (user) { %>
+          <li><a href="/me" class="nav-link nav-link-active">My Identity</a></li>
+          <li><a href="/tenant" class="nav-link">Tenant Explorer</a></li>
+          <li><a href="/security" class="nav-link">Security</a></li>
+        <% } %>
+      </ul>
+    </div>
+    <div class="navbar-right">
+      <% if (user) { %>
+        <div class="user-pill">
+          <span class="user-initial">
+            <% if (user.name) { %>
+              <%= user.name.charAt(0).toUpperCase() %>
+            <% } else if (user.username) { %>
+              <%= user.username.charAt(0).toUpperCase() %>
+            <% } else { %>
+              U
+            <% } %>
+          </span>
+          <span class="user-name">
+            <%= user.name || user.username || 'Usuari' %>
+          </span>
+        </div>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline-light">Login</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <main class="identity-main">
+    <section class="identity-layout">
+      <!-- Columna esquerra: avatar + dades bàsiques -->
+      <div class="identity-left">
+        <div class="card identity-profile-card">
+          <div class="identity-avatar-wrapper">
+            <div class="profile-avatar">
+              <span>
+                <% 
+                  const displayName = userProfile && userProfile.displayName ? userProfile.displayName : (user && (user.name || user.username));
+                  const initial = displayName ? displayName.charAt(0).toUpperCase() : 'U';
+                %>
+                <%= initial %>
+              </span>
+            </div>
+          </div>
+
+          <div class="identity-profile-info">
+            <h2 class="identity-title">
+              <%= userProfile && userProfile.displayName ? userProfile.displayName : 'Usuari autenticat' %>
+            </h2>
+            <p class="identity-upn">
+              <%= userProfile && userProfile.userPrincipalName ? userProfile.userPrincipalName : (user && user.username) || '' %>
+            </p>
+          </div>
+
+          <dl class="identity-details">
+            <div class="identity-detail-row">
+              <dt>Display Name</dt>
+              <dd><%= userProfile && userProfile.displayName || '—' %></dd>
+            </div>
+
+            <div class="identity-detail-row">
+              <dt>User Principal Name</dt>
+              <dd><%= userProfile && userProfile.userPrincipalName || '—' %></dd>
+            </div>
+
+            <div class="identity-detail-row">
+              <dt>User Type</dt>
+              <dd><%= userProfile && userProfile.userType || '—' %></dd>
+            </div>
+
+            <div class="identity-detail-row">
+              <dt>Created date time</dt>
+              <dd><%= userProfile && userProfile.createdDateTime || '—' %></dd>
+            </div>
+
+            <div class="identity-detail-row">
+              <dt>Mail nickname</dt>
+              <dd><%= userProfile && userProfile.mailNickname || '—' %></dd>
+            </div>
+
+            <div class="identity-detail-row">
+              <dt>Last password change date time</dt>
+              <dd>
+                <% if (userProfile && userProfile.lastPasswordChangeDateTime) { %>
+                  <%= userProfile.lastPasswordChangeDateTime %>
+                <% } else { %>
+                  N/A
+                <% } %>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Columna dreta: grups, rols, apps, dispositius -->
+      <div class="identity-right">
+        <div class="identity-grid">
+          <!-- Groups -->
+          <article class="card identity-card">
+            <h3>Groups</h3>
+            <% if (groups && groups.length > 0) { %>
+              <ul class="identity-list">
+                <% groups.forEach(function(g) { %>
+                  <li>
+                    <strong><%= g.displayName || '(Sense nom)' %></strong><br />
+                    <small>ID: <%= g.id %></small>
+                  </li>
+                <% }); %>
+              </ul>
+            <% } else { %>
+              <p class="identity-empty">No hi ha grups associats o no es poden llegir.</p>
+            <% } %>
+          </article>
+
+          <!-- Roles -->
+          <article class="card identity-card">
+            <h3>Directory Roles</h3>
+            <% if (roles && roles.length > 0) { %>
+              <ul class="identity-list">
+                <% roles.forEach(function(r) { %>
+                  <li>
+                    <strong><%= r.displayName || '(Sense nom)' %></strong><br />
+                    <small>ID: <%= r.id %></small>
+                  </li>
+                <% }); %>
+              </ul>
+            <% } else { %>
+              <p class="identity-empty">Aquest usuari no té rols de directori assignats (o no es poden llegir).</p>
+            <% } %>
+          </article>
+
+          <!-- Applications -->
+          <article class="card identity-card">
+            <h3>Applications (App Role Assignments)</h3>
+            <% if (apps && apps.length > 0) { %>
+              <ul class="identity-list">
+                <% apps.forEach(function(a) { %>
+                  <li>
+                    <strong><%= a.resourceDisplayName || '(Aplicació sense nom)' %></strong><br />
+                    <small>App Role ID: <%= a.appRoleId %></small>
+                  </li>
+                <% }); %>
+              </ul>
+            <% } else { %>
+              <p class="identity-empty">No s'han trobat aplicacions amb rols assignats.</p>
+            <% } %>
+          </article>
+
+          <!-- Devices -->
+          <article class="card identity-card">
+            <h3>Devices</h3>
+            <% if (devices && devices.length > 0) { %>
+              <ul class="identity-list">
+                <% devices.forEach(function(d) { %>
+                  <li>
+                    <strong><%= d.displayName || '(Device sense nom)' %></strong><br />
+                    <small>Type: <%= d['@odata.type'] || '—' %></small>
+                  </li>
+                <% }); %>
+              </ul>
+            <% } else { %>
+              <p class="identity-empty">No hi ha dispositius registrats per aquest usuari.</p>
+            <% } %>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bloc educatiu inferior -->
+    <section class="identity-bottom">
+      <article class="card identity-info-card">
+        <h3>Com llegir aquesta informació</h3>
+        <p><%= helpfulInfo %></p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+  </footer>
+</body>
+
+</html>

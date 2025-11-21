@@ -1,6 +1,6 @@
 // Crea la instància MSAL ConfidentialClientApplication i ofereix utilitats per obtenir tokens
 
-const { msalConfig } = require('./msalConfig'); // importar la configuració de MSAL
+const { msalConfig, graphScopes } = require('./msalConfig'); // importar la configuració de MSAL
 const msal = require('@azure/msal-node'); // llibreria oficial MSAL per Node
 
 // Instància única de l'aplicació confidencial (Client Credentials + Auth Code)
@@ -15,7 +15,8 @@ const cca = new msal.ConfidentialClientApplication(msalConfig);
 async function getTokenForGraph(account) {
   const response = await cca.acquireTokenSilent({
     account, // compte MSAL guardat a sessió
-    scopes: ['User.Read'], // els mateixos que vam demanar al login
+    //scopes: ['User.Read'], // els mateixos que vam demanar al login
+    scopes: graphScopes,
   });
   return response.accessToken;
 }

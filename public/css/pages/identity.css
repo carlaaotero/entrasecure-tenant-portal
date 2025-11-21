@@ -1,0 +1,151 @@
+/* My Identity */
+.identity-main {
+  padding-bottom: 2rem;
+}
+
+/* Layout principal: dues columnes (esquerra perfil, dreta info) */
+.identity-layout {
+  max-width: 1400px;              /* ocupa gairebé tota la pantalla en monitors grans */
+  margin: 2rem auto 0;
+  padding: 0 1.5rem;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr);
+  column-gap: 2rem;
+  align-items: flex-start;
+}
+
+/* Les cards d’Identity fan tot l’ample disponible, sense max-width petit de .card */
+.identity-profile-card,
+.identity-card,
+.identity-info-card {
+  width: 100%;
+  max-width: none;
+}
+
+/* --- ESQUERRA: card gran de l’usuari --- */
+
+.identity-profile-card {
+  padding: 1.8rem 1.6rem 1.5rem;
+}
+
+.identity-avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.identity-profile-info {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.identity-title {
+  margin: 0 0 0.3rem;
+  font-size: 1.4rem;
+  color: var(--color1);
+}
+
+.identity-upn {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color2);
+}
+
+/* Llista de propietats del perfil */
+
+.identity-details {
+  margin: 0;
+}
+
+.identity-detail-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.4rem;
+}
+
+.identity-detail-row dt {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color2);
+  margin-bottom: 0.1rem;
+}
+
+.identity-detail-row dd {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color1);
+}
+
+/* --- DRETA: totes les cards en columna amb espai entre elles --- */
+
+.identity-right {
+  width: 100%;
+}
+
+/* Abans era un grid 2x2; ara fem una columna amb espai entre targetes */
+.identity-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;      /* ESPAI entre cards de la dreta */
+}
+
+.identity-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+}
+
+.identity-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+  color: var(--color2);
+}
+
+.identity-list li + li {
+  margin-top: 0.35rem;
+}
+
+.identity-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color2);
+}
+
+/* --- Bloc educatiu inferior (ocupa tot l’ample, com vols) --- */
+
+.identity-bottom {
+  max-width: 1400px;
+  margin: 1.7rem auto 0;
+  padding: 0 1.5rem 2rem;
+}
+
+.identity-info-card {
+  padding: 1.3rem 1.4rem 1.2rem;
+}
+
+.identity-info-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.identity-info-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color2);
+}
+
+/* Mòbil: una sola columna (perfil a dalt, llista de cards a sota) */
+
+@media (max-width: 900px) {
+  .identity-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .identity-right {
+    margin-top: 1rem;
+  }
+}
