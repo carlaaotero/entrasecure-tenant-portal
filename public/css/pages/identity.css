@@ -3,29 +3,33 @@
   padding-bottom: 2rem;
 }
 
-/* Layout principal: dues columnes (esquerra perfil, dreta info) */
+/* Layout principal: 2 columnes, 4 files */
 .identity-layout {
-  max-width: 1400px;              /* ocupa gairebé tota la pantalla en monitors grans */
+  max-width: 1400px;
   margin: 2rem auto 0;
   padding: 0 1.5rem;
 
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr);
+  grid-template-columns: 1.6fr 1.4fr;
+  grid-template-rows: auto auto auto auto;
   column-gap: 2rem;
+  row-gap: 1.1rem;
   align-items: flex-start;
 }
 
-/* Les cards d’Identity fan tot l’ample disponible, sense max-width petit de .card */
+/* Totes les cards d’Identity ocupen tot l’ample disponible */
 .identity-profile-card,
-.identity-card,
-.identity-info-card {
+.identity-card {
   width: 100%;
   max-width: none;
 }
 
-/* --- ESQUERRA: card gran de l’usuari --- */
+/* --- ESQUERRA: Perfil + Card educativa --- */
 
+/* Perfil ocupa column 1, files 1–3 */
 .identity-profile-card {
+  grid-column: 1;
+  grid-row: 1 / span 3;
   padding: 1.8rem 1.6rem 1.5rem;
 }
 
@@ -79,17 +83,49 @@
   color: var(--color1);
 }
 
-/* --- DRETA: totes les cards en columna amb espai entre elles --- */
-
-.identity-right {
-  width: 100%;
+/* Card educativa: columna 1, fila 4 */
+.identity-edu-card {
+  grid-column: 1;
+  grid-row: 4;
 }
 
-/* Abans era un grid 2x2; ara fem una columna amb espai entre targetes */
-.identity-grid {
+/* Text de la card educativa */
+.identity-edu {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.35rem;
+  color: var(--color2);
+}
+
+/* --- DRETA: Groups, Roles, Apps, Devices --- */
+
+/* Cada card de la dreta a la seva fila */
+.identity-groups-card {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.identity-roles-card {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.identity-apps-card {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.identity-devices-card {
+  grid-column: 2;
+  grid-row: 4;
+}
+
+/* Cards de la dreta: alçada fixa + scroll intern */
+.identity-card {
+  padding: 1.1rem 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;      /* ESPAI entre cards de la dreta */
+  height: 190px;          /* alçada "estàtica" de cada card */
 }
 
 .identity-card h3 {
@@ -98,16 +134,44 @@
   font-size: 1rem;
 }
 
-.identity-list {
+/* Contingut scrollable dins de la card */
+.identity-card-content {
+  flex: 1;
+  overflow-y: auto;        /* apareix la barra només si hi ha massa contingut */
+  padding-right: 0.3rem;   /* espai perquè el text no quedi enganxat a la barra */
+}
+
+/* Sub-cards dins de les cards de la dreta (Groups, Roles, Apps, Devices) */
+
+.identity-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
   margin: 0;
-  padding-left: 1.1rem;
-  font-size: 0.9rem;
+  padding: 0;
+}
+
+.identity-item-card {
+  background: #f9fafb;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.identity-item-title {
+  font-weight: 600;
+  color: var(--color1);
+  margin: 0 0 0.1rem;
+}
+
+.identity-item-meta {
+  margin: 0;
+  font-size: 0.78rem;
   color: var(--color2);
 }
 
-.identity-list li + li {
-  margin-top: 0.35rem;
-}
+/* Missatges buits */
 
 .identity-empty {
   margin: 0;
@@ -115,37 +179,44 @@
   color: var(--color2);
 }
 
-/* --- Bloc educatiu inferior (ocupa tot l’ample, com vols) --- */
-
-.identity-bottom {
-  max-width: 1400px;
-  margin: 1.7rem auto 0;
-  padding: 0 1.5rem 2rem;
-}
-
-.identity-info-card {
-  padding: 1.3rem 1.4rem 1.2rem;
-}
-
-.identity-info-card h3 {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-}
-
-.identity-info-card p {
-  margin: 0;
-  font-size: 0.95rem;
-  color: var(--color2);
-}
-
-/* Mòbil: una sola columna (perfil a dalt, llista de cards a sota) */
+/* Mòbil: una sola columna, l'ordre segueix sent l'HTML */
 
 @media (max-width: 900px) {
   .identity-layout {
     grid-template-columns: 1fr;
   }
 
-  .identity-right {
-    margin-top: 1rem;
+  .identity-profile-card {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .identity-groups-card {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .identity-roles-card {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .identity-apps-card {
+    grid-column: 1;
+    grid-row: 4;
+  }
+
+  .identity-devices-card {
+    grid-column: 1;
+    grid-row: 5;
+  }
+
+  .identity-edu-card {
+    grid-column: 1;
+    grid-row: 6;
+  }
+
+  .identity-card {
+    height: 210px;
   }
 }
