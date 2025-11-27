@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title><%= title %> · EntraSecure</title>
+
+  <!-- Design foundation -->
+  <link rel="stylesheet" href="/css/foundation.css" />
+  <!-- Utilities -->
+  <link rel="stylesheet" href="/css/utilities.css" />
+
+  <!-- Components -->
+  <link rel="stylesheet" href="/css/components/navbar.css" />
+  <link rel="stylesheet" href="/css/components/button.css" />
+  <link rel="stylesheet" href="/css/components/card.css" />
+  <link rel="stylesheet" href="/css/components/avatar.css" />
+
+  <!-- Page-specific -->
+  <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <div class="brand">EntraSecure Tenant Portal</div>
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <% if (user) { %>
+          <li><a href="/me" class="nav-link">My Identity</a></li>
+          <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
+          <li><a href="/security" class="nav-link">Security</a></li>
+        <% } %>
+      </ul>
+    </div>
+    <div class="navbar-right">
+      <% if (user) { %>
+        <div class="user-pill">
+          <span class="user-initial">
+            <% if (user.name) { %>
+              <%= user.name.charAt(0).toUpperCase() %>
+            <% } else if (user.username) { %>
+              <%= user.username.charAt(0).toUpperCase() %>
+            <% } else { %>
+              U
+            <% } %>
+          </span>
+          <span class="user-name">
+            <%= user.name || user.username || 'Usuari' %>
+          </span>
+        </div>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline-light">Login</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <main class="tenant-users-main">
+    <section class="tenant-users-layout">
+
+      <header class="users-header">
+        <h1>Usuaris del tenant</h1>
+        <p>
+          Llista d'usuaris de Microsoft Entra ID amb informació bàsica:
+          Display Name, UPN, tipus d'usuari i si el compte està habilitat.
+        </p>
+      </header>
+
+      <article class="card users-card">
+        <div class="users-card-header">
+          <div>
+            <h2>Llista d'usuaris</h2>
+            <p class="users-meta">
+              <%= users && users.length ? users.length : 0 %> usuaris trobats
+            </p>
+          </div>
+        </div>
+
+        <div class="users-card-body">
+          <% if (users && users.length > 0) { %>
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>Display Name</th>
+                  <th>User Principal Name</th>
+                  <th>User Type</th>
+                  <th>Estat</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% users.forEach(function (u) { %>
+                  <tr>
+                    <td><%= u.displayName || '(Sense nom)' %></td>
+                    <td><%= u.userPrincipalName || '' %></td>
+                    <td><%= u.userType || '—' %></td>
+                    <td>
+                      <span class="badge <%= u.accountEnabled ? 'badge-ok' : 'badge-disabled' %>">
+                        <%= u.accountEnabled ? 'Enabled' : 'Disabled' %>
+                      </span>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <p class="users-empty">
+              No s'ha trobat cap usuari al tenant (o no es pot llegir la informació).
+            </p>
+          <% } %>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+  </footer>
+</body>
+
+</html>

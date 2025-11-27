@@ -4,7 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title><%= title %></title>
+  <title>
+    <%= title %>
+  </title>
 
   <!-- Design foundation -->
   <link rel="stylesheet" href="/css/foundation.css" />
@@ -32,7 +34,7 @@
           <li><a href="/me" class="nav-link">My Identity</a></li>
           <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
           <li><a href="/security" class="nav-link">Security</a></li>
-        <% } %>
+          <% } %>
       </ul>
     </div>
     <div class="navbar-right">
@@ -41,19 +43,19 @@
           <span class="user-initial">
             <% if (user.name) { %>
               <%= user.name.charAt(0).toUpperCase() %>
-            <% } else if (user.username) { %>
-              <%= user.username.charAt(0).toUpperCase() %>
-            <% } else { %>
-              U
-            <% } %>
+                <% } else if (user.username) { %>
+                  <%= user.username.charAt(0).toUpperCase() %>
+                    <% } else { %>
+                      U
+                      <% } %>
           </span>
           <span class="user-name">
             <%= user.name || user.username || 'Usuari' %>
           </span>
         </div>
-      <% } else { %>
-        <a href="/auth/login" class="btn btn-outline-light">Login</a>
-      <% } %>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-outline-light">Login</a>
+          <% } %>
     </div>
   </nav>
 
@@ -69,11 +71,31 @@
               Veure detalls
             </button>
           </header>
-          <div class="tenant-card-body">
-            <p class="tenant-card-desc">
-              Llista d'usuaris del tenant (display name, UPN, userType, estat...).
-            </p>
+          <div class="tenant-card-body tenant-card-scroll">
+            <% if (usersPreview && usersPreview.length> 0) { %>
+
+              <div class="preview-list">
+                <% usersPreview.forEach(function (u) { %>
+                  <div class="preview-item">
+                    <div class="preview-title">
+                      <%= u.displayName || '(Sense nom)' %>
+                    </div>
+                    <div class="preview-meta">
+                      <%= u.userPrincipalName %>
+                    </div>
+                    <div class="preview-type">
+                      <%= u.userType %>
+                    </div>
+                  </div>
+                  <% }); %>
+              </div>
+
+              <% } else { %>
+                <p class="preview-empty">No s'han pogut carregar usuaris del tenant.</p>
+                <% } %>
           </div>
+
+
         </article>
 
         <!-- Groups -->
@@ -84,11 +106,33 @@
               Veure detalls
             </button>
           </header>
-          <div class="tenant-card-body">
-            <p class="tenant-card-desc">
-              Grups de seguretat i M365, amb informació de membres i propietaris.
-            </p>
+          <div class="tenant-card-body tenant-card-scroll">
+            <% if (groupsPreview && groupsPreview.length> 0) { %>
+              <div class="preview-list">
+                <% groupsPreview.forEach(function (g) { %>
+                  <div class="preview-item">
+                    <div class="preview-title">
+                      <%= g.displayName || '(Sense nom)' %>
+                    </div>
+                    <div class="preview-meta">
+                      ID: <%= g.id %>
+                    </div>
+                    <div class="preview-type">
+                      <% if (g.groupTypes && g.groupTypes.length> 0) { %>
+                        <%= g.groupTypes.join(', ') %>
+            <% } else { %>
+              Security group
+            <% } %>
           </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <p class="preview-empty">
+      No s' han pogut carregar grups del tenant. </p>
+                          <% } %>
+                    </div>
+
         </article>
 
         <!-- Roles -->

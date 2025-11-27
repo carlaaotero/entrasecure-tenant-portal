@@ -106,6 +106,9 @@ Retorna el perfil /me de Graph amb un accessToken vàlid
 }*/
 
 module.exports = {
+  callGraph,
+
+  //My Identity
   getUserIdentity,
   getUserMemberOf,
   getUserAppRoleAssignments,

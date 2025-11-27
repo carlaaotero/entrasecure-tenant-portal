@@ -40,11 +40,15 @@
 
 /* Targetes grans tipus quadrant */
 .tenant-card {
-    min-height: 370px;
-    padding: 1.8rem 1.6rem;
+    height: 370px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+}
+
+/* El cos de la card tindrà scroll intern */
+.tenant-card-scroll {
+  overflow-y: auto;
+  padding-right: 4px;        /* per evitar que la scrollbar tapi el text */
 }
 
 /* Header de la card: títol a l'esquerra, botó a la dreta */
@@ -64,6 +68,7 @@
 /* Cos de la card: aquí després hi posarem la previsualització de llista, gràfics, etc. */
 .tenant-card-body {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
 }
@@ -72,4 +77,50 @@
     margin: 0;
     color: var(--color2);
     font-size: 0.95rem;
+}
+
+/* MINI PREVIEW dins la card */
+
+.preview-list {
+  /*margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;*/
+    display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.preview-item {
+  /*padding: 0.55rem 0.8rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.06);*/
+    padding: 0.6rem 0.8rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.07);
+}
+
+.preview-title {
+  font-weight: 600;
+  color: var(--color1);
+}
+
+.preview-meta {
+  font-size: 0.85rem;
+  color: var(--color2);
+}
+
+.preview-type {
+  font-size: 0.78rem;
+  color: var(--color3);
+  font-weight: 600;
+  margin-top: 0.1rem;
+}
+
+.preview-empty {
+  margin-top: 0.5rem;
+  color: var(--color2);
+  font-size: 0.9rem;
 }

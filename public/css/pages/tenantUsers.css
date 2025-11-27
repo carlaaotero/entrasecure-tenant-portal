@@ -1,0 +1,119 @@
+/* Layout general de la pàgina d'usuaris del tenant */
+
+.tenant-users-main {
+  padding-bottom: 2rem;
+}
+
+.tenant-users-layout {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1.5rem 2.5rem;
+}
+
+.users-header {
+  max-width: 800px;
+  margin: 0 auto 1.5rem;
+  text-align: center;
+}
+
+.users-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: var(--color1);
+}
+
+.users-header p {
+  margin: 0;
+  color: var(--color2);
+  font-size: 0.96rem;
+}
+
+/* Card principal */
+
+.users-card {
+  padding: 1.5rem 1.4rem;
+}
+
+.users-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1rem;
+}
+
+.users-card-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.users-meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color2);
+}
+
+/* Cos de la card: taula amb scroll intern */
+
+.users-card-body {
+  max-height: 480px;        /* llista gran però amb scroll */
+  overflow-y: auto;
+}
+
+/* Taula d'usuaris */
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93rem;
+}
+
+.users-table thead {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  z-index: 1;
+}
+
+.users-table th,
+.users-table td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.users-table th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color2);
+}
+
+.users-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* Badge d'estat */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+
+.badge-ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-disabled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.users-empty {
+  margin: 0;
+  color: var(--color2);
+  font-size: 0.95rem;
+}
