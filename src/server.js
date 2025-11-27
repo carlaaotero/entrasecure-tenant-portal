@@ -42,10 +42,12 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
 const identityRoutes = require('./routes/identity');
+const tenantExplorerRoutes = require('./routes/tenantExplorer');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/', identityRoutes);
+app.use('/', tenantExplorerRoutes);
 
 // Healthcheck
 app.get('/health', (_req, res) => {

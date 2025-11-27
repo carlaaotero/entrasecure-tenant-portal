@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title><%= title %></title>
+
+  <!-- Design foundation -->
+  <link rel="stylesheet" href="/css/foundation.css" />
+  <!-- Utilities -->
+  <link rel="stylesheet" href="/css/utilities.css" />
+
+  <!-- Components -->
+  <link rel="stylesheet" href="/css/components/navbar.css" />
+  <link rel="stylesheet" href="/css/components/button.css" />
+  <link rel="stylesheet" href="/css/components/card.css" />
+  <link rel="stylesheet" href="/css/components/avatar.css" />
+
+  <!-- Page-specific -->
+  <link rel="stylesheet" href="/css/pages/tenantExplorer.css" />
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <div class="brand">EntraSecure Tenant Portal</div>
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <% if (user) { %>
+          <li><a href="/me" class="nav-link">My Identity</a></li>
+          <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
+          <li><a href="/security" class="nav-link">Security</a></li>
+        <% } %>
+      </ul>
+    </div>
+    <div class="navbar-right">
+      <% if (user) { %>
+        <div class="user-pill">
+          <span class="user-initial">
+            <% if (user.name) { %>
+              <%= user.name.charAt(0).toUpperCase() %>
+            <% } else if (user.username) { %>
+              <%= user.username.charAt(0).toUpperCase() %>
+            <% } else { %>
+              U
+            <% } %>
+          </span>
+          <span class="user-name">
+            <%= user.name || user.username || 'Usuari' %>
+          </span>
+        </div>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline-light">Login</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <main class="tenant-main">
+    <section class="tenant-section">
+
+      <div class="info-grid">
+        <!-- Users -->
+        <article class="card tenant-card">
+          <header class="tenant-card-header">
+            <h3>Usuaris</h3>
+            <button class="btn btn-primary" onclick="location.href='/tenant/users'">
+              Veure detalls
+            </button>
+          </header>
+          <div class="tenant-card-body">
+            <p class="tenant-card-desc">
+              Llista d'usuaris del tenant (display name, UPN, userType, estat...).
+            </p>
+          </div>
+        </article>
+
+        <!-- Groups -->
+        <article class="card tenant-card">
+          <header class="tenant-card-header">
+            <h3>Grups</h3>
+            <button class="btn btn-primary" onclick="location.href='/tenant/groups'">
+              Veure detalls
+            </button>
+          </header>
+          <div class="tenant-card-body">
+            <p class="tenant-card-desc">
+              Grups de seguretat i M365, amb informació de membres i propietaris.
+            </p>
+          </div>
+        </article>
+
+        <!-- Roles -->
+        <article class="card tenant-card">
+          <header class="tenant-card-header">
+            <h3>Directory Roles</h3>
+            <button class="btn btn-primary" onclick="location.href='/tenant/roles'">
+              Veure detalls
+            </button>
+          </header>
+          <div class="tenant-card-body">
+            <p class="tenant-card-desc">
+              Rols privilegiats del tenant i els seus membres principals.
+            </p>
+          </div>
+        </article>
+
+        <!-- Apps -->
+        <article class="card tenant-card">
+          <header class="tenant-card-header">
+            <h3>Aplicacions</h3>
+            <button class="btn btn-primary" onclick="location.href='/tenant/apps'">
+              Veure detalls
+            </button>
+          </header>
+          <div class="tenant-card-body">
+            <p class="tenant-card-desc">
+              Aplicacions registrades i service principals del tenant.
+            </p>
+          </div>
+        </article>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+  </footer>
+</body>
+
+</html>
