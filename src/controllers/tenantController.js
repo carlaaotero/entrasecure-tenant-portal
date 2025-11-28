@@ -15,20 +15,47 @@ async function getAllUsers(accessToken) {
     return json.value || [];
 }
 
+const USER_PROFILE_SELECT = [
+    'id',
+    'displayName',
+    'userPrincipalName',
+    'userType',
+    'createdDateTime',
+    'mailNickname',
+    'lastPasswordChangeDateTime'
+].join(',');
+
+async function getTenantUserById(accessToken, userId) {
+    const endpoint = `/users/${userId}?$select=${USER_PROFILE_SELECT}`;
+    const json = await callGraph(endpoint, accessToken);
+    return json;
+}
+
+async function getTenantUserMemberOf(accessToken, userId) {
+    const endpoint = `/users/${userId}/memberOf?$select=displayName,id`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
+
+async function getTenantUserAppRoleAssignments(accessToken, userId) {
+    const endpoint = `/users/${userId}/appRoleAssignments?$select=id,resourceDisplayName,principalDisplayName,appRoleId`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
 
 // ======================
 // GROUPS
 // ======================
 async function getGroupsPreview(accessToken, top = 5) {
-  const endpoint = `/groups?$select=id,displayName,groupTypes&$top=${top}`;
-  const json = await callGraph(endpoint, accessToken);
-  return json.value || [];
+    const endpoint = `/groups?$select=id,displayName,groupTypes&$top=${top}`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
 }
 
 async function getAllGroups(accessToken) {
-  const endpoint = `/groups?$select=id,displayName,groupTypes`;
-  const json = await callGraph(endpoint, accessToken);
-  return json.value || [];
+    const endpoint = `/groups?$select=id,displayName,groupTypes`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
 }
 
 /*
@@ -71,16 +98,19 @@ module.exports = {
     // Users
     getUsersPreview,
     getAllUsers,
+    getTenantUserById,
+    getTenantUserMemberOf,
+    getTenantUserAppRoleAssignments,
 
-  // Groups
-  getGroupsPreview,
-  getAllGroups,
-/*
-  // Roles
-  getRolesPreview,
-  getAllRoles,
-
-  // Apps
-  getAppsPreview,
-  getAllApps,*/
+    // Groups
+    getGroupsPreview,
+    getAllGroups,
+    /*
+      // Roles
+      getRolesPreview,
+      getAllRoles,
+    
+      // Apps
+      getAppsPreview,
+      getAllApps,*/
 };

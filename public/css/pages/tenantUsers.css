@@ -117,3 +117,11 @@
   color: var(--color2);
   font-size: 0.95rem;
 }
+
+.users-row {
+  cursor: pointer;
+}
+
+.users-row:hover {
+  background: #eef2ff;
+}

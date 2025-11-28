@@ -8,6 +8,9 @@ const {
     getUsersPreview,
     getGroupsPreview,
     getAllUsers,
+    getTenantUserById,
+    getTenantUserMemberOf,
+    getTenantUserAppRoleAssignments,
 } = require('../controllers/tenantController');
 
 // Middleware per protegir rutes: si no hi ha sessió, envia a login
@@ -63,5 +66,51 @@ router.get('/tenant/users', requireAuth, async (req, res) => {
     }
 });
 
+router.get('/tenant/users/:id', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const userId = req.params.id;
+
+        const [
+            userProfile,
+            memberOfRaw,
+            appRoleAssignments,
+        ] = await Promise.all([
+            getTenantUserById(accessToken, userId),
+            getTenantUserMemberOf(accessToken, userId),
+            getTenantUserAppRoleAssignments(accessToken, userId),
+        ]);
+
+        const groups = memberOfRaw.filter(
+            (o) => o['@odata.type'] === '#microsoft.graph.group'
+        );
+        const directoryRoles = memberOfRaw.filter(
+            (o) => o['@odata.type'] === '#microsoft.graph.directoryRole'
+        );
+
+        const roles = directoryRoles;
+        const apps = appRoleAssignments;
+
+        const helpfulInfo = `
+Aquesta vista mostra la identitat d'un usuari del tenant de Microsoft Entra ID,
+incloent les seves propietats bàsiques, grups, rols de directori i aplicacions
+on té rols assignats. És útil per analitzar el context d'accés d'un usuari concret.
+`.trim();
+
+        res.render('tenantExplorer/userIdentity', {
+            title: `Usuari · ${userProfile.displayName || userProfile.userPrincipalName}`,
+            user: account,        // usuari logat (per la navbar)
+            userProfile,          // usuari seleccionat
+            groups,
+            roles,
+            apps,
+            helpfulInfo,
+        });
+    } catch (err) {
+        console.error('Error carregant /tenant/users/:id:', err);
+        res.status(500).send('Error carregant el detall de l\'usuari');
+    }
+});
 
 module.exports = router;
