@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title><%= title %> · EntraSecure</title>
+    <title>
+        <%= title %> · EntraSecure
+    </title>
 
     <!-- Design foundation -->
     <link rel="stylesheet" href="/css/foundation.css" />
@@ -32,7 +34,7 @@
                     <li><a href="/me" class="nav-link">My Identity</a></li>
                     <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
                     <li><a href="/security" class="nav-link">Security</a></li>
-                <% } %>
+                    <% } %>
             </ul>
         </div>
 
@@ -42,18 +44,18 @@
                     <span class="user-initial">
                         <% if (user.name) { %>
                             <%= user.name.charAt(0).toUpperCase() %>
-                        <% } else if (user.username) { %>
-                            <%= user.username.charAt(0).toUpperCase() %>
-                        <% } else { %>U<% } %>
+                                <% } else if (user.username) { %>
+                                    <%= user.username.charAt(0).toUpperCase() %>
+                                        <% } else { %>U<% } %>
                     </span>
 
                     <span class="user-name">
                         <%= user.name || user.username || 'Usuari' %>
                     </span>
                 </div>
-            <% } else { %>
-                <a href="/auth/login" class="btn btn-outline-light">Login</a>
-            <% } %>
+                <% } else { %>
+                    <a href="/auth/login" class="btn btn-outline-light">Login</a>
+                    <% } %>
         </div>
     </nav>
 
@@ -68,13 +70,12 @@
                 </p>
             </header>
 
-            <!-- FORMULARI -->
+            <!-- Un ÚNIC formulari que engloba les dues cards (llista + inactius) -->
             <form method="POST" action="/tenant/users/delete"
-                  onsubmit="return confirm('Vols eliminar els usuaris seleccionats del tenant? Aquesta acció és irreversible.');">
+                onsubmit="return confirm('Vols eliminar els usuaris seleccionats del tenant? Aquesta acció és irreversible.');">
 
+                <!-- CARD 1: Llista completa d'usuaris -->
                 <article class="card users-card">
-
-                    <!-- HEADER DE LA CARD -->
                     <div class="users-card-header">
                         <div class="users-header-left">
                             <h2>Llista d'usuaris</h2>
@@ -87,13 +88,9 @@
 
                         <div class="users-header-right">
                             <div class="users-filters">
-                                <input
-                                    id="userSearch"
-                                    type="text"
-                                    class="users-search-input"
+                                <input id="userSearch" type="text" class="users-search-input"
                                     placeholder="Cerca per nom o UPN"
-                                    onkeydown="if (event.key === 'Enter') { event.preventDefault(); }"
-                                />
+                                    onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
 
                                 <select id="userTypeFilter" class="users-type-filter">
                                     <option value="all">Tots els tipus</option>
@@ -108,60 +105,144 @@
                         </div>
                     </div>
 
-                    <!-- TAULA D'USUARIS -->
                     <div class="users-card-body">
-                        <% if (users && users.length > 0) { %>
-
-                        <table class="users-table">
-                            <thead>
-                                <tr>
-                                    <th>Display Name</th>
-                                    <th>User Principal Name</th>
-                                    <th>User Type</th>
-                                    <th>Estat</th>
-                                    <th>Seleccionar</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                <% users.forEach(function (u) { %>
-                                    <tr
-                                      data-display-name="<%= u.displayName || '' %>"
-                                      data-upn="<%= u.userPrincipalName || '' %>"
-                                      data-type="<%= (u.userType || '').toLowerCase() %>"
-                                    >
-                                        <td>
-                                            <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
-                                               class="users-link">
-                                                <%= u.displayName || '(Sense nom)' %>
-                                            </a>
-                                        </td>
-
-                                        <td><%= u.userPrincipalName || '' %></td>
-                                        <td><%= u.userType || '—' %></td>
-
-                                        <td>
-                                            <span class="badge <%= u.accountEnabled ? 'badge-ok' : 'badge-disabled' %>">
-                                                <%= u.accountEnabled ? 'Enabled' : 'Disabled' %>
-                                            </span>
-                                        </td>
-
-                                        <td class="users-select-cell">
-                                            <input type="checkbox" name="userIds" value="<%= u.id %>" />
-                                        </td>
+                        <% if (users && users.length> 0) { %>
+                            <table class="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Display Name</th>
+                                        <th>User Principal Name</th>
+                                        <th>User Type</th>
+                                        <th>Estat</th>
+                                        <th>Seleccionar</th>
                                     </tr>
-                                <% }); %>
-                            </tbody>
-                        </table>
+                                </thead>
 
-                        <% } else { %>
-                            <p class="users-empty">
-                                No s'ha trobat cap usuari o no es pot llegir la informació.
+                                <tbody>
+                                    <% users.forEach(function (u) { %>
+                                        <tr data-display-name="<%= u.displayName || '' %>"
+                                            data-upn="<%= u.userPrincipalName || '' %>"
+                                            data-type="<%= (u.userType || '').toLowerCase() %>">
+                                            <td>
+                                                <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
+                                                    class="users-link">
+                                                    <%= u.displayName || '(Sense nom)' %>
+                                                </a>
+                                            </td>
+
+                                            <td>
+                                                <%= u.userPrincipalName || '' %>
+                                            </td>
+                                            <td>
+                                                <%= u.userType || '—' %>
+                                            </td>
+
+                                            <td>
+                                                <span
+                                                    class="badge <%= u.accountEnabled ? 'badge-ok' : 'badge-disabled' %>">
+                                                    <%= u.accountEnabled ? 'Enabled' : 'Disabled' %>
+                                                </span>
+                                            </td>
+
+                                            <td class="users-select-cell">
+                                                <input type="checkbox" name="userIds" value="<%= u.id %>" />
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                            <% } else { %>
+                                <p class="users-empty">
+                                    No s'ha trobat cap usuari o no es pot llegir la informació.
+                                </p>
+                                <% } %>
+                    </div>
+                </article>
+
+                <!-- CARD 2: Usuaris inactius (per dies sense login) -->
+                <article class="card users-card inactive-card">
+                    <div class="users-card-header">
+                        <div class="users-header-left">
+                            <h2>Usuaris inactius (sign-in)</h2>
+                            <p class="users-meta">
+                                Usuaris que fa més de X dies que no inicien sessió.
                             </p>
-                        <% } %>
+                        </div>
+
+                        <div class="users-header-right">
+                            <div class="users-filters">
+                                <label for="inactiveDays" class="inactive-label">
+                                    Dies sense activitat:
+                                </label>
+                                <input id="inactiveDays" type="number" min="0" value="1" class="inactive-days-input" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                Eliminar seleccionats
+                            </button>
+                        </div>
                     </div>
 
+                    <div class="users-card-body">
+                        <% if (users && users.length> 0) { %>
+                            <table class="users-table inactive-users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Display Name</th>
+                                        <th>User Principal Name</th>
+                                        <th>User Type</th>
+                                        <th>Últim sign-in</th>
+                                        <th>Dies sense sign-in</th>
+                                        <th>Seleccionar</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <% users.forEach(function (u) { %>
+                                        <tr data-last-signin="<%= u.signInActivity && u.signInActivity.lastSignInDateTime ? u.signInActivity.lastSignInDateTime : '' %>"
+                                            data-type="<%= (u.userType || '').toLowerCase() %>">
+                                            <td>
+                                                <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
+                                                    class="users-link">
+                                                    <%= u.displayName || '(Sense nom)' %>
+                                                </a>
+                                            </td>
+
+                                            <td>
+                                                <%= u.userPrincipalName || '' %>
+                                            </td>
+                                            <td>
+                                                <%= u.userType || '—' %>
+                                            </td>
+
+                                            <td>
+                                                <% if (u.signInActivity && u.signInActivity.lastSignInDateTime) { %>
+                                                    <%= u.signInActivity.lastSignInDateTime %>
+                                                        <% } else { %>
+                                                            <span class="muted-text">Sense dades</span>
+                                                            <% } %>
+                                            </td>
+
+                                            <td class="inactive-days-cell">
+                                                <!-- El valor real el calcularem via JS, aquí només posem un placeholder -->
+                                                <span class="inactive-days-value">–</span>
+                                            </td>
+
+                                            <td class="users-select-cell">
+                                                <input type="checkbox" name="userIds" value="<%= u.id %>" />
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                            <% } else { %>
+                                <p class="users-empty">
+                                    No hi ha usuaris per analitzar inactivitat.
+                                </p>
+                                <% } %>
+                    </div>
                 </article>
+
             </form>
 
         </section>
@@ -171,17 +252,18 @@
         <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
     </footer>
 
-    <!-- JS FILTRATGE -->
+    <!-- JS: filtres + inactivitat -->
     <script>
         (function () {
+            // --- Filtres de la taula principal ---
             const searchInput = document.getElementById('userSearch');
             const typeFilter = document.getElementById('userTypeFilter');
             const rows = Array.from(document.querySelectorAll('.users-table tbody tr'));
             const countSpan = document.querySelector('.users-meta-count');
 
             function applyUserFilters() {
-                const term = (searchInput.value || '').trim().toLowerCase();
-                const type = (typeFilter.value || 'all').toLowerCase();
+                const term = (searchInput?.value || '').trim().toLowerCase();
+                const type = (typeFilter?.value || 'all').toLowerCase();
 
                 let visibleCount = 0;
 
@@ -208,8 +290,64 @@
 
             searchInput?.addEventListener('input', applyUserFilters);
             typeFilter?.addEventListener('change', applyUserFilters);
+
+            // --- Card d'usuaris inactius ---
+            const inactiveInput = document.getElementById('inactiveDays');
+            const inactiveRows = Array.from(
+                document.querySelectorAll('.inactive-users-table tbody tr')
+            );
+
+            function applyInactiveFilter() {
+                if (!inactiveInput) return;
+
+                const raw = inactiveInput.value;
+                let days = parseInt(raw, 10);
+                if (isNaN(days) || days < 0) days = 1; // per defecte, 1 dia
+
+                const now = new Date();
+
+                inactiveRows.forEach(row => {
+                    const last = row.dataset.lastSignin;
+                    const cell = row.querySelector('.inactive-days-value');
+
+                    let diffDays;
+
+                    if (!last) {
+                        // Sense dades de sign-in → considerem molt inactiu
+                        diffDays = Infinity;
+                    } else {
+                        const d = new Date(last);
+                        if (isNaN(d.getTime())) {
+                            diffDays = Infinity;
+                        } else {
+                            const ms = now - d;
+                            diffDays = ms / (1000 * 60 * 60 * 24);
+                        }
+                    }
+
+                    // Actualitzem el text "X dies" si tenim valor finite
+                    if (cell) {
+                        if (diffDays === Infinity) {
+                            cell.textContent = 'N/A';
+                        } else {
+                            cell.textContent = Math.floor(diffDays);
+                        }
+                    }
+
+                    const show = diffDays >= days;
+                    row.style.display = show ? '' : 'none';
+                });
+            }
+
+            inactiveInput?.addEventListener('input', applyInactiveFilter);
+
+            // Aplicar filtres inicials
+            applyUserFilters();
+            applyInactiveFilter();
+
         })();
     </script>
 
 </body>
+
 </html>

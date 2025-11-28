@@ -194,4 +194,86 @@
   text-decoration: underline;
 }
 
+/* Layout header card 1/2 */
+.users-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.users-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.users-filters {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Input de cerca */
+.users-search-input {
+  min-width: 220px;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  font-size: 0.9rem;
+}
+
+/* Select de tipus d’usuari */
+.users-type-filter {
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  font-size: 0.9rem;
+  background-color: #ffffff;
+}
+
+/* Enllaç del nom d'usuari */
+.users-link {
+  color: var(--color1);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.users-link:hover {
+  text-decoration: underline;
+}
+
+/* Card d'inactius una mica més baixa */
+.inactive-card .users-card-body {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* Input de dies d'inactivitat */
+.inactive-label {
+  font-size: 0.85rem;
+  color: var(--color2);
+}
+
+.inactive-days-input {
+  width: 70px;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid rgba(148,163,184,0.7);
+  font-size: 0.9rem;
+}
+
+/* Cel·la de dies calculats */
+.inactive-days-cell {
+  text-align: center;
+}
+
+.inactive-days-value {
+  font-weight: 500;
+}
+
+.muted-text {
+  color: var(--color2);
+  font-size: 0.85rem;
+}
 

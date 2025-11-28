@@ -10,7 +10,7 @@ async function getUsersPreview(accessToken, top = 5) {
 }
 
 async function getAllUsers(accessToken) {
-    const endpoint = `/users?$select=id,displayName,userPrincipalName,userType,accountEnabled`;
+    const endpoint = `/users?$select=id,displayName,userPrincipalName,userType,accountEnabled`; // afegir ,signInActivity quan tingui llicència d'Entra ID
     const json = await callGraph(endpoint, accessToken);
     return json.value || [];
 }
