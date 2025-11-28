@@ -125,3 +125,24 @@
 .users-row:hover {
   background: #eef2ff;
 }
+
+.users-select-cell {
+  text-align: center;
+  width: 90px;
+}
+
+.users-select-cell input[type="checkbox"] {
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+.users-link {
+  color: var(--color1);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.users-link:hover {
+  text-decoration: underline;
+}
+

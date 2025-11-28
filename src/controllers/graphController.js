@@ -7,7 +7,7 @@ async function callGraph(endpoint, accessToken) {
   const url = endpoint.startsWith('http')
     ? endpoint
     : `${GRAPH_BASE_URL}${endpoint}`;
-  
+
   console.log('[GRAPH] GET', url);
 
   const response = await fetch(url, {
@@ -23,7 +23,7 @@ async function callGraph(endpoint, accessToken) {
     const text = await response.text();
     throw new Error(`Graph call failed (${url}): ${response.status} ${text}`);
   }
-  
+
   const json = await response.json();
 
   //només mostrem la longitud:
@@ -89,24 +89,36 @@ async function getUserDevices(accessToken) {
 }
 
 
-/*
-Retorna el perfil /me de Graph amb un accessToken vàlid
- */
-/*async function getUserProfile(accessToken) {
-    const response = await fetch('https://graph.microsoft.com/v1.0/me', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-    });
+// Cridar a Graph amb DELETE (per operacions com eliminar usuaris, grups)
+async function deleteFromGraph(endpoint, accessToken) {
+  const url = endpoint.startsWith('http')
+    ? endpoint
+    : `${GRAPH_BASE_URL}${endpoint}`;
 
-    if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Graph /me failed: ${response.status} ${text}`);
-    }
+  console.log('[GRAPH] DELETE', url);
 
-    return await response.json();
-}*/
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  console.log('[GRAPH] status', response.status, response.statusText);
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Graph DELETE failed (${url}): ${response.status} ${text}`);
+  }
+
+  // Normalment Graph retorna 204 No Content
+  return true;
+}
+
 
 module.exports = {
   callGraph,
+  deleteFromGraph,
 
   //My Identity
   getUserIdentity,

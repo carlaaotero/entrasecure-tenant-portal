@@ -1,4 +1,4 @@
-const { callGraph } = require('./graphController');
+const { callGraph, deleteFromGraph } = require('./graphController');
 
 // ======================
 // USERS
@@ -41,6 +41,18 @@ async function getTenantUserAppRoleAssignments(accessToken, userId) {
     const endpoint = `/users/${userId}/appRoleAssignments?$select=id,resourceDisplayName,principalDisplayName,appRoleId`;
     const json = await callGraph(endpoint, accessToken);
     return json.value || [];
+}
+
+// Eliminar un o més usuaris del tenant
+async function deleteUsers(accessToken, userIds) {
+    if (!userIds) return;
+
+    const ids = Array.isArray(userIds) ? userIds : [userIds];
+
+    for (const id of ids) {
+        const endpoint = `/users/${id}`;
+        await deleteFromGraph(endpoint, accessToken);
+    }
 }
 
 // ======================
@@ -101,6 +113,7 @@ module.exports = {
     getTenantUserById,
     getTenantUserMemberOf,
     getTenantUserAppRoleAssignments,
+    deleteUsers,
 
     // Groups
     getGroupsPreview,

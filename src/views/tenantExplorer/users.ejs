@@ -70,57 +70,73 @@
                 </p>
             </header>
 
-            <article class="card users-card">
-                <div class="users-card-header">
-                    <div>
-                        <h2>Llista d'usuaris</h2>
-                        <p class="users-meta">
-                            <%= users && users.length ? users.length : 0 %> usuaris trobats
-                        </p>
-                    </div>
-                </div>
-
-                <div class="users-card-body">
-                    <% if (users && users.length> 0) { %>
-                        <table class="users-table">
-                            <thead>
-                                <tr>
-                                    <th>Display Name</th>
-                                    <th>User Principal Name</th>
-                                    <th>User Type</th>
-                                    <th>Estat</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% users.forEach(function (u) { %>
-                                    <tr class="users-row"
-                                        onclick="location.href='/tenant/users/<%= encodeURIComponent(u.id) %>'">
-                                        <td>
-                                            <%= u.displayName || '(Sense nom)' %>
-                                        </td>
-                                        <td>
-                                            <%= u.userPrincipalName || '' %>
-                                        </td>
-                                        <td>
-                                            <%= u.userType || '—' %>
-                                        </td>
-                                        <td>
-                                            <span class="badge <%= u.accountEnabled ? 'badge-ok' : 'badge-disabled' %>">
-                                                <%= u.accountEnabled ? 'Enabled' : 'Disabled' %>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <% }); %>
-                            </tbody>
-
-                        </table>
-                        <% } else { %>
-                            <p class="users-empty">
-                                No s'ha trobat cap usuari al tenant (o no es pot llegir la informació).
+            <form method="POST" action="/tenant/users/delete"
+                onsubmit="return confirm('Vols eliminar els usuaris seleccionats del tenant? Aquesta acció és irreversible.');">
+                <article class="card users-card">
+                    <div class="users-card-header">
+                        <div>
+                            <h2>Llista d'usuaris</h2>
+                            <p class="users-meta">
+                                <%= users && users.length ? users.length : 0 %> usuaris trobats
                             </p>
-                            <% } %>
-                </div>
-            </article>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                Eliminar seleccionats
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="users-card-body">
+                        <% if (users && users.length> 0) { %>
+                            <table class="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Display Name</th>
+                                        <th>User Principal Name</th>
+                                        <th>User Type</th>
+                                        <th>Estat</th>
+                                        <th>Seleccionar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% users.forEach(function (u) { %>
+                                        <tr>
+                                            <td>
+                                                <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
+                                                    class="users-link">
+                                                    <%= u.displayName || '(Sense nom)' %>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <%= u.userPrincipalName || '' %>
+                                            </td>
+                                            <td>
+                                                <%= u.userType || '—' %>
+                                            </td>
+                                            <td>
+                                                <span
+                                                    class="badge <%= u.accountEnabled ? 'badge-ok' : 'badge-disabled' %>">
+                                                    <%= u.accountEnabled ? 'Enabled' : 'Disabled' %>
+                                                </span>
+                                            </td>
+                                            <td class="users-select-cell">
+                                                <input type="checkbox" name="userIds" value="<%= u.id %>" />
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+
+                            </table>
+                            <% } else { %>
+                                <p class="users-empty">
+                                    No s'ha trobat cap usuari al tenant (o no es pot llegir la informació).
+                                </p>
+                                <% } %>
+                    </div>
+                </article>
+            </form>
+
 
         </section>
     </main>
