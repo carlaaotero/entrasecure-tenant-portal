@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>
-        <%= title %> · EntraSecure
-    </title>
+    <title><%= title %> · EntraSecure</title>
 
     <!-- Design foundation -->
     <link rel="stylesheet" href="/css/foundation.css" />
@@ -34,28 +32,28 @@
                     <li><a href="/me" class="nav-link">My Identity</a></li>
                     <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
                     <li><a href="/security" class="nav-link">Security</a></li>
-                    <% } %>
+                <% } %>
             </ul>
         </div>
+
         <div class="navbar-right">
             <% if (user) { %>
                 <div class="user-pill">
                     <span class="user-initial">
                         <% if (user.name) { %>
                             <%= user.name.charAt(0).toUpperCase() %>
-                                <% } else if (user.username) { %>
-                                    <%= user.username.charAt(0).toUpperCase() %>
-                                        <% } else { %>
-                                            U
-                                            <% } %>
+                        <% } else if (user.username) { %>
+                            <%= user.username.charAt(0).toUpperCase() %>
+                        <% } else { %>U<% } %>
                     </span>
+
                     <span class="user-name">
                         <%= user.name || user.username || 'Usuari' %>
                     </span>
                 </div>
-                <% } else { %>
-                    <a href="/auth/login" class="btn btn-outline-light">Login</a>
-                    <% } %>
+            <% } else { %>
+                <a href="/auth/login" class="btn btn-outline-light">Login</a>
+            <% } %>
         </div>
     </nav>
 
@@ -66,77 +64,105 @@
                 <h1>Usuaris del tenant</h1>
                 <p>
                     Llista d'usuaris de Microsoft Entra ID amb informació bàsica:
-                    Display Name, UPN, tipus d'usuari i si el compte està habilitat.
+                    Display Name, UPN, tipus d'usuari i estat del compte.
                 </p>
             </header>
 
+            <!-- FORMULARI -->
             <form method="POST" action="/tenant/users/delete"
-                onsubmit="return confirm('Vols eliminar els usuaris seleccionats del tenant? Aquesta acció és irreversible.');">
+                  onsubmit="return confirm('Vols eliminar els usuaris seleccionats del tenant? Aquesta acció és irreversible.');">
+
                 <article class="card users-card">
+
+                    <!-- HEADER DE LA CARD -->
                     <div class="users-card-header">
-                        <div>
+                        <div class="users-header-left">
                             <h2>Llista d'usuaris</h2>
                             <p class="users-meta">
-                                <%= users && users.length ? users.length : 0 %> usuaris trobats
+                                <span class="users-meta-count">
+                                    <%= users && users.length ? users.length : 0 %>
+                                </span> usuaris trobats
                             </p>
                         </div>
-                        <div>
+
+                        <div class="users-header-right">
+                            <div class="users-filters">
+                                <input
+                                    id="userSearch"
+                                    type="text"
+                                    class="users-search-input"
+                                    placeholder="Cerca per nom o UPN"
+                                    onkeydown="if (event.key === 'Enter') { event.preventDefault(); }"
+                                />
+
+                                <select id="userTypeFilter" class="users-type-filter">
+                                    <option value="all">Tots els tipus</option>
+                                    <option value="member">Members</option>
+                                    <option value="guest">Guests</option>
+                                </select>
+                            </div>
+
                             <button type="submit" class="btn btn-primary">
                                 Eliminar seleccionats
                             </button>
                         </div>
                     </div>
 
+                    <!-- TAULA D'USUARIS -->
                     <div class="users-card-body">
-                        <% if (users && users.length> 0) { %>
-                            <table class="users-table">
-                                <thead>
-                                    <tr>
-                                        <th>Display Name</th>
-                                        <th>User Principal Name</th>
-                                        <th>User Type</th>
-                                        <th>Estat</th>
-                                        <th>Seleccionar</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% users.forEach(function (u) { %>
-                                        <tr>
-                                            <td>
-                                                <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
-                                                    class="users-link">
-                                                    <%= u.displayName || '(Sense nom)' %>
-                                                </a>
-                                            </td>
-                                            <td>
-                                                <%= u.userPrincipalName || '' %>
-                                            </td>
-                                            <td>
-                                                <%= u.userType || '—' %>
-                                            </td>
-                                            <td>
-                                                <span
-                                                    class="badge <%= u.accountEnabled ? 'badge-ok' : 'badge-disabled' %>">
-                                                    <%= u.accountEnabled ? 'Enabled' : 'Disabled' %>
-                                                </span>
-                                            </td>
-                                            <td class="users-select-cell">
-                                                <input type="checkbox" name="userIds" value="<%= u.id %>" />
-                                            </td>
-                                        </tr>
-                                        <% }); %>
-                                </tbody>
+                        <% if (users && users.length > 0) { %>
 
-                            </table>
-                            <% } else { %>
-                                <p class="users-empty">
-                                    No s'ha trobat cap usuari al tenant (o no es pot llegir la informació).
-                                </p>
-                                <% } %>
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Display Name</th>
+                                    <th>User Principal Name</th>
+                                    <th>User Type</th>
+                                    <th>Estat</th>
+                                    <th>Seleccionar</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <% users.forEach(function (u) { %>
+                                    <tr
+                                      data-display-name="<%= u.displayName || '' %>"
+                                      data-upn="<%= u.userPrincipalName || '' %>"
+                                      data-type="<%= (u.userType || '').toLowerCase() %>"
+                                    >
+                                        <td>
+                                            <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
+                                               class="users-link">
+                                                <%= u.displayName || '(Sense nom)' %>
+                                            </a>
+                                        </td>
+
+                                        <td><%= u.userPrincipalName || '' %></td>
+                                        <td><%= u.userType || '—' %></td>
+
+                                        <td>
+                                            <span class="badge <%= u.accountEnabled ? 'badge-ok' : 'badge-disabled' %>">
+                                                <%= u.accountEnabled ? 'Enabled' : 'Disabled' %>
+                                            </span>
+                                        </td>
+
+                                        <td class="users-select-cell">
+                                            <input type="checkbox" name="userIds" value="<%= u.id %>" />
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+
+                        <% } else { %>
+                            <p class="users-empty">
+                                No s'ha trobat cap usuari o no es pot llegir la informació.
+                            </p>
+                        <% } %>
                     </div>
+
                 </article>
             </form>
-
 
         </section>
     </main>
@@ -144,6 +170,46 @@
     <footer class="footer">
         <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
     </footer>
-</body>
 
+    <!-- JS FILTRATGE -->
+    <script>
+        (function () {
+            const searchInput = document.getElementById('userSearch');
+            const typeFilter = document.getElementById('userTypeFilter');
+            const rows = Array.from(document.querySelectorAll('.users-table tbody tr'));
+            const countSpan = document.querySelector('.users-meta-count');
+
+            function applyUserFilters() {
+                const term = (searchInput.value || '').trim().toLowerCase();
+                const type = (typeFilter.value || 'all').toLowerCase();
+
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const dn = (row.dataset.displayName || '').toLowerCase();
+                    const upn = (row.dataset.upn || '').toLowerCase();
+                    const userType = (row.dataset.type || '').toLowerCase();
+
+                    const matchesText =
+                        !term || dn.includes(term) || upn.includes(term);
+
+                    const matchesType =
+                        type === 'all' || userType === type;
+
+                    const visible = matchesText && matchesType;
+
+                    row.style.display = visible ? '' : 'none';
+
+                    if (visible) visibleCount++;
+                });
+
+                if (countSpan) countSpan.textContent = visibleCount;
+            }
+
+            searchInput?.addEventListener('input', applyUserFilters);
+            typeFilter?.addEventListener('change', applyUserFilters);
+        })();
+    </script>
+
+</body>
 </html>
