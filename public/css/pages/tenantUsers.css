@@ -338,33 +338,39 @@
   justify-content: flex-end;
 }
 
-/* Barra de força de contrasenya */
+/* ----------------------------
+   Barra de força de contrasenya
+-----------------------------*/
+
 .password-meter {
-  margin-top: 0.35rem;
-  height: 4px;
+  margin-top: 0.4rem;
+  height: 5px;
   border-radius: 9999px;
-  background: rgba(148, 163, 184, 0.25);
+  background: rgba(71, 85, 105, 0.2); /* gris suau basat en var(--color2) */
   overflow: hidden;
+  width: 100%;
 }
 
 .password-meter-bar {
   height: 100%;
   width: 0%;
-  transition: width 0.2s ease, background-color 0.2s ease;
+  border-radius: 9999px;
+  transition: width 0.25s ease, background-color 0.25s ease;
 }
 
-/* Estats de la barra */
-.password-weak {
+/* Estats de la barra (afegits com a segona classe) */
+.password-meter-bar.password-weak {
   width: 33%;
-  background-color: #f97373; /* vermell suau */
+  background-color: #ef4444 !important;      /* vermell d'error */
 }
 
-.password-medium {
+.password-meter-bar.password-medium {
   width: 66%;
-  background-color: #facc15; /* groc */
+  background-color: var(--color2) !important; /* gris del teu tema */
 }
 
-.password-strong {
+.password-meter-bar.password-strong {
   width: 100%;
-  background-color: #22c55e; /* verd */
+  background-color: var(--color3) !important; /* blau corporatiu */
 }
+

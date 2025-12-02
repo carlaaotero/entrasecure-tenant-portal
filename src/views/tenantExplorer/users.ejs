@@ -71,90 +71,67 @@
             </header>
 
             <!-- CARD / CREAR NOU USUARI -->
-            <!-- CARD / CREAR NOU USUARI -->
-<article class="card users-card create-user-card">
-  <div class="users-card-header">
-    <div class="users-header-left">
-      <h2>Crear un usuari nou</h2>
-      <p class="users-meta">
-        Dona d'alta un usuari Member amb una contrasenya inicial segura.
-      </p>
-    </div>
-  </div>
+            <article class="card users-card create-user-card">
+                <div class="users-card-header">
+                    <div class="users-header-left">
+                        <h2>Crear un usuari nou</h2>
+                        <p class="users-meta">
+                            Dona d'alta un usuari Member amb una contrasenya inicial segura.
+                        </p>
+                    </div>
+                </div>
 
-  <form method="POST" action="/tenant/users/create" class="create-user-form">
-    <div class="users-card-body create-user-body">
+                <form method="POST" action="/tenant/users/create" class="create-user-form">
+                    <div class="users-card-body create-user-body">
 
-      <div class="create-user-grid">
-        <!-- Columna esquerra -->
-        <div class="create-user-col">
-          <div class="form-group">
-            <label for="newDisplayName">Nom complet (Display Name)</label>
-            <input
-              id="newDisplayName"
-              type="text"
-              name="displayName"
-              required
-              class="users-input"
-              autocomplete="off"
-            />
-          </div>
+                        <div class="create-user-grid">
+                            <!-- Columna esquerra -->
+                            <div class="create-user-col">
+                                <div class="form-group">
+                                    <label for="newDisplayName">Nom complet (Display Name)</label>
+                                    <input id="newDisplayName" type="text" name="displayName" required
+                                        class="users-input" autocomplete="off" />
+                                </div>
 
-          <div class="form-group">
-            <label for="newUserPrincipalName">User Principal Name (UPN)</label>
-            <input
-              id="newUserPrincipalName"
-              type="email"
-              name="userPrincipalName"
-              required
-              class="users-input"
-              placeholder="nom@carlaaoterooutlook.onmicrosoft.com"
-            />
-            <small class="field-hint">
-              Es genera automàticament a partir del nom, però el pots ajustar.
-            </small>
-          </div>
-        </div>
+                                <div class="form-group">
+                                    <label for="newUserPrincipalName">User Principal Name (UPN)</label>
+                                    <input id="newUserPrincipalName" type="email" name="userPrincipalName" required
+                                        class="users-input" placeholder="nom@carlaaoterooutlook.onmicrosoft.com" />
+                                    <small class="field-hint">
+                                        Es genera automàticament a partir del nom, però el pots ajustar.
+                                    </small>
+                                </div>
+                            </div>
 
-        <!-- Columna dreta -->
-        <div class="create-user-col">
-          <div class="form-group">
-            <label for="newUserPassword">Contrasenya inicial</label>
-            <input
-              id="newUserPassword"
-              type="password"
-              name="password"
-              required
-              minlength="8"
-              class="users-input"
-              autocomplete="new-password"
-            />
-            <div class="password-meter">
-              <div id="passwordStrengthBar" class="password-meter-bar"></div>
-            </div>
-            <small id="passwordStrengthText" class="password-hint">
-              La contrasenya ha de tenir mínim 8 caràcters i combinar majúscules,
-              minúscules, números i, idealment, algun símbol.
-            </small>
-          </div>
-        </div>
-      </div>
+                            <!-- Columna dreta -->
+                            <div class="create-user-col">
+                                <div class="form-group">
+                                    <label for="newUserPassword">Contrasenya inicial</label>
+                                    <div class="password-input-wrapper">
+                                        <input id="newUserPassword" type="password" name="password" required
+                                            minlength="8" class="users-input" autocomplete="new-password" />
+                                    </div>
 
-      <div class="create-user-actions">
-        <button
-          id="createUserBtn"
-          type="submit"
-          class="btn btn-primary"
-          disabled
-        >
-          Crear usuari
-        </button>
-      </div>
-    </div>
-  </form>
-</article>
+                                    <div class="password-meter">
+                                        <div id="passwordStrengthBar" class="password-meter-bar"></div>
+                                    </div>
 
+                                    <small id="passwordStrengthText" class="password-hint">
+                                        La contrasenya ha de tenir majúscules, minúscules, números
+                                        i mínim 8 caràcters.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="create-user-actions">
+                            <button id="createUserBtn" type="submit" class="btn btn-primary" disabled>
+                                Crear usuari
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </article>
 
             <!-- Un ÚNIC formulari que engloba les dues cards (llista + inactius) -->
             <form method="POST" action="/tenant/users/delete"
@@ -338,7 +315,7 @@
         <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
     </footer>
 
-    <!-- JS: filtres + inactivitat -->
+    <!-- JS: filtres + inactivitat + creació d'usuari -->
     <script>
         (function () {
             // --- Filtres de la taula principal ---
@@ -348,8 +325,8 @@
             const countSpan = document.querySelector('.users-meta-count');
 
             function applyUserFilters() {
-                const term = (searchInput?.value || '').trim().toLowerCase();
-                const type = (typeFilter?.value || 'all').toLowerCase();
+                const term = (searchInput && searchInput.value || '').trim().toLowerCase();
+                const type = (typeFilter && typeFilter.value || 'all').toLowerCase();
 
                 let visibleCount = 0;
 
@@ -374,8 +351,8 @@
                 if (countSpan) countSpan.textContent = visibleCount;
             }
 
-            searchInput?.addEventListener('input', applyUserFilters);
-            typeFilter?.addEventListener('change', applyUserFilters);
+            if (searchInput) searchInput.addEventListener('input', applyUserFilters);
+            if (typeFilter) typeFilter.addEventListener('change', applyUserFilters);
 
             // --- Card d'usuaris inactius ---
             const inactiveInput = document.getElementById('inactiveDays');
@@ -425,99 +402,111 @@
                 });
             }
 
-            inactiveInput?.addEventListener('input', applyInactiveFilter);
+            if (inactiveInput) inactiveInput.addEventListener('input', applyInactiveFilter);
 
             // Aplicar filtres inicials
             applyUserFilters();
             applyInactiveFilter();
 
+            // --- Crear usuari: auto-UPN i força de contrasenya ---
+            const displayNameInput = document.getElementById('newDisplayName');
+            const upnInput = document.getElementById('newUserPrincipalName');
+            const passwordInput = document.getElementById('newUserPassword');
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            const strengthText = document.getElementById('passwordStrengthText');
+            const createBtn = document.getElementById('createUserBtn');
+
+            const UPN_DOMAIN = 'carlaaoterooutlook.onmicrosoft.com';
+            let upnTouched = false;
+
+            // --- Auto-UPN des del displayName ---
+            function slugifyName(name) {
+                return (name || '')
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // treure accents
+                    .toLowerCase()
+                    .trim()
+                    .replace(/\s+/g, '.')          // espais -> punts
+                    .replace(/[^a-z0-9.]/g, '');   // només lletres, números i punt
+            }
+
+            function updateUPNFromDisplayName() {
+                if (!displayNameInput || !upnInput || upnTouched) return;
+                const base = slugifyName(displayNameInput.value);
+                upnInput.value = base
+                    ? `${base}@${UPN_DOMAIN}`
+                    : '';
+            }
+
+            if (upnInput) {
+                upnInput.addEventListener('input', () => {
+                    upnTouched = true;
+                });
+            }
+            if (displayNameInput) {
+                displayNameInput.addEventListener('input', updateUPNFromDisplayName);
+                displayNameInput.addEventListener('blur', updateUPNFromDisplayName);
+            }
+
+            // --- Barra de força de contrasenya ---
+            function evaluatePasswordStrength(pwd) {
+                if (!strengthBar || !strengthText || !createBtn) return;
+
+                // Agafem els colors del tema (foundation.css)
+                const rootStyles = getComputedStyle(document.documentElement);
+                const themeGrey = rootStyles.getPropertyValue('--color2') || '#504845';
+                const themeBlue = rootStyles.getPropertyValue('--color3') || '#6789a6';
+
+                // Reset
+                strengthBar.className = 'password-meter-bar';
+                strengthBar.style.width = '0%';
+                strengthBar.style.backgroundColor = 'transparent';
+                createBtn.disabled = true;
+
+                if (!pwd || pwd.length === 0) {
+                    strengthText.textContent =
+                        'La contrasenya ha de tenir majúscules, minúscules, números i mínim 8 caràcters.';
+                    return;
+                }
+
+                const lengthOK = pwd.length >= 8;
+                const hasLower = /[a-z]/.test(pwd);
+                const hasUpper = /[A-Z]/.test(pwd);
+                const hasDigit = /\d/.test(pwd);
+                const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+
+                const categories = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
+
+                if (!lengthOK || categories <= 1) {
+                    // Dèbil
+                    strengthBar.style.width = '33%';
+                    strengthBar.style.backgroundColor = '#ef4444'; // vermell
+                    strengthText.textContent = 'Massa dèbil. Afegeix més longitud i combinació.';
+                    createBtn.disabled = true;
+                } else if (lengthOK && categories === 2) {
+                    // Mitjana
+                    strengthBar.style.width = '66%';
+                    strengthBar.style.backgroundColor = themeGrey; // gris del tema
+                    strengthText.textContent = 'Acceptable, però recomanable afegir més categories.';
+                    createBtn.disabled = true;
+                } else {
+                    // Forta
+                    strengthBar.style.width = '100%';
+                    strengthBar.style.backgroundColor = themeBlue; // blau corporatiu
+                    strengthText.textContent =
+                        'Contrasenya forta i vàlida per a les polítiques de complexitat.';
+                    createBtn.disabled = false;
+                }
+            }
 
 
+            if (passwordInput) {
+                passwordInput.addEventListener('input', (e) => {
+                    evaluatePasswordStrength(e.target.value || '');
+                });
 
-
-                    // --- Crear usuari: auto-UPN i força de contrasenya ---
-        const displayNameInput = document.getElementById('newDisplayName');
-        const upnInput = document.getElementById('newUserPrincipalName');
-        const passwordInput = document.getElementById('newUserPassword');
-        const strengthBar = document.getElementById('passwordStrengthBar');
-        const strengthText = document.getElementById('passwordStrengthText');
-        const createBtn = document.getElementById('createUserBtn');
-
-        const UPN_DOMAIN = 'carlaaoterooutlook.onmicrosoft.com';
-        let upnTouched = false;
-
-        if (upnInput) {
-          upnInput.addEventListener('input', () => {
-            upnTouched = true;
-          });
-        }
-
-        function slugifyName(name) {
-          return name
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // treure accents
-            .toLowerCase()
-            .trim()
-            .replace(/\s+/g, '.')          // espais -> punts
-            .replace(/[^a-z0-9.]/g, '');   // només lletres, números i punt
-        }
-
-        function updateUPNFromDisplayName() {
-          if (!displayNameInput || !upnInput || upnTouched) return;
-          const base = slugifyName(displayNameInput.value);
-          upnInput.value = base
-            ? `${base}@${UPN_DOMAIN}`
-            : '';
-        }
-
-        displayNameInput?.addEventListener('input', updateUPNFromDisplayName);
-        displayNameInput?.addEventListener('blur', updateUPNFromDisplayName);
-
-        function evaluatePasswordStrength(pwd) {
-          if (!pwd) {
-            strengthBar.className = 'password-meter-bar';
-            strengthBar.style.width = '0%';
-            strengthText.textContent =
-              'La contrasenya ha de tenir mínim 8 caràcters i combinar majúscules, minúscules i números.';
-            if (createBtn) createBtn.disabled = true;
-            return;
-          }
-
-          const lengthOK = pwd.length >= 8;
-          const hasLower = /[a-z]/.test(pwd);
-          const hasUpper = /[A-Z]/.test(pwd);
-          const hasDigit = /\d/.test(pwd);
-          const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
-
-          const categories = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
-          const strong = lengthOK && categories >= 3;   // similar a requeriments d'Azure
-          const medium = lengthOK && categories === 2;
-
-          strengthBar.className = 'password-meter-bar';
-
-          if (!lengthOK || categories === 0) {
-            strengthBar.classList.add('password-weak');
-            strengthText.textContent = 'Massa dèbil. Afegeix més longitud i combinació.';
-          } else if (medium) {
-            strengthBar.classList.add('password-medium');
-            strengthText.textContent = 'Acceptable, però recomanable afegir més complexitat.';
-          } else if (strong) {
-            strengthBar.classList.add('password-strong');
-            strengthText.textContent = 'Correcte per a les polítiques de complexitat.';
-          }
-
-          if (createBtn) {
-            createBtn.disabled = !strong;
-          }
-        }
-
-        passwordInput?.addEventListener('input', (e) => {
-          evaluatePasswordStrength(e.target.value || '');
-        });
-
-        // estat inicial
-        evaluatePasswordStrength('');
-
-
+                // Estat inicial: barra a 0 i botó desactivat
+                evaluatePasswordStrength('');
+            }
         })();
     </script>
 
