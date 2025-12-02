@@ -118,7 +118,7 @@ async function callGraphPOST(endpoint, accessToken, body) {
 
 
 // Cridar a Graph amb DELETE (per operacions com eliminar usuaris, grups)
-async function deleteFromGraph(endpoint, accessToken) {
+async function callGraphDELETE(endpoint, accessToken) {
   const url = endpoint.startsWith('http')
     ? endpoint
     : `${GRAPH_BASE_URL}${endpoint}`;
@@ -146,7 +146,7 @@ async function deleteFromGraph(endpoint, accessToken) {
 
 module.exports = {
   callGraph,
-  deleteFromGraph,
+  callGraphDELETE,
   callGraphPOST,
 
   //My Identity

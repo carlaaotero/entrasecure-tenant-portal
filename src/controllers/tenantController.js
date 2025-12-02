@@ -1,4 +1,4 @@
-const { callGraph, deleteFromGraph, callGraphPOST } = require('./graphController');
+const { callGraph, callGraphDELETE, callGraphPOST } = require('./graphController');
 
 // ======================
 // USERS
@@ -58,23 +58,51 @@ async function deleteUsers(accessToken, userIds) {
 
     for (const id of ids) {
         const endpoint = `/users/${id}`;
-        await deleteFromGraph(endpoint, accessToken);
+        await callGraphDELETE(endpoint, accessToken);
     }
 }
 
 // ======================
 // GROUPS
 // ======================
+
+const GROUP_PROFILE_SELECT = [
+  'id',
+  'displayName',
+  'groupTypes',
+  'onPremisesSyncEnabled'
+];
+
 async function getGroupsPreview(accessToken, top = 5) {
-    const endpoint = `/groups?$select=id,displayName,groupTypes&$top=${top}`;
+    const endpoint = `/groups?$select=${GROUP_PROFILE_SELECT.join(',')}&$top=${top}`;
     const json = await callGraph(endpoint, accessToken);
     return json.value || [];
 }
 
 async function getAllGroups(accessToken) {
-    const endpoint = `/groups?$select=id,displayName,groupTypes`;
+    const endpoint = `/groups?$select=${GROUP_PROFILE_SELECT.join(',')}`;
     const json = await callGraph(endpoint, accessToken);
     return json.value || [];
+}
+
+
+
+/*// Crear un grup al tenant
+async function createGroup(accessToken, userObject) {
+  const endpoint = "/users";
+  return await callGraphPOST(endpoint, accessToken, userObject);
+}*/
+
+// Eliminar un o més usuaris del tenant
+async function deleteGroups(accessToken, groupIds) {
+    if (!groupIds) return;
+
+    const ids = Array.isArray(groupIds) ? groupIds : [groupIds];
+
+    for (const id of ids) {
+        const endpoint = `/groups/${id}`;
+        await callGraphDELETE(endpoint, accessToken);
+    }
 }
 
 /*
@@ -126,6 +154,7 @@ module.exports = {
     // Groups
     getGroupsPreview,
     getAllGroups,
+    deleteGroups,
     /*
       // Roles
       getRolesPreview,
