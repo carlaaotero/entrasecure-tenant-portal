@@ -1,4 +1,4 @@
-const { callGraph, deleteFromGraph } = require('./graphController');
+const { callGraph, deleteFromGraph, callGraphPOST } = require('./graphController');
 
 // ======================
 // USERS
@@ -42,6 +42,13 @@ async function getTenantUserAppRoleAssignments(accessToken, userId) {
     const json = await callGraph(endpoint, accessToken);
     return json.value || [];
 }
+
+// Crear un usuari al tenant
+async function createUser(accessToken, userObject) {
+  const endpoint = "/users";
+  return await callGraphPOST(endpoint, accessToken, userObject);
+}
+
 
 // Eliminar un o més usuaris del tenant
 async function deleteUsers(accessToken, userIds) {
@@ -114,6 +121,7 @@ module.exports = {
     getTenantUserMemberOf,
     getTenantUserAppRoleAssignments,
     deleteUsers,
+    createUser,
 
     // Groups
     getGroupsPreview,

@@ -277,3 +277,94 @@
   font-size: 0.85rem;
 }
 
+/* Card de creació d'usuari una mica més compacta */
+.create-user-card {
+  margin-bottom: 1.5rem;
+}
+
+.create-user-form .create-user-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.create-user-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.create-user-col {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color1);
+}
+
+.users-input {
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.8);
+  font-size: 0.9rem;
+}
+
+.users-input:focus {
+  outline: none;
+  border-color: var(--color3);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+}
+
+.field-hint,
+.password-hint {
+  font-size: 0.8rem;
+  color: var(--color2);
+}
+
+.create-user-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Barra de força de contrasenya */
+.password-meter {
+  margin-top: 0.35rem;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(148, 163, 184, 0.25);
+  overflow: hidden;
+}
+
+.password-meter-bar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+/* Estats de la barra */
+.password-weak {
+  width: 33%;
+  background-color: #f97373; /* vermell suau */
+}
+
+.password-medium {
+  width: 66%;
+  background-color: #facc15; /* groc */
+}
+
+.password-strong {
+  width: 100%;
+  background-color: #22c55e; /* verd */
+}

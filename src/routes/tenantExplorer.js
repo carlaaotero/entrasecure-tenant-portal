@@ -12,6 +12,7 @@ const {
     getTenantUserMemberOf,
     getTenantUserAppRoleAssignments,
     deleteUsers,
+    createUser,
 } = require('../controllers/tenantController');
 
 // Middleware per protegir rutes: si no hi ha sessió, envia a login
@@ -90,6 +91,36 @@ router.post('/tenant/users/delete', requireAuth, async (req, res) => {
         res.status(500).send('Error eliminant usuaris del tenant');
     }
 });
+
+router.post('/tenant/users/create', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        const { displayName, userPrincipalName, password } = req.body;
+        const userType = 'Member';
+
+        const newUser = {
+            accountEnabled: true,
+            displayName,
+            mailNickname: displayName.replace(/\s+/g, ''), // sense espais
+            userPrincipalName,
+            userType,
+            passwordProfile: {
+                forceChangePasswordNextSignIn: true,
+                password,
+            },
+        };
+
+        await createUser(accessToken, newUser);
+
+        res.redirect('/tenant/users');
+    } catch (err) {
+        console.error("Error creant usuari:", err);
+        res.status(500).send("No s'ha pogut crear l'usuari.");
+    }
+});
+
 
 
 router.get('/tenant/users/:id', requireAuth, async (req, res) => {

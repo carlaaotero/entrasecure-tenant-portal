@@ -88,6 +88,34 @@ async function getUserDevices(accessToken) {
   return json.value || [];
 }
 
+// Cridar a Graph amb POST
+async function callGraphPOST(endpoint, accessToken, body) {
+  const url = endpoint.startsWith('http')
+    ? endpoint
+    : `${GRAPH_BASE_URL}${endpoint}`;
+
+  console.log('[GRAPH] POST', url);
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  console.log('[GRAPH] status', response.status, response.statusText);
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Graph POST failed (${url}): ${response.status} ${errorBody}`);
+  }
+
+  return await response.json();
+}
+
+
 
 // Cridar a Graph amb DELETE (per operacions com eliminar usuaris, grups)
 async function deleteFromGraph(endpoint, accessToken) {
@@ -119,6 +147,7 @@ async function deleteFromGraph(endpoint, accessToken) {
 module.exports = {
   callGraph,
   deleteFromGraph,
+  callGraphPOST,
 
   //My Identity
   getUserIdentity,

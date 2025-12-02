@@ -70,6 +70,92 @@
                 </p>
             </header>
 
+            <!-- CARD / CREAR NOU USUARI -->
+            <!-- CARD / CREAR NOU USUARI -->
+<article class="card users-card create-user-card">
+  <div class="users-card-header">
+    <div class="users-header-left">
+      <h2>Crear un usuari nou</h2>
+      <p class="users-meta">
+        Dona d'alta un usuari Member amb una contrasenya inicial segura.
+      </p>
+    </div>
+  </div>
+
+  <form method="POST" action="/tenant/users/create" class="create-user-form">
+    <div class="users-card-body create-user-body">
+
+      <div class="create-user-grid">
+        <!-- Columna esquerra -->
+        <div class="create-user-col">
+          <div class="form-group">
+            <label for="newDisplayName">Nom complet (Display Name)</label>
+            <input
+              id="newDisplayName"
+              type="text"
+              name="displayName"
+              required
+              class="users-input"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="newUserPrincipalName">User Principal Name (UPN)</label>
+            <input
+              id="newUserPrincipalName"
+              type="email"
+              name="userPrincipalName"
+              required
+              class="users-input"
+              placeholder="nom@carlaaoterooutlook.onmicrosoft.com"
+            />
+            <small class="field-hint">
+              Es genera automàticament a partir del nom, però el pots ajustar.
+            </small>
+          </div>
+        </div>
+
+        <!-- Columna dreta -->
+        <div class="create-user-col">
+          <div class="form-group">
+            <label for="newUserPassword">Contrasenya inicial</label>
+            <input
+              id="newUserPassword"
+              type="password"
+              name="password"
+              required
+              minlength="8"
+              class="users-input"
+              autocomplete="new-password"
+            />
+            <div class="password-meter">
+              <div id="passwordStrengthBar" class="password-meter-bar"></div>
+            </div>
+            <small id="passwordStrengthText" class="password-hint">
+              La contrasenya ha de tenir mínim 8 caràcters i combinar majúscules,
+              minúscules, números i, idealment, algun símbol.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="create-user-actions">
+        <button
+          id="createUserBtn"
+          type="submit"
+          class="btn btn-primary"
+          disabled
+        >
+          Crear usuari
+        </button>
+      </div>
+    </div>
+  </form>
+</article>
+
+
+
             <!-- Un ÚNIC formulari que engloba les dues cards (llista + inactius) -->
             <form method="POST" action="/tenant/users/delete"
                 onsubmit="return confirm('Vols eliminar els usuaris seleccionats del tenant? Aquesta acció és irreversible.');">
@@ -344,6 +430,93 @@
             // Aplicar filtres inicials
             applyUserFilters();
             applyInactiveFilter();
+
+
+
+
+
+                    // --- Crear usuari: auto-UPN i força de contrasenya ---
+        const displayNameInput = document.getElementById('newDisplayName');
+        const upnInput = document.getElementById('newUserPrincipalName');
+        const passwordInput = document.getElementById('newUserPassword');
+        const strengthBar = document.getElementById('passwordStrengthBar');
+        const strengthText = document.getElementById('passwordStrengthText');
+        const createBtn = document.getElementById('createUserBtn');
+
+        const UPN_DOMAIN = 'carlaaoterooutlook.onmicrosoft.com';
+        let upnTouched = false;
+
+        if (upnInput) {
+          upnInput.addEventListener('input', () => {
+            upnTouched = true;
+          });
+        }
+
+        function slugifyName(name) {
+          return name
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // treure accents
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, '.')          // espais -> punts
+            .replace(/[^a-z0-9.]/g, '');   // només lletres, números i punt
+        }
+
+        function updateUPNFromDisplayName() {
+          if (!displayNameInput || !upnInput || upnTouched) return;
+          const base = slugifyName(displayNameInput.value);
+          upnInput.value = base
+            ? `${base}@${UPN_DOMAIN}`
+            : '';
+        }
+
+        displayNameInput?.addEventListener('input', updateUPNFromDisplayName);
+        displayNameInput?.addEventListener('blur', updateUPNFromDisplayName);
+
+        function evaluatePasswordStrength(pwd) {
+          if (!pwd) {
+            strengthBar.className = 'password-meter-bar';
+            strengthBar.style.width = '0%';
+            strengthText.textContent =
+              'La contrasenya ha de tenir mínim 8 caràcters i combinar majúscules, minúscules i números.';
+            if (createBtn) createBtn.disabled = true;
+            return;
+          }
+
+          const lengthOK = pwd.length >= 8;
+          const hasLower = /[a-z]/.test(pwd);
+          const hasUpper = /[A-Z]/.test(pwd);
+          const hasDigit = /\d/.test(pwd);
+          const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+
+          const categories = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
+          const strong = lengthOK && categories >= 3;   // similar a requeriments d'Azure
+          const medium = lengthOK && categories === 2;
+
+          strengthBar.className = 'password-meter-bar';
+
+          if (!lengthOK || categories === 0) {
+            strengthBar.classList.add('password-weak');
+            strengthText.textContent = 'Massa dèbil. Afegeix més longitud i combinació.';
+          } else if (medium) {
+            strengthBar.classList.add('password-medium');
+            strengthText.textContent = 'Acceptable, però recomanable afegir més complexitat.';
+          } else if (strong) {
+            strengthBar.classList.add('password-strong');
+            strengthText.textContent = 'Correcte per a les polítiques de complexitat.';
+          }
+
+          if (createBtn) {
+            createBtn.disabled = !strong;
+          }
+        }
+
+        passwordInput?.addEventListener('input', (e) => {
+          evaluatePasswordStrength(e.target.value || '');
+        });
+
+        // estat inicial
+        evaluatePasswordStrength('');
+
 
         })();
     </script>
