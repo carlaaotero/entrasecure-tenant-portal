@@ -23,6 +23,7 @@ const {
     getTenantGroupDirectoryRoles,
     getTenantGroupAppRoleAssignments,
     deleteGroups,
+    createGroup,
 } = require('../controllers/tenantController');
 
 
@@ -206,6 +207,61 @@ router.get('/tenant/groups', requireAuth, async (req, res) => {
     } catch (err) {
         console.error('Error carregant /tenant/groups:', err);
         res.status(500).send('Error carregant els grups del tenant');
+    }
+});
+
+
+// POST /tenant/groups/create -> crear un nou grup
+router.post('/tenant/groups/create', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        const { displayName, description, groupType } = req.body;
+
+        if (!displayName || !groupType) {
+            return res.status(400).send('Falten camps obligatoris per crear el grup.');
+        }
+
+        // mailNickname a partir del nom (sense accents, minúscules, etc.)
+        const slug = displayName
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, '-')         // espais -> guions
+            .replace(/[^a-z0-9-]/g, '');  // només lletres, números i guió
+
+        const mailNickname = slug || `group-${Date.now()}`;
+
+        let groupObject;
+
+        if (groupType === 'm365') {
+            // Microsoft 365 group (Unified)
+            groupObject = {
+                displayName,
+                description: description || undefined,
+                groupTypes: ['Unified'],
+                mailEnabled: true,
+                securityEnabled: false,
+                mailNickname,
+            };
+        } else {
+            // Security group
+            groupObject = {
+                displayName,
+                description: description || undefined,
+                mailEnabled: false,
+                securityEnabled: true,
+                mailNickname,
+            };
+        }
+
+        await createGroup(accessToken, groupObject);
+
+        res.redirect('/tenant/groups');
+    } catch (err) {
+        console.error('Error a /tenant/groups/create:', err);
+        res.status(500).send('Error creant el grup');
     }
 });
 

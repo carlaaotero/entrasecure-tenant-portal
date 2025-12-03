@@ -94,11 +94,11 @@ async function getAllGroups(accessToken) {
 
 
 
-/*// Crear un grup al tenant
+// Crear un grup al tenant (Security o Microsoft 365)
 async function createGroup(accessToken, userObject) {
-  const endpoint = "/users";
+  const endpoint = "/groups";
   return await callGraphPOST(endpoint, accessToken, userObject);
-}*/
+}
 
 // ----- Detall del grup -----
 
@@ -227,6 +227,7 @@ module.exports = {
     getTenantGroupDirectoryRoles,
     getTenantGroupAppRoleAssignments,
     deleteGroups,
+    createGroup,
     /*
       // Roles
       getRolesPreview,

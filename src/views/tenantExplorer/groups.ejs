@@ -69,6 +69,80 @@
         </p>
       </header>
 
+      <!-- CARD / CREAR NOU GRUP -->
+      <article class="card users-card create-user-card">
+        <div class="users-card-header">
+          <div class="users-header-left">
+            <h2>Crear un grup nou</h2>
+            <p class="users-meta">
+              Dona d'alta un grup de seguretat o Microsoft 365 al tenant.
+            </p>
+          </div>
+        </div>
+
+        <form method="POST" action="/tenant/groups/create" class="create-user-form">
+          <div class="users-card-body create-user-body">
+
+            <div class="create-user-grid">
+              <!-- Columna esquerra -->
+              <div class="create-user-col">
+                <div class="form-group">
+                  <label for="newGroupDisplayName">Group name</label>
+                  <input
+                    id="newGroupDisplayName"
+                    type="text"
+                    name="displayName"
+                    required
+                    class="users-input"
+                    autocomplete="off"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="newGroupDescription">Group description</label>
+                  <textarea
+                    id="newGroupDescription"
+                    name="description"
+                    rows="3"
+                    class="users-input"
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Columna dreta -->
+              <div class="create-user-col">
+                <div class="form-group">
+                  <label for="newGroupType">Group type</label>
+                  <select
+                    id="newGroupType"
+                    name="groupType"
+                    class="users-input"
+                    required
+                  >
+                    <option value="security">Security</option>
+                    <option value="m365">Microsoft 365</option>
+                  </select>
+                  <small class="field-hint">
+                    Security: grup per permisos. Microsoft 365: correu, Teams, etc.
+                  </small>
+                </div>
+
+                <p class="field-hint">
+                  El grup es crearà com a <strong>Cloud</strong>. Els grups sincronitzats
+                  des d'Active Directory no es poden crear des del portal.
+                </p>
+              </div>
+            </div>
+
+            <div class="create-user-actions">
+              <button type="submit" class="btn btn-primary">
+                Crear grup
+              </button>
+            </div>
+          </div>
+        </form>
+      </article>
+
       <!-- Formulari per eliminar grups seleccionats -->
       <form method="POST" action="/tenant/groups/delete"
         onsubmit="return confirm('Vols eliminar els grups seleccionats del tenant? Aquesta acció és irreversible.');">
@@ -125,10 +199,7 @@
                       const types = g.groupTypes || [];
                       const isM365 = types.includes('Unified');
 
-                      // Text que es mostra (igual que al portal d'Entra)
                       const typeLabel = isM365 ? 'Microsoft 365' : 'Security';
-
-                      // Valor intern per als filtres
                       const typeValue = isM365 ? 'm365' : 'security';
 
                       const sourceLabel = g.onPremisesSyncEnabled ? 'Synced (AD)' : 'Cloud';
