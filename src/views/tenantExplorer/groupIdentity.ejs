@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title><%= title %></title>
+
+  <!-- Design foundation -->
+  <link rel="stylesheet" href="/css/foundation.css" />
+  <!-- Utilities -->
+  <link rel="stylesheet" href="/css/utilities.css" />
+
+  <!-- Components -->
+  <link rel="stylesheet" href="/css/components/navbar.css" />
+  <link rel="stylesheet" href="/css/components/button.css" />
+  <link rel="stylesheet" href="/css/components/card.css" />
+  <link rel="stylesheet" href="/css/components/avatar.css" />
+
+  <!-- Mateix layout que My Identity -->
+  <link rel="stylesheet" href="/css/pages/identity.css" />
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <div class="brand">EntraSecure Tenant Portal</div>
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <% if (user) { %>
+          <li><a href="/me" class="nav-link">My Identity</a></li>
+          <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
+          <li><a href="/security" class="nav-link">Security</a></li>
+        <% } %>
+      </ul>
+    </div>
+
+    <div class="navbar-right">
+      <% if (user) { %>
+        <div class="user-pill">
+          <span class="user-initial">
+            <%
+              const navName = user.name || user.username || 'U';
+              const navInitial = navName.charAt(0).toUpperCase();
+            %>
+            <%= navInitial %>
+          </span>
+
+          <span class="user-name">
+            <%= user.name || user.username || 'Usuari' %>
+          </span>
+        </div>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline-light">Login</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <main class="identity-main">
+    <section class="identity-layout">
+
+      <!-- Perfil del grup (mateix estil que My Identity) -->
+      <article class="card identity-profile-card">
+        <div class="identity-avatar-wrapper">
+          <div class="profile-avatar">
+            <span>
+              <%
+                const gName = groupProfile && groupProfile.displayName
+                  ? groupProfile.displayName
+                  : 'Grup';
+                const gInitial = gName.charAt(0).toUpperCase();
+              %>
+              <%= gInitial %>
+            </span>
+          </div>
+        </div>
+
+        <div class="identity-profile-info">
+          <h2 class="identity-title">
+            <%= groupProfile && groupProfile.displayName ? groupProfile.displayName : 'Grup del tenant' %>
+          </h2>
+        </div>
+
+        <%
+          const gTypes = groupProfile && groupProfile.groupTypes || [];
+          const isM365 = gTypes.includes('Unified');
+          const groupTypeLabel = isM365 ? 'Microsoft 365' : 'Security';
+          const groupSourceLabel = groupProfile && groupProfile.onPremisesSyncEnabled ? 'Synced (AD)' : 'Cloud';
+        %>
+
+        <!-- Detalls del grup -->
+        <dl class="identity-details">
+          <div class="identity-detail-row">
+            <dt>Group name</dt>
+            <dd><%= groupProfile && groupProfile.displayName || '—' %></dd>
+          </div>
+
+          <div class="identity-detail-row">
+            <dt>Group description</dt>
+            <dd><%= groupProfile && groupProfile.description || '—' %></dd>
+          </div>
+
+          <div class="identity-detail-row">
+            <dt>Group source</dt>
+            <dd><%= groupSourceLabel %></dd>
+          </div>
+
+          <div class="identity-detail-row">
+            <dt>Group type</dt>
+            <dd><%= groupTypeLabel %></dd>
+          </div>
+
+          <div class="identity-detail-row">
+            <dt>Created date time</dt>
+            <dd>
+              <% if (groupProfile && groupProfile.createdDateTime) { %>
+                <%= groupProfile.createdDateTime %>
+              <% } else { %>
+                —
+              <% } %>
+            </dd>
+          </div>
+        </dl>
+      </article>
+
+      <!-- Members: mateixa estructura que "Groups" a My Identity -->
+      <article class="card identity-card identity-groups-card">
+        <h3>Members</h3>
+        <div class="identity-card-content">
+          <% if (members && members.length > 0) { %>
+            <div class="identity-item-list">
+              <% members.forEach(function (m) { %>
+                <div class="identity-item-card">
+                  <div class="identity-item-title">
+                    <a href="/tenant/users/<%= encodeURIComponent(m.id) %>" class="identity-link">
+                      <%= m.displayName || m.userPrincipalName || '(Sense nom)' %>
+                    </a>
+                  </div>
+                  <div class="identity-item-meta">
+                    <%= m.userPrincipalName || '' %><br />
+                    <%= m.userType || '—' %>
+                    <% if (typeof m.accountEnabled === 'boolean') { %>
+                      · <%= m.accountEnabled ? 'Enabled' : 'Disabled' %>
+                    <% } %>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <p class="identity-empty">
+              Aquest grup no té membres o no es pot llegir la informació.
+            </p>
+          <% } %>
+        </div>
+      </article>
+
+      <!-- Owners -->
+      <article class="card identity-card identity-roles-card">
+        <h3>Owners</h3>
+        <div class="identity-card-content">
+          <% if (owners && owners.length > 0) { %>
+            <div class="identity-item-list">
+              <% owners.forEach(function (o) { %>
+                <div class="identity-item-card">
+                  <div class="identity-item-title">
+                    <a href="/tenant/users/<%= encodeURIComponent(o.id) %>" class="identity-link">
+                      <%= o.displayName || o.userPrincipalName || '(Sense nom)' %>
+                    </a>
+                  </div>
+                  <div class="identity-item-meta">
+                    <%= o.userPrincipalName || '' %><br />
+                    <%= o.userType || '—' %>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <p class="identity-empty">
+              Aquest grup no té owners o no es pot llegir la informació.
+            </p>
+          <% } %>
+        </div>
+      </article>
+
+      <!-- Directory Roles -->
+      <article class="card identity-card identity-apps-card">
+        <h3>Directory Roles</h3>
+        <div class="identity-card-content">
+          <% if (directoryRoles && directoryRoles.length > 0) { %>
+            <div class="identity-item-list">
+              <% directoryRoles.forEach(function (r) { %>
+                <div class="identity-item-card">
+                  <div class="identity-item-title">
+                    <%= r.displayName || '(Sense nom)' %>
+                  </div>
+                  <div class="identity-item-meta">
+                    ID: <%= r.id %>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <p class="identity-empty">
+              Aquest grup no forma part de cap directory role assignable o no es pot llegir la informació.
+            </p>
+          <% } %>
+        </div>
+      </article>
+
+      <!-- Applications (App Role Assignments) -->
+      <article class="card identity-card identity-devices-card">
+        <h3>Applications</h3>
+        <div class="identity-card-content">
+          <% if (appAssignments && appAssignments.length > 0) { %>
+            <div class="identity-item-list">
+              <% appAssignments.forEach(function (a) { %>
+                <div class="identity-item-card">
+                  <div class="identity-item-title">
+                    <%= a.resourceDisplayName || '(Aplicació sense nom)' %>
+                  </div>
+                  <div class="identity-item-meta">
+                    App Role ID: <%= a.appRoleId || '—' %>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <p class="identity-empty">
+              No hi ha app role assignments per aquest grup o no es pot llegir la informació.
+            </p>
+          <% } %>
+        </div>
+      </article>
+
+      <!-- Targeta explicativa -->
+      <article class="card identity-edu-card">
+        <h3 class="identity-edu-title">Com llegir aquesta informació</h3>
+        <p class="identity-edu">
+          <%= helpfulInfo %>
+        </p>
+      </article>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+  </footer>
+</body>
+
+</html>

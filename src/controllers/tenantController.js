@@ -45,8 +45,8 @@ async function getTenantUserAppRoleAssignments(accessToken, userId) {
 
 // Crear un usuari al tenant
 async function createUser(accessToken, userObject) {
-  const endpoint = "/users";
-  return await callGraphPOST(endpoint, accessToken, userObject);
+    const endpoint = "/users";
+    return await callGraphPOST(endpoint, accessToken, userObject);
 }
 
 
@@ -67,20 +67,27 @@ async function deleteUsers(accessToken, userIds) {
 // ======================
 
 const GROUP_PROFILE_SELECT = [
-  'id',
-  'displayName',
-  'groupTypes',
-  'onPremisesSyncEnabled'
+    'id',
+    'displayName',
+    'description',
+    'groupTypes',
+    'mail',
+    'mailNickname',
+    'createdDateTime',
+    'securityEnabled',
+    'mailEnabled',
+    'visibility',
+    'onPremisesSyncEnabled'
 ];
 
 async function getGroupsPreview(accessToken, top = 5) {
-    const endpoint = `/groups?$select=${GROUP_PROFILE_SELECT.join(',')}&$top=${top}`;
+    const endpoint = `/groups?$select=id,displayName,groupTypes,onPremisesSyncEnabled&$top=${top}`;
     const json = await callGraph(endpoint, accessToken);
     return json.value || [];
 }
 
 async function getAllGroups(accessToken) {
-    const endpoint = `/groups?$select=${GROUP_PROFILE_SELECT.join(',')}`;
+    const endpoint = `/groups?$select=id,displayName,groupTypes,onPremisesSyncEnabled`;
     const json = await callGraph(endpoint, accessToken);
     return json.value || [];
 }
@@ -92,6 +99,66 @@ async function createGroup(accessToken, userObject) {
   const endpoint = "/users";
   return await callGraphPOST(endpoint, accessToken, userObject);
 }*/
+
+// ----- Detall del grup -----
+
+async function getTenantGroupById(accessToken, groupId) {
+    const endpoint =
+        `/groups/${groupId}?$select=${GROUP_PROFILE_SELECT.join(',')}`;
+    const json = await callGraph(endpoint, accessToken);
+    return json;
+}
+
+// Members del grup (només usuaris)
+async function getTenantGroupMembers(accessToken, groupId) {
+    const endpoint =
+        `/groups/${groupId}/members?` +
+        `$select=id,displayName,userPrincipalName,userType,accountEnabled`;
+    const json = await callGraph(endpoint, accessToken);
+    const items = json.value || [];
+
+    // Ens quedem només amb objectes de tipus usuari
+    return items.filter(m => {
+        const t = (m['@odata.type'] || '').toLowerCase();
+        return t.includes('user') || !t; // per si ve sense @odata.type
+    });
+}
+
+// Owners del grup
+async function getTenantGroupOwners(accessToken, groupId) {
+    const endpoint =
+        `/groups/${groupId}/owners?` +
+        `$select=id,displayName,userPrincipalName,userType`;
+    const json = await callGraph(endpoint, accessToken);
+    const items = json.value || [];
+
+    return items.filter(o => {
+        const t = (o['@odata.type'] || '').toLowerCase();
+        return t.includes('user') || !t;
+    });
+}
+
+// Directory roles on el grup és membre (role-assignable group)
+async function getTenantGroupDirectoryRoles(accessToken, groupId) {
+    const endpoint =
+        `/groups/${groupId}/memberOf?$select=id,displayName`;
+    const json = await callGraph(endpoint, accessToken);
+    const items = json.value || [];
+
+    return items.filter(r => {
+        const t = (r['@odata.type'] || '').toLowerCase();
+        return t.includes('directoryrole');
+    });
+}
+
+// App role assignments on el grup té rols sobre aplicacions
+async function getTenantGroupAppRoleAssignments(accessToken, groupId) {
+    const endpoint =
+        `/groups/${groupId}/appRoleAssignments?` +
+        `$select=id,resourceDisplayName,appRoleId,principalDisplayName,principalId,resourceId`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
 
 // Eliminar un o més usuaris del tenant
 async function deleteGroups(accessToken, groupIds) {
@@ -154,6 +221,11 @@ module.exports = {
     // Groups
     getGroupsPreview,
     getAllGroups,
+    getTenantGroupById,
+    getTenantGroupMembers,
+    getTenantGroupOwners,
+    getTenantGroupDirectoryRoles,
+    getTenantGroupAppRoleAssignments,
     deleteGroups,
     /*
       // Roles

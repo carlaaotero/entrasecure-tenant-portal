@@ -5,6 +5,7 @@ const router = express.Router();
 
 const { getTokenForGraph } = require('../auth/AuthProvider');
 const {
+    //Users
     getUsersPreview,
     getGroupsPreview,
     getAllUsers,
@@ -13,7 +14,14 @@ const {
     getTenantUserAppRoleAssignments,
     deleteUsers,
     createUser,
+
+    //Groups
     getAllGroups,
+    getTenantGroupById,
+    getTenantGroupMembers,
+    getTenantGroupOwners,
+    getTenantGroupDirectoryRoles,
+    getTenantGroupAppRoleAssignments,
     deleteGroups,
 } = require('../controllers/tenantController');
 
@@ -131,7 +139,7 @@ router.post('/tenant/users/delete', requireAuth, async (req, res) => {
     }
 });
 
-
+// Detall d'un user concret del tenant
 router.get('/tenant/users/:id', requireAuth, async (req, res) => {
     try {
         const account = req.session.user;
@@ -225,6 +233,43 @@ router.post('/tenant/groups/delete', requireAuth, async (req, res) => {
         res.status(500).send('Error eliminant grups del tenant');
     }
 });
+
+
+// Detall d'un grup concret del tenant
+router.get('/tenant/groups/:id', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const groupId = req.params.id;
+
+        const groupProfile = await getTenantGroupById(accessToken, groupId);
+        const members = await getTenantGroupMembers(accessToken, groupId);
+        const owners = await getTenantGroupOwners(accessToken, groupId);
+        const directoryRoles = await getTenantGroupDirectoryRoles(accessToken, groupId);
+        const appAssignments = await getTenantGroupAppRoleAssignments(accessToken, groupId);
+
+        const helpfulInfo =
+            'Aquesta vista mostra informació bàsica del grup, els seus membres, ' +
+            'owners, rols de directori on el grup actua com a administrador i les aplicacions ' +
+            'on té app roles assignats.';
+
+        res.render('tenantExplorer/groupIdentity', {
+            title: `Group · ${groupProfile.displayName || 'Detall'}`,
+            user: account,          // usuari logat (navbar)
+            groupProfile,
+            members,
+            owners,
+            directoryRoles,
+            appAssignments,
+            helpfulInfo,
+        });
+    } catch (err) {
+        console.error('Error carregant /tenant/groups/:id:', err);
+        res.status(500).send('Error carregant el detall del grup');
+    }
+});
+
+
 
 
 module.exports = router;

@@ -139,7 +139,9 @@
                       data-source="<%= sourceLabel.toLowerCase().includes('synced') ? 'synced' : 'cloud' %>"
                     >
                       <td>
-                        <%= g.displayName || '(Sense nom)' %>
+                        <a href="/tenant/groups/<%= encodeURIComponent(g.id) %>" class="users-link">
+                          <%= g.displayName || '(Sense nom)' %>
+                        </a>
                       </td>
                       <td>
                         <%= typeLabel %>
