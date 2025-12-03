@@ -96,8 +96,45 @@ async function getAllGroups(accessToken) {
 
 // Crear un grup al tenant (Security o Microsoft 365)
 async function createGroup(accessToken, userObject) {
-  const endpoint = "/groups";
-  return await callGraphPOST(endpoint, accessToken, userObject);
+    const endpoint = "/groups";
+    return await callGraphPOST(endpoint, accessToken, userObject);
+}
+
+// Afegir owners a un grup a partir de UPN o ID
+async function addOwnersToGroup(accessToken, groupId, ownerKeys) {
+    if (!ownerKeys || !groupId) return;
+
+    const keys = Array.isArray(ownerKeys) ? ownerKeys : [ownerKeys];
+
+    for (const rawKey of keys) {
+        const key = (rawKey || '').trim();
+        if (!key) continue;
+
+        try {
+            // /users/{id | userPrincipalName} funciona
+            const userRes = await callGraph(
+                `/users/${encodeURIComponent(key)}?$select=id`,
+                accessToken
+            );
+            const userId = userRes && userRes.id;
+            if (!userId) continue;
+
+            const body = {
+                '@odata.id': `https://graph.microsoft.com/v1.0/users/${userId}`,
+            };
+
+            await callGraphPOST(
+                `/groups/${groupId}/owners/$ref`,
+                accessToken,
+                body
+            );
+        } catch (err) {
+            console.error(
+                `No s'ha pogut afegir ${key} com a owner del grup ${groupId}:`,
+                err.message || err
+            );
+        }
+    }
 }
 
 // ----- Detall del grup -----
@@ -228,6 +265,8 @@ module.exports = {
     getTenantGroupAppRoleAssignments,
     deleteGroups,
     createGroup,
+    addOwnersToGroup,
+    
     /*
       // Roles
       getRolesPreview,

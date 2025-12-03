@@ -80,7 +80,7 @@
           </div>
         </div>
 
-        <form method="POST" action="/tenant/groups/create" class="create-user-form">
+        <form id="createGroupForm" method="POST" action="/tenant/groups/create" class="create-user-form">
           <div class="users-card-body create-user-body">
 
             <div class="create-user-grid">
@@ -92,7 +92,6 @@
                     id="newGroupDisplayName"
                     type="text"
                     name="displayName"
-                    required
                     class="users-input"
                     autocomplete="off"
                   />
@@ -107,6 +106,29 @@
                     class="users-input"
                   ></textarea>
                 </div>
+
+                <div class="form-group">
+                  <label for="newGroupOwnersInput">Owners del grup</label>
+                  <input
+                    id="newGroupOwnersInput"
+                    type="text"
+                    class="users-input"
+                    placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter"
+                    autocomplete="off"
+                  />
+                  <small class="field-hint">
+                    Cerca i selecciona usuaris del tenant, o escriu el seu UPN manualment i prem Enter.
+                  </small>
+
+                  <!-- Dropdown amb usuaris -->
+                  <div id="ownersDropdown" class="owners-dropdown" style="display:none;"></div>
+
+                  <!-- Llista visual d'owners seleccionats -->
+                  <div id="ownersChips" class="owners-chip-list"></div>
+
+                  <!-- Valor real que s'enviarà al servidor: upn1,upn2,... -->
+                  <input type="hidden" name="ownerUpns" id="ownersHidden" />
+                </div>
               </div>
 
               <!-- Columna dreta -->
@@ -117,7 +139,6 @@
                     id="newGroupType"
                     name="groupType"
                     class="users-input"
-                    required
                   >
                     <option value="security">Security</option>
                     <option value="m365">Microsoft 365</option>
@@ -135,9 +156,17 @@
             </div>
 
             <div class="create-user-actions">
-              <button type="submit" class="btn btn-primary">
+              <button id="createGroupBtn" type="submit" class="btn btn-primary">
                 Crear grup
               </button>
+              <p
+                id="createGroupError"
+                class="field-hint"
+                style="color:#dc2626; margin-top:0.5rem; display:none;"
+              >
+                Per crear un grup cal indicar <strong>Group name</strong>,
+                <strong>Group description</strong> i com a mínim <strong>un owner</strong>.
+              </p>
             </div>
           </div>
         </form>
@@ -160,8 +189,7 @@
 
             <div class="users-header-right">
               <div class="users-filters">
-                <input id="groupSearch" type="text" class="users-search-input"
-                  placeholder="Cerca per nom"
+                <input id="groupSearch" type="text" class="users-search-input" placeholder="Cerca per nom"
                   onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
 
                 <select id="groupTypeFilter" class="users-type-filter">
@@ -195,14 +223,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <% groups.forEach(function (g) { 
-                      const types = g.groupTypes || [];
-                      const isM365 = types.includes('Unified');
-
-                      const typeLabel = isM365 ? 'Microsoft 365' : 'Security';
-                      const typeValue = isM365 ? 'm365' : 'security';
-
-                      const sourceLabel = g.onPremisesSyncEnabled ? 'Synced (AD)' : 'Cloud';
+                  <% groups.forEach(function (g) {
+                       const types = g.groupTypes || [];
+                       const isM365 = types.includes('Unified');
+                       const typeLabel = isM365 ? 'Microsoft 365' : 'Security';
+                       const typeValue = isM365 ? 'm365' : 'security';
+                       const sourceLabel = g.onPremisesSyncEnabled ? 'Synced (AD)' : 'Cloud';
                   %>
                     <tr
                       data-display-name="<%= g.displayName || '' %>"
@@ -214,12 +240,8 @@
                           <%= g.displayName || '(Sense nom)' %>
                         </a>
                       </td>
-                      <td>
-                        <%= typeLabel %>
-                      </td>
-                      <td>
-                        <%= sourceLabel %>
-                      </td>
+                      <td><%= typeLabel %></td>
+                      <td><%= sourceLabel %></td>
                       <td class="users-select-cell">
                         <input type="checkbox" name="groupIds" value="<%= g.id %>" />
                       </td>
@@ -242,9 +264,10 @@
     <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
   </footer>
 
-  <!-- JS: filtres per la taula de grups -->
+  <!-- JS: filtres + creació de grup (owners + dropdown + validació) -->
   <script>
     (function () {
+      // --- Filtres de la taula de grups ---
       const searchInput = document.getElementById('groupSearch');
       const typeFilter = document.getElementById('groupTypeFilter');
       const sourceFilter = document.getElementById('groupSourceFilter');
@@ -260,22 +283,15 @@
 
         rows.forEach(row => {
           const dn = (row.dataset.displayName || '').toLowerCase();
-          const groupType = (row.dataset.type || '').toLowerCase();   // 'security' o 'm365'
-          const groupSource = (row.dataset.source || '').toLowerCase(); // 'cloud' o 'synced'
+          const groupType = (row.dataset.type || '').toLowerCase();
+          const groupSource = (row.dataset.source || '').toLowerCase();
 
-          const matchesText =
-            !term || dn.includes(term);
-
-          const matchesType =
-            type === 'all' || groupType === type;
-
-          const matchesSource =
-            source === 'all' || groupSource === source;
+          const matchesText = !term || dn.includes(term);
+          const matchesType = type === 'all' || groupType === type;
+          const matchesSource = source === 'all' || groupSource === source;
 
           const visible = matchesText && matchesType && matchesSource;
-
           row.style.display = visible ? '' : 'none';
-
           if (visible) visibleCount++;
         });
 
@@ -286,8 +302,229 @@
       if (typeFilter) typeFilter.addEventListener('change', applyGroupFilters);
       if (sourceFilter) sourceFilter.addEventListener('change', applyGroupFilters);
 
-      // Estat inicial
+      // --- Crear grup: gestió d'owners + dropdown + validació ---
+      const ownersInput = document.getElementById('newGroupOwnersInput');
+      const ownersChips = document.getElementById('ownersChips');
+      const ownersHidden = document.getElementById('ownersHidden');
+      const ownersDropdown = document.getElementById('ownersDropdown');
+      const groupNameInput = document.getElementById('newGroupDisplayName');
+      const groupDescInput = document.getElementById('newGroupDescription');
+      const createGroupForm = document.getElementById('createGroupForm');
+      const createGroupError = document.getElementById('createGroupError');
+
+      // Usuaris del tenant injectats des del servidor
+      const allUsers = <%- JSON.stringify(users || []) %>;
+
+      const owners = [];
+
+      function updateOwnersHidden() {
+        if (ownersHidden) {
+          ownersHidden.value = owners.join(',');
+        }
+      }
+
+      function getOwnersFromHidden() {
+        if (!ownersHidden) return [];
+        const raw = ownersHidden.value || '';
+        return raw
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean);
+      }
+
+      function renderOwnersChips() {
+        if (!ownersChips) return;
+        ownersChips.innerHTML = '';
+
+        owners.forEach((upn, index) => {
+          const chip = document.createElement('span');
+          chip.className = 'owner-chip';
+          chip.textContent = upn + ' ';
+
+          const closeBtn = document.createElement('button');
+          closeBtn.type = 'button';
+          closeBtn.className = 'owner-chip-remove';
+          closeBtn.textContent = '×';
+
+          closeBtn.addEventListener('click', () => {
+            owners.splice(index, 1);
+            updateOwnersHidden();
+            renderOwnersChips();
+          });
+
+          chip.appendChild(closeBtn);
+          ownersChips.appendChild(chip);
+        });
+      }
+
+      // 🔽 Desplegable amb checkboxes + botó "Afegir seleccionats"
+      function buildOwnersDropdown() {
+        if (!ownersDropdown) return;
+
+        ownersDropdown.innerHTML = '';
+
+        // Caixa de cerca
+        const searchBox = document.createElement('input');
+        searchBox.type = 'text';
+        searchBox.placeholder = 'Cerca per nom o UPN';
+        searchBox.className = 'users-input owners-search-input';
+        searchBox.style.marginBottom = '0.5rem';
+
+        const list = document.createElement('div');
+        list.id = 'ownersDropdownList';
+        list.className = 'owners-dropdown-list';
+
+        // Botó per afegir tots els seleccionats
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.textContent = 'Afegir seleccionats';
+        addBtn.className = 'btn btn-primary owners-add-btn';
+
+        ownersDropdown.appendChild(searchBox);
+        ownersDropdown.appendChild(list);
+        ownersDropdown.appendChild(addBtn);
+
+        function renderList(filterTerm) {
+          const term = (filterTerm || '').trim().toLowerCase();
+          list.innerHTML = '';
+
+          allUsers.forEach(u => {
+            const dn = (u.displayName || '').toLowerCase();
+            const upn = (u.userPrincipalName || '').toLowerCase();
+
+            if (term && !dn.includes(term) && !upn.includes(term)) {
+              return;
+            }
+
+            const option = document.createElement('label');
+            option.className = 'owner-option';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'owner-option-checkbox';
+            checkbox.value = u.userPrincipalName || '';
+
+            const info = document.createElement('div');
+            info.className = 'owner-option-info';
+            info.innerHTML = `
+              <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
+              <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
+              <span class="owner-option-type">${u.userType || ''}</span>
+            `;
+
+            option.appendChild(checkbox);
+            option.appendChild(info);
+            list.appendChild(option);
+          });
+        }
+
+        renderList('');
+
+        // Filtrat
+        searchBox.addEventListener('input', (e) => {
+          renderList(e.target.value || '');
+        });
+
+        // Quan cliquem "Afegir seleccionats"
+        addBtn.addEventListener('click', () => {
+          const checked = list.querySelectorAll('.owner-option-checkbox:checked');
+
+          checked.forEach(cb => {
+            const upn = cb.value;
+            if (upn && !owners.includes(upn)) {
+              owners.push(upn);
+            }
+          });
+
+          updateOwnersHidden();
+          renderOwnersChips();
+
+          // Desmarquem després d'afegir
+          checked.forEach(cb => {
+            cb.checked = false;
+          });
+        });
+      }
+
+      // Obrir/ tancar desplegable
+      if (ownersInput && ownersDropdown) {
+        ownersInput.addEventListener('focus', () => {
+          ownersDropdown.style.display = 'block';
+        });
+
+        document.addEventListener('click', (e) => {
+          if (ownersInput.contains(e.target) || ownersDropdown.contains(e.target)) {
+            return;
+          }
+          ownersDropdown.style.display = 'none';
+        });
+      }
+
+      // Afegir UPN manualment amb Enter
+      if (ownersInput) {
+        ownersInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const value = ownersInput.value.trim();
+            if (!value) return;
+
+            if (!owners.includes(value)) {
+              owners.push(value);
+              updateOwnersHidden();
+              renderOwnersChips();
+            }
+
+            ownersInput.value = '';
+          }
+        });
+      }
+
+      function hasText(el) {
+        return el && el.value && el.value.trim().length > 0;
+      }
+
+      if (createGroupForm) {
+        createGroupForm.addEventListener('submit', (e) => {
+          if (createGroupError) {
+            createGroupError.style.display = 'none';
+          }
+
+          // Si hi ha text al camp d'owners però no han premut Enter, l'afegim
+          if (ownersInput && ownersInput.value.trim()) {
+            const value = ownersInput.value.trim();
+            if (!owners.includes(value)) {
+              owners.push(value);
+              updateOwnersHidden();
+              renderOwnersChips();
+            }
+            ownersInput.value = '';
+          }
+
+          const hasName = hasText(groupNameInput);
+          const hasDescription = hasText(groupDescInput);
+          const hasAtLeastOneOwner = getOwnersFromHidden().length > 0;
+
+          if (!hasName || !hasDescription || !hasAtLeastOneOwner) {
+            e.preventDefault();
+
+            if (createGroupError) {
+              createGroupError.style.display = 'block';
+            }
+
+            if (!hasName && groupNameInput) {
+              groupNameInput.focus();
+            } else if (!hasDescription && groupDescInput) {
+              groupDescInput.focus();
+            } else if (!hasAtLeastOneOwner && ownersInput) {
+              ownersInput.focus();
+            }
+          }
+        });
+      }
+
+      // Inicialització
       applyGroupFilters();
+      buildOwnersDropdown();
     })();
   </script>
 </body>

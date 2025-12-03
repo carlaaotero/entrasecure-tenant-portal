@@ -7,7 +7,6 @@ const { getTokenForGraph } = require('../auth/AuthProvider');
 const {
     //Users
     getUsersPreview,
-    getGroupsPreview,
     getAllUsers,
     getTenantUserById,
     getTenantUserMemberOf,
@@ -16,6 +15,7 @@ const {
     createUser,
 
     //Groups
+    getGroupsPreview,
     getAllGroups,
     getTenantGroupById,
     getTenantGroupMembers,
@@ -24,6 +24,8 @@ const {
     getTenantGroupAppRoleAssignments,
     deleteGroups,
     createGroup,
+    addOwnersToGroup,
+
 } = require('../controllers/tenantController');
 
 
@@ -192,7 +194,7 @@ on té rols assignats. És útil per analitzar el context d'accés d'un usuari c
 /* -- GROUPS -- */
 
 // GET /tenant/groups -> vista completa de tots els groups del tenant
-router.get('/tenant/groups', requireAuth, async (req, res) => {
+/*router.get('/tenant/groups', requireAuth, async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -208,7 +210,30 @@ router.get('/tenant/groups', requireAuth, async (req, res) => {
         console.error('Error carregant /tenant/groups:', err);
         res.status(500).send('Error carregant els grups del tenant');
     }
+});*/
+router.get('/tenant/groups', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        // Llegim tots els grups i tots els usuaris del tenant
+        const [groups, users] = await Promise.all([
+            getAllGroups(accessToken),
+            getAllUsers(accessToken),
+        ]);
+
+        res.render('tenantExplorer/groups', {
+            title: 'Tenant groups',
+            user: account,  // per la navbar
+            groups,
+            users,          // 👈 molt important: això és el que feia falta
+        });
+    } catch (err) {
+        console.error('Error carregant /tenant/groups:', err);
+        res.status(500).send('Error carregant els grups del tenant');
+    }
 });
+
 
 
 // POST /tenant/groups/create -> crear un nou grup
@@ -217,13 +242,29 @@ router.post('/tenant/groups/create', requireAuth, async (req, res) => {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
 
-        const { displayName, description, groupType } = req.body;
+        const { displayName, description, groupType, ownerUpns } = req.body;
 
-        if (!displayName || !groupType) {
-            return res.status(400).send('Falten camps obligatoris per crear el grup.');
+        // 1) Validacions bàsiques de camps obligatoris
+        if (!displayName || !groupType || !description) {
+            return res
+                .status(400)
+                .send('Cal indicar el nom del grup, la justificació i el tipus de grup.');
         }
 
-        // mailNickname a partir del nom (sense accents, minúscules, etc.)
+        // 2) Processar la llista d’owners del formulari
+        const ownerList = (ownerUpns || '')
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+        if (ownerList.length === 0) {
+            // No han afegit cap owner manualment
+            return res
+                .status(400)
+                .send('Cal indicar com a mínim un owner del grup.');
+        }
+
+        // 3) Calcular mailNickname a partir del nom
         const slug = displayName
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
             .toLowerCase()
@@ -233,6 +274,7 @@ router.post('/tenant/groups/create', requireAuth, async (req, res) => {
 
         const mailNickname = slug || `group-${Date.now()}`;
 
+        // 4) Construir objecte de grup per Graph
         let groupObject;
 
         if (groupType === 'm365') {
@@ -256,7 +298,14 @@ router.post('/tenant/groups/create', requireAuth, async (req, res) => {
             };
         }
 
-        await createGroup(accessToken, groupObject);
+        // 5) Crear el grup
+        const createdGroup = await createGroup(accessToken, groupObject);
+        const groupId = createdGroup && createdGroup.id;
+
+        // 6) Afegir owners indicats al formulari
+        if (groupId && ownerList.length > 0) {
+            await addOwnersToGroup(accessToken, groupId, ownerList);
+        }
 
         res.redirect('/tenant/groups');
     } catch (err) {
@@ -264,6 +313,8 @@ router.post('/tenant/groups/create', requireAuth, async (req, res) => {
         res.status(500).send('Error creant el grup');
     }
 });
+
+
 
 
 // POST /tenant/groups/delete -> eliminar un o més groups seleccionats
