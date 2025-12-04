@@ -407,6 +407,7 @@ router.get('/tenant/groups/:id', requireAuth, async (req, res) => {
         const owners = await getTenantGroupOwners(accessToken, groupId);
         const directoryRoles = await getTenantGroupDirectoryRoles(accessToken, groupId);
         const appAssignments = await getTenantGroupAppRoleAssignments(accessToken, groupId);
+        const users = await getAllUsers (accessToken);
 
         const helpfulInfo =
             'Aquesta vista mostra informació bàsica del grup, els seus membres, ' +
@@ -422,6 +423,7 @@ router.get('/tenant/groups/:id', requireAuth, async (req, res) => {
             directoryRoles,
             appAssignments,
             helpfulInfo,
+            users,
         });
     } catch (err) {
         console.error('Error carregant /tenant/groups/:id:', err);

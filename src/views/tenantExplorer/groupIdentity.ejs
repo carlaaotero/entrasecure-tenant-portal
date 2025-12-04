@@ -21,6 +21,9 @@
 
   <!-- Mateix layout que My Identity -->
   <link rel="stylesheet" href="/css/pages/identity.css" />
+  <!-- Reutilitzem estils del selector d'usuaris (dropdown + chips) -->
+  <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
+
 </head>
 
 <body>
@@ -124,30 +127,54 @@
           </dl>
       </article>
 
-      <!-- Members: mateixa estructura que "Groups" a My Identity -->
+            <!-- Members: selector + llista -->
       <article class="card identity-card identity-groups-card">
         <h3>Members</h3>
         <div class="identity-card-content">
 
-          <!-- Formulari per afegir membres al grup -->
-          <form method="POST" action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/members/add"
-            class="identity-inline-form">
-            <label for="memberKeys" class="identity-inline-label">
-              Afegir membres (UPN o ID)
+          <!-- Formulari per afegir membres al grup amb desplegable -->
+          <form
+            id="addMembersForm"
+            method="POST"
+            action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/members/add"
+            class="identity-inline-form"
+          >
+            <label for="groupMembersInput" class="identity-inline-label">
+              Afegir membres al grup
             </label>
+
             <div class="identity-inline-input">
-              <input id="memberKeys" name="memberKeys" type="text" class="users-input"
-                placeholder="ex: usuari1@contoso.com, usuari2@contoso.com" autocomplete="off" />
+              <input
+                id="groupMembersInput"
+                type="text"
+                class="users-input"
+                placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter"
+                autocomplete="off"
+              />
+
+              <!-- Dropdown amb usuaris (com a la creació de grups) -->
+              <div id="membersDropdown" class="owners-dropdown" style="display:none;"></div>
+            </div>
+
+            <small class="field-hint">
+              Pots seleccionar usuaris amb el desplegable o escriure UPNs manualment (separats per comes o Enter).
+            </small>
+
+
+            <!-- Chips amb els membres que afegiràs -->
+            <div id="membersChips" class="owners-chip-list"></div>
+
+            <!-- Hidden amb els UPNs/IDs que s'enviaran al backend -->
+            <input type="hidden" name="memberKeys" id="membersHidden" />
+
+            <div class="identity-inline-actions">
               <button type="submit" class="btn btn-primary btn-sm">
-                Afegir
+                Afegir membres seleccionats
               </button>
             </div>
-            <small class="field-hint">
-              Pots indicar un o més UPNs separats per comes. Només funcionaran usuaris vàlids del tenant.
-            </small>
           </form>
 
-          <% if (members && members.length> 0) { %>
+          <% if (members && members.length > 0) { %>
             <div class="identity-item-list">
               <% members.forEach(function (m) { %>
                 <div class="identity-item-card">
@@ -158,47 +185,71 @@
                   </div>
                   <div class="identity-item-meta">
                     <%= m.userPrincipalName || '' %><br />
-                      <%= m.userType || '—' %>
-                        <% if (typeof m.accountEnabled==='boolean' ) { %>
-                          · <%= m.accountEnabled ? 'Enabled' : 'Disabled' %>
-                            <% } %>
+                    <%= m.userType || '—' %>
+                    <% if (typeof m.accountEnabled === 'boolean') { %>
+                      · <%= m.accountEnabled ? 'Enabled' : 'Disabled' %>
+                    <% } %>
                   </div>
                 </div>
-                <% }); %>
+              <% }); %>
             </div>
-            <% } else { %>
-              <p class="identity-empty">
-                Aquest grup no té membres o no es pot llegir la informació.
-              </p>
-              <% } %>
+          <% } else { %>
+            <p class="identity-empty">
+              Aquest grup no té membres o no es pot llegir la informació.
+            </p>
+          <% } %>
         </div>
       </article>
 
 
-      <!-- Owners -->
+
+            <!-- Owners: selector + llista -->
       <article class="card identity-card identity-roles-card">
         <h3>Owners</h3>
         <div class="identity-card-content">
 
-          <!-- Formulari per afegir owners al grup -->
-          <form method="POST" action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/owners/add"
-            class="identity-inline-form">
-            <label for="ownerKeys" class="identity-inline-label">
-              Afegir owners (UPN o ID)
+          <!-- Formulari per afegir owners amb desplegable -->
+          <form
+            id="addOwnersForm"
+            method="POST"
+            action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/owners/add"
+            class="identity-inline-form"
+          >
+            <label for="groupOwnersInput" class="identity-inline-label">
+              Afegir owners al grup
             </label>
             <div class="identity-inline-input">
-              <input id="ownerKeys" name="ownerKeys" type="text" class="users-input"
-                placeholder="ex: admin@contoso.com, owner2@contoso.com" autocomplete="off" />
+              <input
+                id="groupOwnersInput"
+                type="text"
+                class="users-input"
+                placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter"
+                autocomplete="off"
+              />
+
+              <!-- Dropdown amb usuaris -->
+              <div id="ownersDropdown" class="owners-dropdown" style="display:none;"></div>
+            </div>
+
+            <small class="field-hint">
+              Selecciona usuaris amb el desplegable o escriu UPNs manualment.
+            </small>
+
+
+            <!-- Chips amb els owners que afegiràs -->
+            <div id="ownersChips" class="owners-chip-list"></div>
+
+            <!-- Hidden amb els UPNs/IDs que s'enviaran al backend -->
+            <input type="hidden" name="ownerKeys" id="ownersHidden" />
+
+            <div class="identity-inline-actions">
               <button type="submit" class="btn btn-primary btn-sm">
-                Afegir
+                Afegir owners seleccionats
               </button>
             </div>
-            <small class="field-hint">
-              Pots indicar un o més UPNs separats per comes. Cal que tinguin permisos per ser owners.
-            </small>
           </form>
 
-          <% if (owners && owners.length> 0) { %>
+          <% if (owners && owners.length > 0) { %>
             <div class="identity-item-list">
               <% owners.forEach(function (o) { %>
                 <div class="identity-item-card">
@@ -209,18 +260,19 @@
                   </div>
                   <div class="identity-item-meta">
                     <%= o.userPrincipalName || '' %><br />
-                      <%= o.userType || '—' %>
+                    <%= o.userType || '—' %>
                   </div>
                 </div>
-                <% }); %>
+              <% }); %>
             </div>
-            <% } else { %>
-              <p class="identity-empty">
-                Aquest grup no té owners o no es pot llegir la informació.
-              </p>
-              <% } %>
+          <% } else { %>
+            <p class="identity-empty">
+              Aquest grup no té owners o no es pot llegir la informació.
+            </p>
+          <% } %>
         </div>
       </article>
+
 
 
       <!-- Directory Roles -->
@@ -287,6 +339,251 @@
   <footer class="footer">
     <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
   </footer>
+  <script>
+    (function () {
+      // Usuaris del tenant injectats des del servidor
+      const allUsers = <%- JSON.stringify(users || []) %>;
+
+      // Helper comú per muntar un selector amb desplegable + chips
+      function setupUserSelector(config) {
+        const {
+          inputId,
+          dropdownId,
+          chipsId,
+          hiddenId,
+        } = config;
+
+        const input = document.getElementById(inputId);
+        const dropdown = document.getElementById(dropdownId);
+        const chips = document.getElementById(chipsId);
+        const hidden = document.getElementById(hiddenId);
+
+        const selected = [];
+
+        function updateHidden() {
+          if (hidden) {
+            hidden.value = selected.join(',');
+          }
+        }
+
+        function renderChips() {
+          if (!chips) return;
+          chips.innerHTML = '';
+
+          selected.forEach((upn, index) => {
+            const chip = document.createElement('span');
+            chip.className = 'owner-chip';
+            chip.textContent = upn + ' ';
+
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'owner-chip-remove';
+            closeBtn.textContent = '×';
+
+            closeBtn.addEventListener('click', () => {
+              selected.splice(index, 1);
+              updateHidden();
+              renderChips();
+            });
+
+            chip.appendChild(closeBtn);
+            chips.appendChild(chip);
+          });
+        }
+
+        function buildDropdown() {
+          if (!dropdown) return;
+
+          dropdown.innerHTML = '';
+
+          // Header: cerca + botó afegir
+          const header = document.createElement('div');
+          header.className = 'owners-dropdown-header';
+
+          const searchBox = document.createElement('input');
+          searchBox.type = 'text';
+          searchBox.placeholder = 'Cerca per nom o UPN';
+          searchBox.className = 'users-input owners-search-input';
+
+          const addBtn = document.createElement('button');
+          addBtn.type = 'button';
+          addBtn.textContent = 'Afegir seleccionats';
+          addBtn.className = 'btn btn-primary owners-add-btn';
+
+          header.appendChild(searchBox);
+          header.appendChild(addBtn);
+
+          // Llista amb scroll
+          const list = document.createElement('div');
+          list.className = 'owners-dropdown-list';
+
+          dropdown.appendChild(header);
+          dropdown.appendChild(list);
+
+          function renderList(filterTerm = '') {
+            const term = (filterTerm || '').trim().toLowerCase();
+            list.innerHTML = '';
+
+            const filtered = (allUsers || []).filter(u => {
+              const dn = (u.displayName || '').toLowerCase();
+              const upn = (u.userPrincipalName || '').toLowerCase();
+              if (!term) return true;
+              return dn.includes(term) || upn.includes(term);
+            });
+
+            filtered.forEach(u => {
+              const option = document.createElement('label');
+              option.className = 'owner-option';
+
+              const checkbox = document.createElement('input');
+              checkbox.type = 'checkbox';
+              checkbox.className = 'owner-option-checkbox';
+              checkbox.value = u.userPrincipalName || '';
+
+              const info = document.createElement('div');
+              info.className = 'owner-option-info';
+              info.innerHTML = `
+                <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
+                <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
+                <span class="owner-option-type">${u.userType || ''}</span>
+              `;
+
+              option.appendChild(checkbox);
+              option.appendChild(info);
+              list.appendChild(option);
+            });
+          }
+
+          renderList('');
+
+          // Filtrat en temps real
+          searchBox.addEventListener('input', (e) => {
+            renderList(e.target.value || '');
+          });
+
+          // Afegir seleccionats a l'array + chips
+          addBtn.addEventListener('click', () => {
+            const checked = list.querySelectorAll('.owner-option-checkbox:checked');
+
+            checked.forEach(cb => {
+              const upn = cb.value;
+              if (upn && !selected.includes(upn)) {
+                selected.push(upn);
+              }
+            });
+
+            updateHidden();
+            renderChips();
+
+            // netegem selecció
+            checked.forEach(cb => {
+              cb.checked = false;
+            });
+          });
+        }
+
+        // Obrir/tancar desplegable
+        if (input && dropdown) {
+          input.addEventListener('focus', () => {
+            if (!dropdown.hasChildNodes()) {
+              buildDropdown();
+            }
+            dropdown.style.display = 'block';
+          });
+
+          document.addEventListener('click', (e) => {
+            if (input.contains(e.target) || dropdown.contains(e.target)) {
+              return;
+            }
+            dropdown.style.display = 'none';
+          });
+        }
+
+        // Afegir UPN manualment amb Enter
+        if (input) {
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const value = input.value.trim();
+              if (!value) return;
+
+              // permetré múltiples UPN separats per comes en un sol Enter
+              value.split(',')
+                .map(v => v.trim())
+                .filter(Boolean)
+                .forEach(v => {
+                  if (!selected.includes(v)) {
+                    selected.push(v);
+                  }
+                });
+
+              updateHidden();
+              renderChips();
+              input.value = '';
+            }
+          });
+        }
+
+        // Exposem una funció per “buida” l'input en el submit
+        function flushInput() {
+          if (!input) return;
+          const value = input.value.trim();
+          if (!value) return;
+
+          value.split(',')
+            .map(v => v.trim())
+            .filter(Boolean)
+            .forEach(v => {
+              if (!selected.includes(v)) {
+                selected.push(v);
+              }
+            });
+
+          updateHidden();
+          renderChips();
+          input.value = '';
+        }
+
+        return {
+          flushInput,
+        };
+      }
+
+      // --- Instanciem els dos selectors: Members i Owners ---
+
+      const membersSelector = setupUserSelector({
+        inputId: 'groupMembersInput',
+        dropdownId: 'membersDropdown',
+        chipsId: 'membersChips',
+        hiddenId: 'membersHidden',
+      });
+
+      const ownersSelector = setupUserSelector({
+        inputId: 'groupOwnersInput',
+        dropdownId: 'ownersDropdown',
+        chipsId: 'ownersChips',
+        hiddenId: 'ownersHidden',
+      });
+
+      // Integrar amb els formularis existents
+      const addMembersForm = document.getElementById('addMembersForm');
+      const addOwnersForm = document.getElementById('addOwnersForm');
+
+      if (addMembersForm && membersSelector) {
+        addMembersForm.addEventListener('submit', () => {
+          membersSelector.flushInput();
+        });
+      }
+
+      if (addOwnersForm && ownersSelector) {
+        addOwnersForm.addEventListener('submit', () => {
+          ownersSelector.flushInput();
+        });
+      }
+    })();
+  </script>
+
+
 </body>
 
 </html>
