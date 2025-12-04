@@ -292,3 +292,34 @@
   padding: 0.35rem 0.8rem;
   font-size: 0.85rem;
 }
+
+
+.identity-removable {
+  position: relative;
+}
+
+.remove-form {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  margin: 0;
+}
+
+.remove-btn {
+  background: #e11d48;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+  opacity: 0.85;
+  padding: 0;
+}
+
+.remove-btn:hover {
+  opacity: 1;
+  background: #be123c;
+}

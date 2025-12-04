@@ -4,6 +4,9 @@ const express = require('express');
 const router = express.Router();
 
 const { getTokenForGraph } = require('../auth/AuthProvider');
+const { callGraphDELETE } = require('../controllers/graphController');
+
+
 const {
     //Users
     getUsersPreview,
@@ -28,7 +31,6 @@ const {
     addMembersToGroup,
 
 } = require('../controllers/tenantController');
-
 
 // Middleware per protegir rutes: si no hi ha sessió, envia a login
 function requireAuth(req, res, next) {
@@ -247,23 +249,6 @@ on té rols assignats. És útil per analitzar el context d'accés d'un usuari c
 /* -- GROUPS -- */
 
 // GET /tenant/groups -> vista completa de tots els groups del tenant
-/*router.get('/tenant/groups', requireAuth, async (req, res) => {
-    try {
-        const account = req.session.user;
-        const accessToken = await getTokenForGraph(account);
-
-        const groups = await getAllGroups(accessToken);
-
-        res.render('tenantExplorer/groups', {
-            title: 'Grups del tenant',
-            user: account,
-            groups,
-        });
-    } catch (err) {
-        console.error('Error carregant /tenant/groups:', err);
-        res.status(500).send('Error carregant els grups del tenant');
-    }
-});*/
 router.get('/tenant/groups', requireAuth, async (req, res) => {
     try {
         const account = req.session.user;
@@ -368,8 +353,6 @@ router.post('/tenant/groups/create', requireAuth, async (req, res) => {
 });
 
 
-
-
 // POST /tenant/groups/delete -> eliminar un o més groups seleccionats
 router.post('/tenant/groups/delete', requireAuth, async (req, res) => {
     try {
@@ -432,6 +415,48 @@ router.get('/tenant/groups/:id', requireAuth, async (req, res) => {
 });
 
 
+// Treure un member d'un grup
+router.post('/tenant/groups/:groupId/members/:memberId/remove', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        const { groupId, memberId } = req.params;
+
+        // DELETE /groups/{id}/members/{id}/$ref
+        await callGraphDELETE(
+            `/groups/${groupId}/members/${memberId}/$ref`,
+            accessToken
+        );
+
+        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
+    } catch (err) {
+        console.error("Error eliminant member:", err);
+        res.status(500).send("No s'ha pogut eliminar el member del grup");
+    }
+});
+
+
+// Treure un owner d'un grup
+router.post('/tenant/groups/:groupId/owners/:ownerId/remove', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        const { groupId, ownerId } = req.params;
+
+        // DELETE /groups/{id}/owners/{id}/$ref
+        await callGraphDELETE(
+            `/groups/${groupId}/owners/${ownerId}/$ref`,
+            accessToken
+        );
+
+        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
+    } catch (err) {
+        console.error("Error eliminant owner:", err);
+        res.status(500).send("No s'ha pogut eliminar l'owner del grup");
+    }
+});
 
 
 module.exports = router;

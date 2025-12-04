@@ -127,30 +127,21 @@
           </dl>
       </article>
 
-            <!-- Members: selector + llista -->
+      <!-- Members: selector + llista -->
       <article class="card identity-card identity-groups-card">
         <h3>Members</h3>
         <div class="identity-card-content">
 
           <!-- Formulari per afegir membres al grup amb desplegable -->
-          <form
-            id="addMembersForm"
-            method="POST"
-            action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/members/add"
-            class="identity-inline-form"
-          >
+          <form id="addMembersForm" method="POST"
+            action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/members/add" class="identity-inline-form">
             <label for="groupMembersInput" class="identity-inline-label">
               Afegir membres al grup
             </label>
 
             <div class="identity-inline-input">
-              <input
-                id="groupMembersInput"
-                type="text"
-                class="users-input"
-                placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter"
-                autocomplete="off"
-              />
+              <input id="groupMembersInput" type="text" class="users-input"
+                placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
 
               <!-- Dropdown amb usuaris (com a la creació de grups) -->
               <div id="membersDropdown" class="owners-dropdown" style="display:none;"></div>
@@ -174,10 +165,20 @@
             </div>
           </form>
 
-          <% if (members && members.length > 0) { %>
+          <% if (members && members.length> 0) { %>
             <div class="identity-item-list">
               <% members.forEach(function (m) { %>
-                <div class="identity-item-card">
+                <div class="identity-item-card identity-removable">
+
+                  <!-- BOTÓ ELIMINAR (creu) -->
+                  <form method="POST"
+                    action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/members/<%= encodeURIComponent(m.id) %>/remove"
+                    onsubmit="return confirm('Vols eliminar «<%= m.displayName || m.userPrincipalName %>» del grup?');"
+                    class="remove-form">
+                    <button type="submit" class="remove-btn">×</button>
+                  </form>
+
+                  <!-- INFO DEL MEMBER -->
                   <div class="identity-item-title">
                     <a href="/tenant/users/<%= encodeURIComponent(m.id) %>" class="identity-link">
                       <%= m.displayName || m.userPrincipalName || '(Sense nom)' %>
@@ -185,47 +186,39 @@
                   </div>
                   <div class="identity-item-meta">
                     <%= m.userPrincipalName || '' %><br />
-                    <%= m.userType || '—' %>
-                    <% if (typeof m.accountEnabled === 'boolean') { %>
-                      · <%= m.accountEnabled ? 'Enabled' : 'Disabled' %>
-                    <% } %>
+                      <%= m.userType || '—' %>
+                        <% if (typeof m.accountEnabled==='boolean' ) { %>
+                          · <%= m.accountEnabled ? 'Enabled' : 'Disabled' %>
+                            <% } %>
                   </div>
                 </div>
-              <% }); %>
+                <% }); %>
             </div>
-          <% } else { %>
-            <p class="identity-empty">
-              Aquest grup no té membres o no es pot llegir la informació.
-            </p>
-          <% } %>
+            <% } else { %>
+
+              <p class="identity-empty">
+                Aquest grup no té membres o no es pot llegir la informació.
+              </p>
+              <% } %>
         </div>
       </article>
 
 
 
-            <!-- Owners: selector + llista -->
+      <!-- Owners: selector + llista -->
       <article class="card identity-card identity-roles-card">
         <h3>Owners</h3>
         <div class="identity-card-content">
 
           <!-- Formulari per afegir owners amb desplegable -->
-          <form
-            id="addOwnersForm"
-            method="POST"
-            action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/owners/add"
-            class="identity-inline-form"
-          >
+          <form id="addOwnersForm" method="POST"
+            action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/owners/add" class="identity-inline-form">
             <label for="groupOwnersInput" class="identity-inline-label">
               Afegir owners al grup
             </label>
             <div class="identity-inline-input">
-              <input
-                id="groupOwnersInput"
-                type="text"
-                class="users-input"
-                placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter"
-                autocomplete="off"
-              />
+              <input id="groupOwnersInput" type="text" class="users-input"
+                placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
 
               <!-- Dropdown amb usuaris -->
               <div id="ownersDropdown" class="owners-dropdown" style="display:none;"></div>
@@ -249,10 +242,20 @@
             </div>
           </form>
 
-          <% if (owners && owners.length > 0) { %>
+          <% if (owners && owners.length> 0) { %>
             <div class="identity-item-list">
               <% owners.forEach(function (o) { %>
-                <div class="identity-item-card">
+                <div class="identity-item-card identity-removable">
+
+                  <!-- BOTÓ ELIMINAR (creu) -->
+                  <form method="POST"
+                    action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/owners/<%= encodeURIComponent(o.id) %>/remove"
+                    onsubmit="return confirm('Vols eliminar «<%= o.displayName || o.userPrincipalName %>» com a owner del grup?');"
+                    class="remove-form">
+                    <button type="submit" class="remove-btn">×</button>
+                  </form>
+
+                  <!-- INFO DE L'OWNER -->
                   <div class="identity-item-title">
                     <a href="/tenant/users/<%= encodeURIComponent(o.id) %>" class="identity-link">
                       <%= o.displayName || o.userPrincipalName || '(Sense nom)' %>
@@ -260,16 +263,17 @@
                   </div>
                   <div class="identity-item-meta">
                     <%= o.userPrincipalName || '' %><br />
-                    <%= o.userType || '—' %>
+                      <%= o.userType || '—' %>
                   </div>
                 </div>
-              <% }); %>
+                <% }); %>
             </div>
-          <% } else { %>
-            <p class="identity-empty">
-              Aquest grup no té owners o no es pot llegir la informació.
-            </p>
-          <% } %>
+            <% } else { %>
+
+              <p class="identity-empty">
+                Aquest grup no té owners o no es pot llegir la informació.
+              </p>
+              <% } %>
         </div>
       </article>
 
@@ -342,7 +346,7 @@
   <script>
     (function () {
       // Usuaris del tenant injectats des del servidor
-      const allUsers = <%- JSON.stringify(users || []) %>;
+      const allUsers = <% - JSON.stringify(users || []) %>;
 
       // Helper comú per muntar un selector amb desplegable + chips
       function setupUserSelector(config) {
