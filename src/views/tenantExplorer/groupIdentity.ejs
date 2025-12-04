@@ -4,7 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title><%= title %></title>
+  <title>
+    <%= title %>
+  </title>
 
   <!-- Design foundation -->
   <link rel="stylesheet" href="/css/foundation.css" />
@@ -32,7 +34,7 @@
           <li><a href="/me" class="nav-link">My Identity</a></li>
           <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
           <li><a href="/security" class="nav-link">Security</a></li>
-        <% } %>
+          <% } %>
       </ul>
     </div>
 
@@ -40,20 +42,17 @@
       <% if (user) { %>
         <div class="user-pill">
           <span class="user-initial">
-            <%
-              const navName = user.name || user.username || 'U';
-              const navInitial = navName.charAt(0).toUpperCase();
-            %>
-            <%= navInitial %>
+            <% const navName=user.name || user.username || 'U' ; const navInitial=navName.charAt(0).toUpperCase(); %>
+              <%= navInitial %>
           </span>
 
           <span class="user-name">
             <%= user.name || user.username || 'Usuari' %>
           </span>
         </div>
-      <% } else { %>
-        <a href="/auth/login" class="btn btn-outline-light">Login</a>
-      <% } %>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-outline-light">Login</a>
+          <% } %>
     </div>
   </nav>
 
@@ -65,13 +64,9 @@
         <div class="identity-avatar-wrapper">
           <div class="profile-avatar">
             <span>
-              <%
-                const gName = groupProfile && groupProfile.displayName
-                  ? groupProfile.displayName
-                  : 'Grup';
-                const gInitial = gName.charAt(0).toUpperCase();
-              %>
-              <%= gInitial %>
+              <% const gName=groupProfile && groupProfile.displayName ? groupProfile.displayName : 'Grup' ; const
+                gInitial=gName.charAt(0).toUpperCase(); %>
+                <%= gInitial %>
             </span>
           </div>
         </div>
@@ -82,53 +77,77 @@
           </h2>
         </div>
 
-        <%
-          const gTypes = groupProfile && groupProfile.groupTypes || [];
-          const isM365 = gTypes.includes('Unified');
-          const groupTypeLabel = isM365 ? 'Microsoft 365' : 'Security';
-          const groupSourceLabel = groupProfile && groupProfile.onPremisesSyncEnabled ? 'Synced (AD)' : 'Cloud';
-        %>
+        <% const gTypes=groupProfile && groupProfile.groupTypes || []; const isM365=gTypes.includes('Unified'); const
+          groupTypeLabel=isM365 ? 'Microsoft 365' : 'Security' ; const groupSourceLabel=groupProfile &&
+          groupProfile.onPremisesSyncEnabled ? 'Synced (AD)' : 'Cloud' ; %>
 
-        <!-- Detalls del grup -->
-        <dl class="identity-details">
-          <div class="identity-detail-row">
-            <dt>Group name</dt>
-            <dd><%= groupProfile && groupProfile.displayName || '—' %></dd>
-          </div>
+          <!-- Detalls del grup -->
+          <dl class="identity-details">
+            <div class="identity-detail-row">
+              <dt>Group name</dt>
+              <dd>
+                <%= groupProfile && groupProfile.displayName || '—' %>
+              </dd>
+            </div>
 
-          <div class="identity-detail-row">
-            <dt>Group description</dt>
-            <dd><%= groupProfile && groupProfile.description || '—' %></dd>
-          </div>
+            <div class="identity-detail-row">
+              <dt>Group description</dt>
+              <dd>
+                <%= groupProfile && groupProfile.description || '—' %>
+              </dd>
+            </div>
 
-          <div class="identity-detail-row">
-            <dt>Group source</dt>
-            <dd><%= groupSourceLabel %></dd>
-          </div>
+            <div class="identity-detail-row">
+              <dt>Group source</dt>
+              <dd>
+                <%= groupSourceLabel %>
+              </dd>
+            </div>
 
-          <div class="identity-detail-row">
-            <dt>Group type</dt>
-            <dd><%= groupTypeLabel %></dd>
-          </div>
+            <div class="identity-detail-row">
+              <dt>Group type</dt>
+              <dd>
+                <%= groupTypeLabel %>
+              </dd>
+            </div>
 
-          <div class="identity-detail-row">
-            <dt>Created date time</dt>
-            <dd>
-              <% if (groupProfile && groupProfile.createdDateTime) { %>
-                <%= groupProfile.createdDateTime %>
-              <% } else { %>
-                —
-              <% } %>
-            </dd>
-          </div>
-        </dl>
+            <div class="identity-detail-row">
+              <dt>Created date time</dt>
+              <dd>
+                <% if (groupProfile && groupProfile.createdDateTime) { %>
+                  <%= groupProfile.createdDateTime %>
+                    <% } else { %>
+                      —
+                      <% } %>
+              </dd>
+            </div>
+          </dl>
       </article>
 
       <!-- Members: mateixa estructura que "Groups" a My Identity -->
       <article class="card identity-card identity-groups-card">
         <h3>Members</h3>
         <div class="identity-card-content">
-          <% if (members && members.length > 0) { %>
+
+          <!-- Formulari per afegir membres al grup -->
+          <form method="POST" action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/members/add"
+            class="identity-inline-form">
+            <label for="memberKeys" class="identity-inline-label">
+              Afegir membres (UPN o ID)
+            </label>
+            <div class="identity-inline-input">
+              <input id="memberKeys" name="memberKeys" type="text" class="users-input"
+                placeholder="ex: usuari1@contoso.com, usuari2@contoso.com" autocomplete="off" />
+              <button type="submit" class="btn btn-primary btn-sm">
+                Afegir
+              </button>
+            </div>
+            <small class="field-hint">
+              Pots indicar un o més UPNs separats per comes. Només funcionaran usuaris vàlids del tenant.
+            </small>
+          </form>
+
+          <% if (members && members.length> 0) { %>
             <div class="identity-item-list">
               <% members.forEach(function (m) { %>
                 <div class="identity-item-card">
@@ -139,27 +158,47 @@
                   </div>
                   <div class="identity-item-meta">
                     <%= m.userPrincipalName || '' %><br />
-                    <%= m.userType || '—' %>
-                    <% if (typeof m.accountEnabled === 'boolean') { %>
-                      · <%= m.accountEnabled ? 'Enabled' : 'Disabled' %>
-                    <% } %>
+                      <%= m.userType || '—' %>
+                        <% if (typeof m.accountEnabled==='boolean' ) { %>
+                          · <%= m.accountEnabled ? 'Enabled' : 'Disabled' %>
+                            <% } %>
                   </div>
                 </div>
-              <% }); %>
+                <% }); %>
             </div>
-          <% } else { %>
-            <p class="identity-empty">
-              Aquest grup no té membres o no es pot llegir la informació.
-            </p>
-          <% } %>
+            <% } else { %>
+              <p class="identity-empty">
+                Aquest grup no té membres o no es pot llegir la informació.
+              </p>
+              <% } %>
         </div>
       </article>
+
 
       <!-- Owners -->
       <article class="card identity-card identity-roles-card">
         <h3>Owners</h3>
         <div class="identity-card-content">
-          <% if (owners && owners.length > 0) { %>
+
+          <!-- Formulari per afegir owners al grup -->
+          <form method="POST" action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/owners/add"
+            class="identity-inline-form">
+            <label for="ownerKeys" class="identity-inline-label">
+              Afegir owners (UPN o ID)
+            </label>
+            <div class="identity-inline-input">
+              <input id="ownerKeys" name="ownerKeys" type="text" class="users-input"
+                placeholder="ex: admin@contoso.com, owner2@contoso.com" autocomplete="off" />
+              <button type="submit" class="btn btn-primary btn-sm">
+                Afegir
+              </button>
+            </div>
+            <small class="field-hint">
+              Pots indicar un o més UPNs separats per comes. Cal que tinguin permisos per ser owners.
+            </small>
+          </form>
+
+          <% if (owners && owners.length> 0) { %>
             <div class="identity-item-list">
               <% owners.forEach(function (o) { %>
                 <div class="identity-item-card">
@@ -170,24 +209,25 @@
                   </div>
                   <div class="identity-item-meta">
                     <%= o.userPrincipalName || '' %><br />
-                    <%= o.userType || '—' %>
+                      <%= o.userType || '—' %>
                   </div>
                 </div>
-              <% }); %>
+                <% }); %>
             </div>
-          <% } else { %>
-            <p class="identity-empty">
-              Aquest grup no té owners o no es pot llegir la informació.
-            </p>
-          <% } %>
+            <% } else { %>
+              <p class="identity-empty">
+                Aquest grup no té owners o no es pot llegir la informació.
+              </p>
+              <% } %>
         </div>
       </article>
+
 
       <!-- Directory Roles -->
       <article class="card identity-card identity-apps-card">
         <h3>Directory Roles</h3>
         <div class="identity-card-content">
-          <% if (directoryRoles && directoryRoles.length > 0) { %>
+          <% if (directoryRoles && directoryRoles.length> 0) { %>
             <div class="identity-item-list">
               <% directoryRoles.forEach(function (r) { %>
                 <div class="identity-item-card">
@@ -198,13 +238,13 @@
                     ID: <%= r.id %>
                   </div>
                 </div>
-              <% }); %>
+                <% }); %>
             </div>
-          <% } else { %>
-            <p class="identity-empty">
-              Aquest grup no forma part de cap directory role assignable o no es pot llegir la informació.
-            </p>
-          <% } %>
+            <% } else { %>
+              <p class="identity-empty">
+                Aquest grup no forma part de cap directory role assignable o no es pot llegir la informació.
+              </p>
+              <% } %>
         </div>
       </article>
 
@@ -212,7 +252,7 @@
       <article class="card identity-card identity-devices-card">
         <h3>Applications</h3>
         <div class="identity-card-content">
-          <% if (appAssignments && appAssignments.length > 0) { %>
+          <% if (appAssignments && appAssignments.length> 0) { %>
             <div class="identity-item-list">
               <% appAssignments.forEach(function (a) { %>
                 <div class="identity-item-card">
@@ -223,13 +263,13 @@
                     App Role ID: <%= a.appRoleId || '—' %>
                   </div>
                 </div>
-              <% }); %>
+                <% }); %>
             </div>
-          <% } else { %>
-            <p class="identity-empty">
-              No hi ha app role assignments per aquest grup o no es pot llegir la informació.
-            </p>
-          <% } %>
+            <% } else { %>
+              <p class="identity-empty">
+                No hi ha app role assignments per aquest grup o no es pot llegir la informació.
+              </p>
+              <% } %>
         </div>
       </article>
 

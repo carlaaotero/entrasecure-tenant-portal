@@ -25,6 +25,7 @@ const {
     deleteGroups,
     createGroup,
     addOwnersToGroup,
+    addMembersToGroup,
 
 } = require('../controllers/tenantController');
 
@@ -141,6 +142,58 @@ router.post('/tenant/users/delete', requireAuth, async (req, res) => {
         res.status(500).send('Error eliminant usuaris del tenant');
     }
 });
+
+// Afegir owners a un grup existent (des del detall del grup)
+router.post('/tenant/groups/:id/owners/add', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const groupId = req.params.id;
+
+        const { ownerKeys } = req.body; // un string "upn1,upn2" o un sol valor
+
+        const keys = (ownerKeys || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
+        if (keys.length > 0) {
+            await addOwnersToGroup(accessToken, groupId, keys);
+        }
+
+        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
+    } catch (err) {
+        console.error('Error afegint owners al grup:', err);
+        res.status(500).send('No s\'ha pogut afegir owners al grup');
+    }
+});
+
+
+// Afegir members a un grup existent (des del detall del grup)
+router.post('/tenant/groups/:id/members/add', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const groupId = req.params.id;
+
+        const { memberKeys } = req.body; // string "upn1,upn2" o un sol valor
+
+        const keys = (memberKeys || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
+        if (keys.length > 0) {
+            await addMembersToGroup(accessToken, groupId, keys);
+        }
+
+        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
+    } catch (err) {
+        console.error('Error afegint members al grup:', err);
+        res.status(500).send('No s\'ha pogut afegir members al grup');
+    }
+});
+
 
 // Detall d'un user concret del tenant
 router.get('/tenant/users/:id', requireAuth, async (req, res) => {

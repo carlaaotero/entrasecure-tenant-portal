@@ -137,6 +137,44 @@ async function addOwnersToGroup(accessToken, groupId, ownerKeys) {
     }
 }
 
+// Afegir members (usuaris) a un grup a partir de UPN o ID
+async function addMembersToGroup(accessToken, groupId, memberKeys) {
+    if (!memberKeys || !groupId) return;
+
+    const keys = Array.isArray(memberKeys) ? memberKeys : [memberKeys];
+
+    for (const rawKey of keys) {
+        const key = (rawKey || '').trim();
+        if (!key) continue;
+
+        try {
+            // /users/{id | userPrincipalName} funciona igual que per owners
+            const userRes = await callGraph(
+                `/users/${encodeURIComponent(key)}?$select=id`,
+                accessToken
+            );
+            const userId = userRes && userRes.id;
+            if (!userId) continue;
+
+            const body = {
+                '@odata.id': `https://graph.microsoft.com/v1.0/users/${userId}`,
+            };
+
+            await callGraphPOST(
+                `/groups/${groupId}/members/$ref`,
+                accessToken,
+                body
+            );
+        } catch (err) {
+            console.error(
+                `No s'ha pogut afegir ${key} com a member del grup ${groupId}:`,
+                err.message || err
+            );
+        }
+    }
+}
+
+
 // ----- Detall del grup -----
 
 async function getTenantGroupById(accessToken, groupId) {
@@ -266,7 +304,8 @@ module.exports = {
     deleteGroups,
     createGroup,
     addOwnersToGroup,
-    
+    addMembersToGroup,
+
     /*
       // Roles
       getRolesPreview,

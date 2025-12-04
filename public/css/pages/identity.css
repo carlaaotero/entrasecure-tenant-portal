@@ -220,3 +220,30 @@
     height: 210px;
   }
 }
+
+
+.identity-inline-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.identity-inline-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.identity-inline-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.identity-inline-input .users-input {
+  flex: 1;
+}
+
+.btn-sm {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+}
