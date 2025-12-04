@@ -34,7 +34,7 @@
           <li><a href="/me" class="nav-link">My Identity</a></li>
           <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
           <li><a href="/security" class="nav-link">Security</a></li>
-        <% } %>
+          <% } %>
       </ul>
     </div>
 
@@ -44,18 +44,18 @@
           <span class="user-initial">
             <% if (user.name) { %>
               <%= user.name.charAt(0).toUpperCase() %>
-            <% } else if (user.username) { %>
-              <%= user.username.charAt(0).toUpperCase() %>
-            <% } else { %>U<% } %>
+                <% } else if (user.username) { %>
+                  <%= user.username.charAt(0).toUpperCase() %>
+                    <% } else { %>U<% } %>
           </span>
 
           <span class="user-name">
             <%= user.name || user.username || 'Usuari' %>
           </span>
         </div>
-      <% } else { %>
-        <a href="/auth/login" class="btn btn-outline-light">Login</a>
-      <% } %>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-outline-light">Login</a>
+          <% } %>
     </div>
   </nav>
 
@@ -88,34 +88,19 @@
               <div class="create-user-col">
                 <div class="form-group">
                   <label for="newGroupDisplayName">Group name</label>
-                  <input
-                    id="newGroupDisplayName"
-                    type="text"
-                    name="displayName"
-                    class="users-input"
-                    autocomplete="off"
-                  />
+                  <input id="newGroupDisplayName" type="text" name="displayName" class="users-input"
+                    autocomplete="off" />
                 </div>
 
                 <div class="form-group">
                   <label for="newGroupDescription">Group description</label>
-                  <textarea
-                    id="newGroupDescription"
-                    name="description"
-                    rows="3"
-                    class="users-input"
-                  ></textarea>
+                  <textarea id="newGroupDescription" name="description" rows="3" class="users-input"></textarea>
                 </div>
 
                 <div class="form-group">
                   <label for="newGroupOwnersInput">Owners del grup</label>
-                  <input
-                    id="newGroupOwnersInput"
-                    type="text"
-                    class="users-input"
-                    placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter"
-                    autocomplete="off"
-                  />
+                  <input id="newGroupOwnersInput" type="text" class="users-input"
+                    placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
                   <small class="field-hint">
                     Cerca i selecciona usuaris del tenant, o escriu el seu UPN manualment i prem Enter.
                   </small>
@@ -135,11 +120,7 @@
               <div class="create-user-col">
                 <div class="form-group">
                   <label for="newGroupType">Group type</label>
-                  <select
-                    id="newGroupType"
-                    name="groupType"
-                    class="users-input"
-                  >
+                  <select id="newGroupType" name="groupType" class="users-input">
                     <option value="security">Security</option>
                     <option value="m365">Microsoft 365</option>
                   </select>
@@ -159,11 +140,7 @@
               <button id="createGroupBtn" type="submit" class="btn btn-primary">
                 Crear grup
               </button>
-              <p
-                id="createGroupError"
-                class="field-hint"
-                style="color:#dc2626; margin-top:0.5rem; display:none;"
-              >
+              <p id="createGroupError" class="field-hint" style="color:#dc2626; margin-top:0.5rem; display:none;">
                 Per crear un grup cal indicar <strong>Group name</strong>,
                 <strong>Group description</strong> i com a mínim <strong>un owner</strong>.
               </p>
@@ -212,7 +189,7 @@
           </div>
 
           <div class="users-card-body">
-            <% if (groups && groups.length > 0) { %>
+            <% if (groups && groups.length> 0) { %>
               <table class="users-table">
                 <thead>
                   <tr>
@@ -223,37 +200,35 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <% groups.forEach(function (g) {
-                       const types = g.groupTypes || [];
-                       const isM365 = types.includes('Unified');
-                       const typeLabel = isM365 ? 'Microsoft 365' : 'Security';
-                       const typeValue = isM365 ? 'm365' : 'security';
-                       const sourceLabel = g.onPremisesSyncEnabled ? 'Synced (AD)' : 'Cloud';
-                  %>
-                    <tr
-                      data-display-name="<%= g.displayName || '' %>"
-                      data-type="<%= typeValue %>"
-                      data-source="<%= sourceLabel.toLowerCase().includes('synced') ? 'synced' : 'cloud' %>"
-                    >
+                  <% groups.forEach(function (g) { const types=g.groupTypes || []; const
+                    isM365=types.includes('Unified'); const typeLabel=isM365 ? 'Microsoft 365' : 'Security' ; const
+                    typeValue=isM365 ? 'm365' : 'security' ; const sourceLabel=g.onPremisesSyncEnabled ? 'Synced (AD)'
+                    : 'Cloud' ; %>
+                    <tr data-display-name="<%= g.displayName || '' %>" data-type="<%= typeValue %>"
+                      data-source="<%= sourceLabel.toLowerCase().includes('synced') ? 'synced' : 'cloud' %>">
                       <td>
                         <a href="/tenant/groups/<%= encodeURIComponent(g.id) %>" class="users-link">
                           <%= g.displayName || '(Sense nom)' %>
                         </a>
                       </td>
-                      <td><%= typeLabel %></td>
-                      <td><%= sourceLabel %></td>
+                      <td>
+                        <%= typeLabel %>
+                      </td>
+                      <td>
+                        <%= sourceLabel %>
+                      </td>
                       <td class="users-select-cell">
                         <input type="checkbox" name="groupIds" value="<%= g.id %>" />
                       </td>
                     </tr>
-                  <% }); %>
+                    <% }); %>
                 </tbody>
               </table>
-            <% } else { %>
-              <p class="users-empty">
-                No s'ha trobat cap grup o no es pot llegir la informació.
-              </p>
-            <% } %>
+              <% } else { %>
+                <p class="users-empty">
+                  No s'ha trobat cap grup o no es pot llegir la informació.
+                </p>
+                <% } %>
           </div>
         </article>
       </form>
@@ -264,7 +239,7 @@
     <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
   </footer>
 
-  <!-- JS: filtres + creació de grup (owners + dropdown + validació) -->
+    <!-- JS: filtres + creació de grup (owners + dropdown + validació) -->
   <script>
     (function () {
       // --- Filtres de la taula de grups ---
@@ -363,39 +338,47 @@
 
         ownersDropdown.innerHTML = '';
 
-        // Caixa de cerca
+        // HEADER: cerca + botó a la mateixa línia
+        const header = document.createElement('div');
+        header.className = 'owners-dropdown-header';
+
         const searchBox = document.createElement('input');
         searchBox.type = 'text';
         searchBox.placeholder = 'Cerca per nom o UPN';
         searchBox.className = 'users-input owners-search-input';
-        searchBox.style.marginBottom = '0.5rem';
 
-        const list = document.createElement('div');
-        list.id = 'ownersDropdownList';
-        list.className = 'owners-dropdown-list';
-
-        // Botó per afegir tots els seleccionats
         const addBtn = document.createElement('button');
         addBtn.type = 'button';
         addBtn.textContent = 'Afegir seleccionats';
         addBtn.className = 'btn btn-primary owners-add-btn';
 
-        ownersDropdown.appendChild(searchBox);
-        ownersDropdown.appendChild(list);
-        ownersDropdown.appendChild(addBtn);
+        header.appendChild(searchBox);
+        header.appendChild(addBtn);
 
-        function renderList(filterTerm) {
+        // Llista amb scroll
+        const list = document.createElement('div');
+        list.id = 'ownersDropdownList';
+        list.className = 'owners-dropdown-list';
+
+        ownersDropdown.appendChild(header);
+        ownersDropdown.appendChild(list);
+
+                function renderList(filterTerm = '') {
           const term = (filterTerm || '').trim().toLowerCase();
           list.innerHTML = '';
 
-          allUsers.forEach(u => {
+          // 1) Filtrar usuaris per displayName o UPN
+          const filtered = (allUsers || []).filter(u => {
             const dn = (u.displayName || '').toLowerCase();
             const upn = (u.userPrincipalName || '').toLowerCase();
 
-            if (term && !dn.includes(term) && !upn.includes(term)) {
-              return;
-            }
+            if (!term) return true; // sense text → tots
 
+            return dn.includes(term) || upn.includes(term);
+          });
+
+          // 2) Tornar a pintar la llista amb els filtrats
+          filtered.forEach(u => {
             const option = document.createElement('label');
             option.className = 'owner-option';
 
@@ -417,6 +400,7 @@
             list.appendChild(option);
           });
         }
+
 
         renderList('');
 
@@ -446,7 +430,7 @@
         });
       }
 
-      // Obrir/ tancar desplegable
+      // Obrir / tancar desplegable
       if (ownersInput && ownersDropdown) {
         ownersInput.addEventListener('focus', () => {
           ownersDropdown.style.display = 'block';
@@ -527,6 +511,7 @@
       buildOwnersDropdown();
     })();
   </script>
+
 </body>
 
 </html>
