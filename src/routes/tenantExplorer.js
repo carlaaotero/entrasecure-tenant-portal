@@ -30,6 +30,17 @@ const {
     addOwnersToGroup,
     addMembersToGroup,
 
+    // Apps
+    getAppsPreview,
+    getAllApps,
+    getTenantAppById,
+    getTenantAppOwners,
+    getTenantAppRoleAssignments,
+    getApplicationByAppId,
+    getFederatedIdentityCredentials,
+    getAllAppRegistrations,
+    resolveApplicationPermissions,
+
 } = require('../controllers/tenantController');
 
 // Middleware per protegir rutes: si no hi ha sessió, envia a login
@@ -52,6 +63,7 @@ router.get('/tenant', requireAuth, async (req, res) => {
         // 2. Obtenir mini-preview (primeres 5 entrades)
         const usersPreview = await getUsersPreview(accessToken, 5);
         const groupsPreview = await getGroupsPreview(accessToken, 5);
+        const appsPreview = await getAppsPreview(accessToken, 5);
 
         // 3. Renderitzar la vista passant les dades
         res.render('tenantExplorer/tenantExplorer', {
@@ -59,6 +71,7 @@ router.get('/tenant', requireAuth, async (req, res) => {
             user: account,
             usersPreview,
             groupsPreview,
+            appsPreview,
         });
 
     } catch (err) {
@@ -390,7 +403,7 @@ router.get('/tenant/groups/:id', requireAuth, async (req, res) => {
         const owners = await getTenantGroupOwners(accessToken, groupId);
         const directoryRoles = await getTenantGroupDirectoryRoles(accessToken, groupId);
         const appAssignments = await getTenantGroupAppRoleAssignments(accessToken, groupId);
-        const users = await getAllUsers (accessToken);
+        const users = await getAllUsers(accessToken);
 
         const helpfulInfo =
             'Aquesta vista mostra informació bàsica del grup, els seus membres, ' +
@@ -455,6 +468,95 @@ router.post('/tenant/groups/:groupId/owners/:ownerId/remove', requireAuth, async
     } catch (err) {
         console.error("Error eliminant owner:", err);
         res.status(500).send("No s'ha pogut eliminar l'owner del grup");
+    }
+});
+
+
+
+/* -- APPS -- */
+
+// GET /tenant/apps -> llista de totes les apps (service principals) del tenant
+router.get('/tenant/apps', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        const [apps, appRegistrations] = await Promise.all([
+            getAllApps(accessToken),
+            getAllAppRegistrations(accessToken),
+        ]);
+
+        // llista d'appId que tenen app registration al tenant
+        const myAppIds = (appRegistrations || []).map(a => a.appId);
+
+        res.render('tenantExplorer/apps', {
+            title: 'Aplicacions del tenant',
+            user: account,
+            apps,
+            myAppIds,
+        });
+    } catch (err) {
+        console.error('Error carregant /tenant/apps:', err);
+        res.status(500).send('Error carregant les aplicacions del tenant');
+    }
+});
+
+
+// GET /tenant/apps/:id -> detall d'una app (service principal + application)
+router.get('/tenant/apps/:id', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const spId = req.params.id;
+
+        const sp = await getTenantAppById(accessToken, spId);
+        const owners = await getTenantAppOwners(accessToken, spId);
+        const assignments = await getTenantAppRoleAssignments(accessToken, spId);
+
+        // Lligar-ho amb l'application (app registration) per veure appRoles, secrets, etc.
+        const appRegistration = sp.appId
+            ? await getApplicationByAppId(accessToken, sp.appId)
+            : null;
+
+        let federatedCreds = [];
+        if (appRegistration && appRegistration.id) {
+            federatedCreds = await getFederatedIdentityCredentials(accessToken, appRegistration.id);
+        }
+
+        // permisos amb noms
+        let resolvedPermissions = [];
+        if (
+            appRegistration &&
+            Array.isArray(appRegistration.requiredResourceAccess) &&
+            appRegistration.requiredResourceAccess.length > 0
+        ) {
+            resolvedPermissions = await resolveApplicationPermissions(
+                accessToken,
+                appRegistration.requiredResourceAccess
+            );
+        }
+
+        const helpfulInfo = `
+Aquesta vista mostra la identitat d'una aplicació dins del tenant de Microsoft Entra ID,
+incloent-hi informació bàsica del service principal (Enterprise app), els seus owners, 
+els usuaris i grups amb app roles assignats i els tipus de credencial que utilitza 
+(secrets, certificats o federated credentials).
+`.trim();
+
+        res.render('tenantExplorer/appIdentity', {
+            title: `App · ${sp.displayName || sp.appId}`,
+            user: account,
+            servicePrincipal: sp,
+            owners,
+            assignments,
+            appRegistration,
+            federatedCreds,
+            resolvedPermissions,
+            helpfulInfo,
+        });
+    } catch (err) {
+        console.error('Error carregant /tenant/apps/:id:', err);
+        res.status(500).send('Error carregant el detall de l\'aplicació');
     }
 });
 

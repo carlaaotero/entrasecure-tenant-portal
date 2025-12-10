@@ -158,12 +158,34 @@
               Veure detalls
             </button>
           </header>
-          <div class="tenant-card-body">
-            <p class="tenant-card-desc">
-              Aplicacions registrades i service principals del tenant.
-            </p>
+
+          <div class="tenant-card-body tenant-card-scroll">
+            <% if (appsPreview && appsPreview.length> 0) { %>
+              <div class="preview-list">
+                <% appsPreview.forEach(function (a) { const mode=(a.preferredSingleSignOnMode || '' ).toLowerCase(); let
+                  label='Desconegut / per defecte' ; if (mode==='saml' ) label='SAML' ; else if (mode==='oidc' )
+                  label='OIDC / OAuth2' ; %>
+                  <div class="preview-item">
+                    <div class="preview-title">
+                      <%= a.displayName || '(Sense nom)' %>
+                    </div>
+                    <div class="preview-meta">
+                      App ID: <%= a.appId || '—' %>
+                    </div>
+                    <div class="preview-type">
+                      <%= label %>
+                    </div>
+                  </div>
+                  <% }); %>
+              </div>
+              <% } else { %>
+                <p class="preview-empty">
+                  No s'han pogut carregar aplicacions del tenant.
+                </p>
+                <% } %>
           </div>
         </article>
+
       </div>
 
     </section>

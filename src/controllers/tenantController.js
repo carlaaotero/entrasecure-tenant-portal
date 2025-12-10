@@ -247,6 +247,133 @@ async function deleteGroups(accessToken, groupIds) {
     }
 }
 
+
+// ======================
+// APPS
+// ======================
+
+// Llista d'apps (Enterprise apps / service principals)
+async function getAppsPreview(accessToken, top = 5) {
+    const endpoint = `/servicePrincipals?$select=id,displayName,appId,servicePrincipalType,preferredSingleSignOnMode&$top=${top}`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
+
+async function getAllApps(accessToken) {
+    const endpoint = `/servicePrincipals?$select=id,displayName,appId,servicePrincipalType,preferredSingleSignOnMode`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
+
+// Detall d'un service principal (Enterprise app)
+async function getTenantAppById(accessToken, spId) {
+    const endpoint = `/servicePrincipals/${spId}?$select=id,displayName,appId,servicePrincipalType,preferredSingleSignOnMode,createdDateTime`;
+    const json = await callGraph(endpoint, accessToken);
+    return json;
+}
+
+// Owners de l'app (service principal)
+async function getTenantAppOwners(accessToken, spId) {
+    const endpoint = `/servicePrincipals/${spId}/owners?$select=id,displayName,userPrincipalName,userType`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
+
+// Assignacions de rols (qui té permisos sobre l'app)
+async function getTenantAppRoleAssignments(accessToken, spId) {
+    const endpoint =
+        `/servicePrincipals/${spId}/appRoleAssignedTo?` +
+        `$select=id,principalDisplayName,principalId,principalType,appRoleId,resourceId`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
+
+// Aplicació (App registration) associada, via appId
+async function getApplicationByAppId(accessToken, appId) {
+    const endpoint =
+        `/applications?$filter=appId eq '${appId}'` +
+        `&$select=id,appId,displayName,createdDateTime,appRoles,requiredResourceAccess,passwordCredentials,keyCredentials`;
+    const json = await callGraph(endpoint, accessToken);
+    const apps = json.value || [];
+    return apps[0] || null;
+}
+
+// Federated identity credentials (POTSER NO HO FARÉ SERVIR)
+async function getFederatedIdentityCredentials(accessToken, applicationObjectId) {
+    const endpoint = `/applications/${applicationObjectId}/federatedIdentityCredentials`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
+
+// Llista d'app registrations del tenant (només appId + displayName)
+async function getAllAppRegistrations(accessToken) {
+    const endpoint = `/applications?$select=id,appId,displayName`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
+
+// Dona noms humans als permisos de requiredResourceAccess
+async function resolveApplicationPermissions(accessToken, requiredResourceAccess) {
+    if (!requiredResourceAccess || !requiredResourceAccess.length) return [];
+
+    const results = [];
+
+    for (const ra of requiredResourceAccess) {
+        const resourceAppId = ra.resourceAppId;
+        const resourceAccess = ra.resourceAccess || [];
+
+        if (!resourceAppId || resourceAccess.length === 0) continue;
+
+        // 1) Trobar el service principal de l'API (p. ex. Microsoft Graph)
+        const spJson = await callGraph(
+            `/servicePrincipals?$filter=appId eq '${resourceAppId}'&$select=appId,displayName,oauth2PermissionScopes,appRoles`,
+            accessToken
+        );
+        const apiSp = (spJson.value && spJson.value[0]) || null;
+        if (!apiSp) continue;
+
+        const scopes = apiSp.oauth2PermissionScopes || [];
+        const roles = apiSp.appRoles || [];
+
+        const perms = resourceAccess.map(perm => {
+            let name = null;
+            let displayName = null;
+            let typeLabel = perm.type === 'Role' ? 'Application' : 'Delegated';
+
+            if (perm.type === 'Scope') {
+                const scope = scopes.find(s => s.id === perm.id);
+                if (scope) {
+                    name = scope.value; // p. ex. "Directory.Read.All"
+                    displayName = scope.userConsentDisplayName;
+                }
+            } else if (perm.type === 'Role') {
+                const role = roles.find(r => r.id === perm.id);
+                if (role) {
+                    name = role.value;       // p. ex. "Directory.Read.All"
+                    displayName = role.displayName;
+                }
+            }
+
+            return {
+                id: perm.id,
+                rawType: perm.type,
+                type: typeLabel,
+                name: name || '(permís desconegut)',
+                displayName,
+            };
+        });
+
+        results.push({
+            apiDisplayName: apiSp.displayName,
+            apiAppId: apiSp.appId,
+            permissions: perms,
+        });
+    }
+
+    return results;
+}
+
+
 /*
 // ======================
 // ROLES
@@ -264,20 +391,7 @@ async function getAllRoles(accessToken) {
 }
 
 
-// ======================
-// APPS
-// ======================
-async function getAppsPreview(accessToken, top = 5) {
-  const endpoint = `/servicePrincipals?$select=id,displayName,appId&$top=${top}`;
-  const json = await callGraph(endpoint, accessToken);
-  return json.value || [];
-}
 
-async function getAllApps(accessToken) {
-  const endpoint = `/servicePrincipals?$select=id,displayName,appId`;
-  const json = await callGraph(endpoint, accessToken);
-  return json.value || [];
-}
 
 */
 // ======================
@@ -306,12 +420,21 @@ module.exports = {
     addOwnersToGroup,
     addMembersToGroup,
 
+    // Apps
+    getAppsPreview,
+    getAllApps,
+    getTenantAppById,
+    getTenantAppOwners,
+    getTenantAppRoleAssignments,
+    getApplicationByAppId,
+    getFederatedIdentityCredentials,
+    getAllAppRegistrations,
+    resolveApplicationPermissions,
+
     /*
       // Roles
       getRolesPreview,
-      getAllRoles,
-    
-      // Apps
-      getAppsPreview,
-      getAllApps,*/
+      getAllRoles, */
+
+
 };
