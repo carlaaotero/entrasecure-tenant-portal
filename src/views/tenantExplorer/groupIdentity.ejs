@@ -346,7 +346,7 @@
   <script>
     (function () {
       // Usuaris del tenant injectats des del servidor
-      const allUsers = <% - JSON.stringify(users || []) %>;
+      const allUsers = <%- JSON.stringify(users || []) %>;
 
       // Helper comú per muntar un selector amb desplegable + chips
       function setupUserSelector(config) {
