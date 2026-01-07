@@ -343,13 +343,13 @@ async function resolveApplicationPermissions(accessToken, requiredResourceAccess
             if (perm.type === 'Scope') {
                 const scope = scopes.find(s => s.id === perm.id);
                 if (scope) {
-                    name = scope.value; // p. ex. "Directory.Read.All"
+                    name = scope.value; 
                     displayName = scope.userConsentDisplayName;
                 }
             } else if (perm.type === 'Role') {
                 const role = roles.find(r => r.id === perm.id);
                 if (role) {
-                    name = role.value;       // p. ex. "Directory.Read.All"
+                    name = role.value;       
                     displayName = role.displayName;
                 }
             }

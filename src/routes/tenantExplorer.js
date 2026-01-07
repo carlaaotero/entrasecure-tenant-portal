@@ -513,6 +513,8 @@ router.get('/tenant/apps/:id', requireAuth, async (req, res) => {
         const owners = await getTenantAppOwners(accessToken, spId);
         const assignments = await getTenantAppRoleAssignments(accessToken, spId);
 
+        const ssoMode = (sp.preferredSingleSignOnMode || '').toLowerCase(); // per trobar l'Authentication Protocol
+
         // Lligar-ho amb l'application (app registration) per veure appRoles, secrets, etc.
         const appRegistration = sp.appId
             ? await getApplicationByAppId(accessToken, sp.appId)
@@ -536,6 +538,14 @@ router.get('/tenant/apps/:id', requireAuth, async (req, res) => {
             );
         }
 
+        let authProtocolLabel = 'Altres';
+        
+        if (ssoMode === 'saml') {
+            authProtocolLabel = 'SAML';
+        } else if (appRegistration) {
+            authProtocolLabel = 'OIDC / OAuth2';
+        }
+
         const helpfulInfo = `
 Aquesta vista mostra la identitat d'una aplicació dins del tenant de Microsoft Entra ID,
 incloent-hi informació bàsica del service principal (Enterprise app), els seus owners, 
@@ -553,6 +563,7 @@ els usuaris i grups amb app roles assignats i els tipus de credencial que utilit
             federatedCreds,
             resolvedPermissions,
             helpfulInfo,
+            authProtocolLabel,
         });
     } catch (err) {
         console.error('Error carregant /tenant/apps/:id:', err);

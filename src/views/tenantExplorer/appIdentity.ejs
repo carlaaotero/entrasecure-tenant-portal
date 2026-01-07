@@ -75,31 +75,27 @@
                     <h2 class="identity-title">
                         <%= servicePrincipal.displayName || 'Aplicació del tenant' %>
                     </h2>
-                    <p class="identity-upn">
-                        Service Principal ID:
-                        <%= servicePrincipal.id %>
-                    </p>
                 </div>
 
                 <dl class="identity-details">
                     <div class="identity-detail-row">
-                        <dt>Application ID (clientId)</dt>
+                        <dt>Application (client) ID</dt>
                         <dd>
                             <%= servicePrincipal.appId || '—' %>
                         </dd>
                     </div>
 
                     <div class="identity-detail-row">
-                        <dt>Service Principal Type</dt>
+                        <dt>Object ID</dt>
                         <dd>
-                            <%= servicePrincipal.servicePrincipalType || '—' %>
+                            <%= appRegistration && appRegistration.id ? appRegistration.id : '—' %>
                         </dd>
                     </div>
 
                     <div class="identity-detail-row">
-                        <dt>Preferred SSO mode</dt>
+                        <dt>Authentication protocol</dt>
                         <dd>
-                            <%= servicePrincipal.preferredSingleSignOnMode || '—' %>
+                            <%= authProtocolLabel || '—' %>
                         </dd>
                     </div>
 
@@ -139,9 +135,9 @@
                 </div>
             </article>
 
-            <!-- Usuaris i grups amb accés a l'app -->
+            <!-- Usuaris amb accés a l'app -->
             <article class="card identity-card identity-roles-card">
-                <h3>Usuaris i grups amb accés</h3>
+                <h3>Users</h3>
                 <div class="identity-card-content">
                     <% if (assignments && assignments.length> 0) { %>
                         <div class="identity-item-list">
@@ -150,10 +146,7 @@
                                     <div class="identity-item-title">
                                         <%= a.principalDisplayName || '(Sense nom)' %>
                                     </div>
-                                    <div class="identity-item-meta">
-                                        Tipus de principal:
-                                        <%= a.principalType || '—' %>
-                                    </div>
+
                                 </div>
                                 <% }); %>
                         </div>
@@ -169,7 +162,7 @@
 
             <!-- Permisos (appRoles + requiredResourceAccess) -->
             <article class="card identity-card identity-apps-card">
-                <h3>Permisos i app roles</h3>
+                <h3>Permisos</h3>
                 <div class="identity-card-content">
                     <% if (appRegistration || (resolvedPermissions && resolvedPermissions.length> 0)) { %>
                         <div class="identity-item-list">
