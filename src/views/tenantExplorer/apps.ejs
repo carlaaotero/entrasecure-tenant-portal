@@ -85,12 +85,17 @@
                                 <option value="other">Altres</option>
                             </select>
 
-                            <!-- 🔹 Nou filtre: només les meves apps -->
                             <select id="appScopeFilter" class="users-type-filter">
+                                <option value="mine" selected>Només les meves aplicacions</option>
                                 <option value="all">Totes les aplicacions</option>
-                                <option value="mine">Només les meves aplicacions</option>
                                 <option value="others">Només aplicacions de Microsoft / tercers</option>
                             </select>
+
+                            <button type="button" id="showAllAppsBtn" class="btn btn-outline-light"
+                                style="color:#1c0f1b; border-color:#cbd5e1;">
+                                All
+                            </button>
+
                         </div>
                     </div>
 
@@ -130,7 +135,7 @@
                                                 <% if (isMine) { %>
                                                     <span
                                                         style="font-size:0.75rem; margin-left:0.4rem; padding:0.1rem 0.45rem; border-radius:999px; background:#e0e5ef; color:#1c0f1b;">
-                                                        Meva
+                                                        Mine
                                                     </span>
                                                     <% } %>
                                             </td>
@@ -171,6 +176,7 @@
             const scopeFilter = document.getElementById('appScopeFilter');
             const rows = Array.from(document.querySelectorAll('.apps-row'));
             const countSpan = document.querySelector('.users-meta-count');
+            const showAllBtn = document.getElementById('showAllAppsBtn');
 
             function applyFilters() {
                 const term = (searchInput && searchInput.value || '').trim().toLowerCase();
@@ -206,6 +212,14 @@
             if (searchInput) searchInput.addEventListener('input', applyFilters);
             if (protoFilter) protoFilter.addEventListener('change', applyFilters);
             if (scopeFilter) scopeFilter.addEventListener('change', applyFilters);
+            
+            if (showAllBtn) {
+                showAllBtn.addEventListener('click', () => {
+                    scopeFilter.value = 'all';
+                    applyFilters();
+                });
+            }
+
 
             applyFilters();
         })();
