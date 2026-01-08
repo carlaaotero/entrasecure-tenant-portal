@@ -112,7 +112,27 @@ async function callGraphPOST(endpoint, accessToken, body) {
     throw new Error(`Graph POST failed (${url}): ${response.status} ${errorBody}`);
   }
 
-  return await response.json();
+  //return await response.json();
+
+  //Graph sovint retorna 204 No Content en POST ($ref, assignacions, etc.)
+  if (response.status === 204) {
+    return true;
+  }
+
+  //Alguns endpoints retornen body buit tot i status 200/201
+  const text = await response.text();
+  if (!text) {
+    return true;
+  }
+
+  //Si hi ha contingut, intentem parsejar JSON
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    // Últim recurs: retornem el text per debugging
+    return { raw: text };
+  }
+  
 }
 
 
