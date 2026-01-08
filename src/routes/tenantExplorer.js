@@ -40,6 +40,8 @@ const {
     getFederatedIdentityCredentials,
     getAllAppRegistrations,
     resolveApplicationPermissions,
+    addOwnersToApp,
+    addUsersToApp,
 
 } = require('../controllers/tenantController');
 
@@ -511,6 +513,7 @@ router.get('/tenant/apps/:id', requireAuth, async (req, res) => {
 
         const sp = await getTenantAppById(accessToken, spId);
         const owners = await getTenantAppOwners(accessToken, spId);
+        const users = await getAllUsers(accessToken);
         const assignments = await getTenantAppRoleAssignments(accessToken, spId);
 
         const ssoMode = (sp.preferredSingleSignOnMode || '').toLowerCase(); // per trobar l'Authentication Protocol
@@ -539,7 +542,7 @@ router.get('/tenant/apps/:id', requireAuth, async (req, res) => {
         }
 
         let authProtocolLabel = 'Altres';
-        
+
         if (ssoMode === 'saml') {
             authProtocolLabel = 'SAML';
         } else if (appRegistration) {
@@ -564,10 +567,104 @@ els usuaris i grups amb app roles assignats i els tipus de credencial que utilit
             resolvedPermissions,
             helpfulInfo,
             authProtocolLabel,
+            users,
         });
     } catch (err) {
         console.error('Error carregant /tenant/apps/:id:', err);
         res.status(500).send('Error carregant el detall de l\'aplicació');
+    }
+});
+
+// Afegir owners a una app (des del detall)
+router.post('/tenant/apps/:id/owners/add', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const spId = req.params.id;
+
+        const { ownerKeys } = req.body; // string "upn1,upn2" o un sol valor
+        const keys = (ownerKeys || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
+        if (keys.length > 0) {
+            await addOwnersToApp(accessToken, spId, keys);
+        }
+
+        res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+    } catch (err) {
+        console.error('Error afegint owners a l’app:', err);
+        res.status(500).send("No s'ha pogut afegir owners a l'aplicació");
+    }
+});
+
+
+// Treure un owner d'una app
+router.post('/tenant/apps/:spId/owners/:ownerId/remove', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        const { spId, ownerId } = req.params;
+
+        // DELETE /servicePrincipals/{id}/owners/{id}/$ref
+        await callGraphDELETE(
+            `/servicePrincipals/${spId}/owners/${ownerId}/$ref`,
+            accessToken
+        );
+
+        res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+    } catch (err) {
+        console.error("Error eliminant owner de l'app:", err);
+        res.status(500).send("No s'ha pogut eliminar l'owner de l'aplicació");
+    }
+});
+
+
+// Afegir usuaris assignats a una app (appRoleAssignedTo)
+router.post('/tenant/apps/:id/assignments/add', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const spId = req.params.id;
+
+        const { assignmentKeys } = req.body; // string "upn1,upn2" o un sol valor
+        const keys = (assignmentKeys || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
+        if (keys.length > 0) {
+            await addUsersToApp(accessToken, spId, keys);
+        }
+
+        res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+    } catch (err) {
+        console.error('Error afegint assignacions a l’app:', err);
+        res.status(500).send("No s'ha pogut assignar usuaris a l'aplicació");
+    }
+});
+
+
+// Treure una assignació (id de appRoleAssignedTo)
+router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        const { spId, assignmentId } = req.params;
+
+        // DELETE /servicePrincipals/{id}/appRoleAssignedTo/{assignmentId}
+        await callGraphDELETE(
+            `/servicePrincipals/${spId}/appRoleAssignedTo/${assignmentId}`,
+            accessToken
+        );
+
+        res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+    } catch (err) {
+        console.error("Error eliminant assignació:", err);
+        res.status(500).send("No s'ha pogut eliminar l'assignació de l'aplicació");
     }
 });
 

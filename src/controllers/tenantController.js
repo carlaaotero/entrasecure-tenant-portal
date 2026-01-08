@@ -343,13 +343,13 @@ async function resolveApplicationPermissions(accessToken, requiredResourceAccess
             if (perm.type === 'Scope') {
                 const scope = scopes.find(s => s.id === perm.id);
                 if (scope) {
-                    name = scope.value; 
+                    name = scope.value;
                     displayName = scope.userConsentDisplayName;
                 }
             } else if (perm.type === 'Role') {
                 const role = roles.find(r => r.id === perm.id);
                 if (role) {
-                    name = role.value;       
+                    name = role.value;
                     displayName = role.displayName;
                 }
             }
@@ -372,6 +372,87 @@ async function resolveApplicationPermissions(accessToken, requiredResourceAccess
 
     return results;
 }
+
+// Afegir owners a una Enterprise App (service principal) a partir de UPN o ID
+async function addOwnersToApp(accessToken, spId, ownerKeys) {
+    if (!ownerKeys || !spId) return;
+
+    const keys = Array.isArray(ownerKeys) ? ownerKeys : [ownerKeys];
+
+    for (const rawKey of keys) {
+        const key = (rawKey || '').trim();
+        if (!key) continue;
+
+        try {
+            // Resolem userId des de /users/{id | userPrincipalName}
+            const userRes = await callGraph(
+                `/users/${encodeURIComponent(key)}?$select=id`,
+                accessToken
+            );
+            const userId = userRes && userRes.id;
+            if (!userId) continue;
+
+            const body = {
+                '@odata.id': `https://graph.microsoft.com/v1.0/users/${userId}`,
+            };
+
+            // POST /servicePrincipals/{id}/owners/$ref
+            await callGraphPOST(
+                `/servicePrincipals/${spId}/owners/$ref`,
+                accessToken,
+                body
+            );
+        } catch (err) {
+            console.error(
+                `No s'ha pogut afegir ${key} com a owner de l'app ${spId}:`,
+                err.message || err
+            );
+        }
+    }
+}
+
+
+// Afegir usuaris assignats a una Enterprise App (appRoleAssignedTo)
+// Per UX simple (com groups), assignem el "default app role" (GUID buit).
+async function addUsersToApp(accessToken, spId, userKeys) {
+    if (!userKeys || !spId) return;
+
+    const keys = Array.isArray(userKeys) ? userKeys : [userKeys];
+
+    for (const rawKey of keys) {
+        const key = (rawKey || '').trim();
+        if (!key) continue;
+
+        try {
+            const userRes = await callGraph(
+                `/users/${encodeURIComponent(key)}?$select=id`,
+                accessToken
+            );
+            const userId = userRes && userRes.id;
+            if (!userId) continue;
+
+            const body = {
+                principalId: userId,
+                resourceId: spId,
+                // default appRole (equivalent a "Default Access" quan l'app no té roles)
+                appRoleId: '00000000-0000-0000-0000-000000000000',
+            };
+
+            // POST /servicePrincipals/{id}/appRoleAssignedTo
+            await callGraphPOST(
+                `/servicePrincipals/${spId}/appRoleAssignedTo`,
+                accessToken,
+                body
+            );
+        } catch (err) {
+            console.error(
+                `No s'ha pogut assignar ${key} a l'app ${spId}:`,
+                err.message || err
+            );
+        }
+    }
+}
+
 
 
 /*
@@ -430,7 +511,8 @@ module.exports = {
     getFederatedIdentityCredentials,
     getAllAppRegistrations,
     resolveApplicationPermissions,
-
+    addOwnersToApp,
+    addUsersToApp,
     /*
       // Roles
       getRolesPreview,

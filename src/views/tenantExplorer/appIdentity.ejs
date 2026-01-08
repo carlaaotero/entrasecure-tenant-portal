@@ -112,13 +112,65 @@
             <article class="card identity-card identity-groups-card">
                 <h3>Owners</h3>
                 <div class="identity-card-content">
+
+                    <!-- Formulari per afegir owners amb desplegable -->
+                    <form id="addAppOwnersForm" method="POST"
+                        action="/tenant/apps/<%= encodeURIComponent(servicePrincipal.id) %>/owners/add"
+                        class="identity-inline-form">
+
+                        <label for="appOwnersInput" class="identity-inline-label">
+                            Afegir owners a l'aplicació
+                        </label>
+
+                        <div class="identity-inline-input">
+                            <input id="appOwnersInput" type="text" class="users-input"
+                                placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
+
+                            <!-- Dropdown amb usuaris -->
+                            <div id="appOwnersDropdown" class="owners-dropdown" style="display:none;"></div>
+                        </div>
+
+                        <small class="field-hint">
+                            Selecciona usuaris amb el desplegable o escriu UPNs manualment.
+                        </small>
+
+                        <!-- Chips -->
+                        <div id="appOwnersChips" class="owners-chip-list"></div>
+
+                        <!-- Hidden que enviarem al POST -->
+                        <input type="hidden" name="ownerKeys" id="appOwnersHidden" />
+
+                        <div class="identity-inline-actions">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                Afegir owners seleccionats
+                            </button>
+                        </div>
+                    </form>
+
                     <% if (owners && owners.length> 0) { %>
                         <div class="identity-item-list">
                             <% owners.forEach(function(o) { %>
-                                <div class="identity-item-card">
+                                <div class="identity-item-card identity-removable">
+
+                                    <!-- BOTÓ ELIMINAR (creu) -->
+                                    <form method="POST"
+                                        action="/tenant/apps/<%= encodeURIComponent(servicePrincipal.id) %>/owners/<%= encodeURIComponent(o.id) %>/remove"
+                                        onsubmit="return confirm('Vols eliminar «<%= o.displayName || o.userPrincipalName %>» com a owner de l\\'aplicació?');"
+                                        class="remove-form">
+                                        <button type="submit" class="remove-btn">×</button>
+                                    </form>
+
                                     <div class="identity-item-title">
-                                        <%= o.displayName || o.userPrincipalName || '(Sense nom)' %>
+                                        <% if (o.id) { %>
+                                            <a href="/tenant/users/<%= encodeURIComponent(o.id) %>"
+                                                class="identity-link">
+                                                <%= o.displayName || o.userPrincipalName || '(Sense nom)' %>
+                                            </a>
+                                            <% } else { %>
+                                                <%= o.displayName || o.userPrincipalName || '(Sense nom)' %>
+                                                    <% } %>
                                     </div>
+
                                     <div class="identity-item-meta">
                                         <%= o.userPrincipalName || '' %>
                                             <% if (o.userType) { %> · <%= o.userType %>
@@ -132,19 +184,68 @@
                                 Aquesta aplicació no té owners o no es pot llegir la informació.
                             </p>
                             <% } %>
+
                 </div>
             </article>
 
+
+            <!-- Usuaris amb accés a l'app -->
             <!-- Usuaris amb accés a l'app -->
             <article class="card identity-card identity-roles-card">
                 <h3>Users</h3>
                 <div class="identity-card-content">
+
+                    <!-- Formulari per afegir assignacions (users/groups) -->
+                    <form id="addAppAssignmentsForm" method="POST"
+                        action="/tenant/apps/<%= encodeURIComponent(servicePrincipal.id) %>/assignments/add"
+                        class="identity-inline-form">
+
+                        <label for="appAssignmentsInput" class="identity-inline-label">
+                            Assignar usuaris a l'aplicació
+                        </label>
+
+                        <div class="identity-inline-input">
+                            <input id="appAssignmentsInput" type="text" class="users-input"
+                                placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
+
+                            <div id="appAssignmentsDropdown" class="owners-dropdown" style="display:none;"></div>
+                        </div>
+
+                        <small class="field-hint">
+                            Aquesta acció crea una assignació (default app role) a l'Enterprise App.
+                        </small>
+
+                        <div id="appAssignmentsChips" class="owners-chip-list"></div>
+
+                        <input type="hidden" name="assignmentKeys" id="appAssignmentsHidden" />
+
+                        <div class="identity-inline-actions">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                Assignar seleccionats
+                            </button>
+                        </div>
+                    </form>
+
                     <% if (assignments && assignments.length> 0) { %>
                         <div class="identity-item-list">
                             <% assignments.forEach(function(a) { %>
-                                <div class="identity-item-card">
+                                <div class="identity-item-card identity-removable">
+
+                                    <!-- BOTÓ ELIMINAR assignació (creu) -->
+                                    <form method="POST"
+                                        action="/tenant/apps/<%= encodeURIComponent(servicePrincipal.id) %>/assignments/<%= encodeURIComponent(a.id) %>/remove"
+                                        onsubmit="return confirm('Vols eliminar?');" class="remove-form">
+                                        <button type="submit" class="remove-btn">×</button>
+                                    </form>
+
                                     <div class="identity-item-title">
                                         <%= a.principalDisplayName || '(Sense nom)' %>
+                                    </div>
+
+                                    <div class="identity-item-meta">
+                                        <%= a.principalType || '' %>
+                                            <% if (a.appRoleId) { %> · AppRoleId: <%= a.appRoleId %>
+                                                    <% } %>
                                     </div>
 
                                 </div>
@@ -152,12 +253,14 @@
                         </div>
                         <% } else { %>
                             <p class="identity-empty">
-                                Aquesta aplicació no té usuaris ni grups assignats directament
-                                (o no es pot llegir la informació).
+                                Aquesta aplicació no té usuaris ni grups assignats directament (o no es pot llegir la
+                                informació).
                             </p>
                             <% } %>
+
                 </div>
             </article>
+
 
 
             <!-- Permisos (appRoles + requiredResourceAccess) -->
@@ -309,6 +412,216 @@
 
         </section>
     </main>
+
+    <script>
+        (function () {
+            // Usuaris del tenant injectats des del servidor
+            const allUsers = <% - JSON.stringify(users || []) %>;
+
+            // Helper comú per muntar un selector amb desplegable + chips
+            function setupUserSelector(config) {
+                const { inputId, dropdownId, chipsId, hiddenId } = config;
+
+                const input = document.getElementById(inputId);
+                const dropdown = document.getElementById(dropdownId);
+                const chips = document.getElementById(chipsId);
+                const hidden = document.getgetElementById(hiddenId);
+
+                const selected = [];
+
+                function updateHidden() {
+                    if (hidden) hidden.value = selected.join(',');
+                }
+
+                function renderChips() {
+                    if (!chips) return;
+                    chips.innerHTML = '';
+
+                    selected.forEach((upn, index) => {
+                        const chip = document.createElement('span');
+                        chip.className = 'owner-chip';
+                        chip.textContent = upn + ' ';
+
+                        const closeBtn = document.createElement('button');
+                        closeBtn.type = 'button';
+                        closeBtn.className = 'owner-chip-remove';
+                        closeBtn.textContent = '×';
+
+                        closeBtn.addEventListener('click', () => {
+                            selected.splice(index, 1);
+                            updateHidden();
+                            renderChips();
+                        });
+
+                        chip.appendChild(closeBtn);
+                        chips.appendChild(chip);
+                    });
+                }
+
+                function buildDropdown() {
+                    if (!dropdown) return;
+                    dropdown.innerHTML = '';
+
+                    const header = document.createElement('div');
+                    header.className = 'owners-dropdown-header';
+
+                    const searchBox = document.createElement('input');
+                    searchBox.type = 'text';
+                    searchBox.placeholder = 'Cerca per nom o UPN';
+                    searchBox.className = 'users-input owners-search-input';
+
+                    const addBtn = document.createElement('button');
+                    addBtn.type = 'button';
+                    addBtn.textContent = 'Afegir seleccionats';
+                    addBtn.className = 'btn btn-primary owners-add-btn';
+
+                    header.appendChild(searchBox);
+                    header.appendChild(addBtn);
+
+                    const list = document.createElement('div');
+                    list.className = 'owners-dropdown-list';
+
+                    dropdown.appendChild(header);
+                    dropdown.appendChild(list);
+
+                    function renderList(filterTerm = '') {
+                        const term = (filterTerm || '').trim().toLowerCase();
+                        list.innerHTML = '';
+
+                        const filtered = (allUsers || []).filter(u => {
+                            const dn = (u.displayName || '').toLowerCase();
+                            const upn = (u.userPrincipalName || '').toLowerCase();
+                            if (!term) return true;
+                            return dn.includes(term) || upn.includes(term);
+                        });
+
+                        filtered.forEach(u => {
+                            const option = document.createElement('label');
+                            option.className = 'owner-option';
+
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.className = 'owner-option-checkbox';
+                            checkbox.value = u.userPrincipalName || '';
+
+                            const info = document.createElement('div');
+                            info.className = 'owner-option-info';
+                            info.innerHTML = `
+              <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
+              <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
+              <span class="owner-option-type">${u.userType || ''}</span>
+            `;
+
+                            option.appendChild(checkbox);
+                            option.appendChild(info);
+                            list.appendChild(option);
+                        });
+                    }
+
+                    renderList('');
+
+                    searchBox.addEventListener('input', (e) => {
+                        renderList(e.target.value || '');
+                    });
+
+                    addBtn.addEventListener('click', () => {
+                        const checked = list.querySelectorAll('.owner-option-checkbox:checked');
+                        checked.forEach(cb => {
+                            const upn = cb.value;
+                            if (upn && !selected.includes(upn)) selected.push(upn);
+                        });
+
+                        updateHidden();
+                        renderChips();
+
+                        checked.forEach(cb => cb.checked = false);
+                    });
+                }
+
+                // Obrir/tancar desplegable
+                if (input && dropdown) {
+                    input.addEventListener('focus', () => {
+                        if (!dropdown.hasChildNodes()) buildDropdown();
+                        dropdown.style.display = 'block';
+                    });
+
+                    document.addEventListener('click', (e) => {
+                        if (input.contains(e.target) || dropdown.contains(e.target)) return;
+                        dropdown.style.display = 'none';
+                    });
+                }
+
+                // Afegir UPN manualment amb Enter
+                if (input) {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const value = input.value.trim();
+                            if (!value) return;
+
+                            value.split(',')
+                                .map(v => v.trim())
+                                .filter(Boolean)
+                                .forEach(v => {
+                                    if (!selected.includes(v)) selected.push(v);
+                                });
+
+                            updateHidden();
+                            renderChips();
+                            input.value = '';
+                        }
+                    });
+                }
+
+                function flushInput() {
+                    if (!input) return;
+                    const value = input.value.trim();
+                    if (!value) return;
+
+                    value.split(',')
+                        .map(v => v.trim())
+                        .filter(Boolean)
+                        .forEach(v => {
+                            if (!selected.includes(v)) selected.push(v);
+                        });
+
+                    updateHidden();
+                    renderChips();
+                    input.value = '';
+                }
+
+                return { flushInput };
+            }
+
+            // Instanciem 2 selectors: Owners i Assignments
+            const ownersSelector = setupUserSelector({
+                inputId: 'appOwnersInput',
+                dropdownId: 'appOwnersDropdown',
+                chipsId: 'appOwnersChips',
+                hiddenId: 'appOwnersHidden',
+            });
+
+            const assignmentsSelector = setupUserSelector({
+                inputId: 'appAssignmentsInput',
+                dropdownId: 'appAssignmentsDropdown',
+                chipsId: 'appAssignmentsChips',
+                hiddenId: 'appAssignmentsHidden',
+            });
+
+            // Flush en submit (igual que grups)
+            const addOwnersForm = document.getElementById('addAppOwnersForm');
+            const addAssignmentsForm = document.getElementById('addAppAssignmentsForm');
+
+            if (addOwnersForm && ownersSelector) {
+                addOwnersForm.addEventListener('submit', () => ownersSelector.flushInput());
+            }
+
+            if (addAssignmentsForm && assignmentsSelector) {
+                addAssignmentsForm.addEventListener('submit', () => assignmentsSelector.flushInput());
+            }
+        })();
+    </script>
+
 
     <footer class="footer">
         <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
