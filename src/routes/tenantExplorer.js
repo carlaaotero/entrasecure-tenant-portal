@@ -577,6 +577,7 @@ els usuaris i grups amb app roles assignats i els tipus de credencial que utilit
 
 // Afegir owners a una app (des del detall)
 router.post('/tenant/apps/:id/owners/add', requireAuth, async (req, res) => {
+    console.log('BODY1 owners/add:', req.body);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -591,6 +592,7 @@ router.post('/tenant/apps/:id/owners/add', requireAuth, async (req, res) => {
         if (keys.length > 0) {
             await addOwnersToApp(accessToken, spId, keys);
         }
+        console.log('BODY owners/add:', req.body);
 
         res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {

@@ -29,6 +29,6 @@ const msalConfig = {
 const REDIRECT_URI = process.env.AZURE_REDIRECT_URI;
 
 // scopes que demanem al login 
-const graphScopes = ["User.Read", "Directory.Read.All"]; // CANVIAR MÉS ENDEVANT -- ara és el que et ficar per default Entra ID al crear una app
+const graphScopes = ["User.Read", "Directory.Read.All", "Application.ReadWrite.All"]; // CANVIAR MÉS ENDEVANT -- ara és el que et ficar per default Entra ID al crear una app
 
 module.exports = { msalConfig, REDIRECT_URI, graphScopes };
