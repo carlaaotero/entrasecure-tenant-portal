@@ -468,11 +468,29 @@ async function getDirectoryRoles(accessToken) {
 }
 
 async function getDirectoryRoleTemplates(accessToken) {
-  const endpoint = `/directoryRoleTemplates?$select=id,displayName,description`;
-  const json = await callGraph(endpoint, accessToken);
-  return json.value || [];
+    const endpoint = `/directoryRoleTemplates?$select=id,displayName,description`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
 }
 
+async function getDirectoryRoleById(accessToken, roleId) {
+    const endpoint = `/directoryRoles/${roleId}?$select=id,displayName,description,roleTemplateId`;
+    return await callGraph(endpoint, accessToken);
+}
+
+async function getDirectoryRoleMembers(accessToken, roleId) {
+    const endpoint = `/directoryRoles/${roleId}/members?$select=id,displayName,userPrincipalName,appId`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
+
+async function addGroupToDirectoryRole(accessToken, roleId, groupId) {
+    const endpoint = `/directoryRoles/${roleId}/members/$ref`;
+    const body = {
+        "@odata.id": `https://graph.microsoft.com/v1.0/directoryObjects/${groupId}`
+    };
+    await callGraphPOST(endpoint, accessToken, body);
+}
 
 
 
@@ -521,6 +539,8 @@ module.exports = {
     // Roles
     getDirectoryRoles,
     getDirectoryRoleTemplates,
-
-
+    getDirectoryRoleById,
+    getDirectoryRoleMembers,
+    addGroupToDirectoryRole,
+    
 };

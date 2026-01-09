@@ -121,8 +121,12 @@
                                         <% directoryRoles.forEach(function(r) { %>
                                             <div class="preview-item">
                                                 <div class="preview-title">
-                                                    <%= r.displayName %>
+                                                    <a class="users-link"
+                                                        href="/tenant/roles/<%= encodeURIComponent(r.id) %>">
+                                                        <%= r.displayName %>
+                                                    </a>
                                                 </div>
+
                                                 <div class="preview-meta">Role ID: <%= r.id %>
                                                 </div>
                                             </div>
@@ -154,9 +158,9 @@
                                                 <div class="preview-meta">
                                                     <%= (t.description && t.description.length> 0) ? t.description : 'No description available.' %>
                                                 </div>
-
                                             </div>
                                             <% }); %>
+
                                     </div>
                                     <% } else { %>
                                         <p class="preview-empty">No role templates available.</p>

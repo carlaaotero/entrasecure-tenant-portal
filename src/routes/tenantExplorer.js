@@ -46,6 +46,9 @@ const {
     // Roles
     getDirectoryRoles,
     getDirectoryRoleTemplates,
+    getDirectoryRoleById,
+    getDirectoryRoleMembers,
+    addGroupToDirectoryRole,
 
 } = require('../controllers/tenantController');
 
@@ -680,7 +683,7 @@ router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireAuth, 
 router.get('/tenant/roles', requireAuth, async (req, res) => {
     try {
         const account = req.session.user;
-    const accessToken = await getTokenForGraph(account);
+        const accessToken = await getTokenForGraph(account);
 
         const portalRoles = [
             { key: 'Portal.Reader', description: 'Read-only access to the portal.' },
@@ -704,6 +707,67 @@ router.get('/tenant/roles', requireAuth, async (req, res) => {
     }
 });
 
+router.get('/tenant/roles/:id', requireAuth, async (req, res) => {
+  try {
+    const account = req.session.user;
+    const accessToken = await getTokenForGraph(account);
+    const roleId = req.params.id;
 
+    const role = await getDirectoryRoleById(accessToken, roleId);
+    const members = await getDirectoryRoleMembers(accessToken, roleId);
+    const groups = await getAllGroups(accessToken);
+
+    res.render('tenantExplorer/roleIdentity', {
+      title: `Role · ${(role && role.displayName) ? role.displayName : roleId}`,
+      user: account,
+      role,
+      members,
+      groups,
+    });
+  } catch (err) {
+    console.error('Error carregant /tenant/roles/:id:', err);
+    res.status(500).send("No s'ha pogut carregar el detall del rol");
+  }
+});
+
+
+router.post('/tenant/roles/:roleId/members/add', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const roleId = req.params.roleId;
+
+        const { groupIds } = req.body; // "id1,id2" o un sol valor
+        const ids = (groupIds || '').split(',').map(s => s.trim()).filter(Boolean);
+
+        for (const gid of ids) {
+            await addGroupToDirectoryRole(accessToken, roleId, gid);
+        }
+
+        res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
+    } catch (err) {
+        console.error('Error afegint grups al rol:', err);
+        res.status(500).send("No s'ha pogut afegir el grup al rol");
+    }
+});
+
+router.post('/tenant/roles/:roleId/members/:memberId/remove', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        const { roleId, memberId } = req.params;
+
+        await callGraphDELETE(
+            `/directoryRoles/${roleId}/members/${memberId}/$ref`,
+            accessToken
+        );
+
+        res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
+    } catch (err) {
+        console.error("Error eliminant member del rol:", err);
+        res.status(500).send("No s'ha pogut eliminar el member del rol");
+    }
+});
 
 module.exports = router;
