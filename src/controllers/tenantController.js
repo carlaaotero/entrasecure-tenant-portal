@@ -456,26 +456,29 @@ async function addUsersToApp(accessToken, spId, userKeys) {
 
 
 
-/*
+
 // ======================
 // ROLES
 // ======================
-async function getRolesPreview(accessToken, top = 5) {
-  const endpoint = `/directoryRoles?$select=id,displayName&$top=${top}`;
+
+async function getDirectoryRoles(accessToken) {
+    const endpoint = `/directoryRoles?$select=id,displayName,description,roleTemplateId`;
+    const json = await callGraph(endpoint, accessToken);
+    return json.value || [];
+}
+
+async function getDirectoryRoleTemplates(accessToken) {
+  const endpoint = `/directoryRoleTemplates?$select=id,displayName,description`;
   const json = await callGraph(endpoint, accessToken);
   return json.value || [];
 }
 
-async function getAllRoles(accessToken) {
-  const endpoint = `/directoryRoles?$select=id,displayName`;
-  const json = await callGraph(endpoint, accessToken);
-  return json.value || [];
-}
 
 
 
 
-*/
+
+
 // ======================
 // EXPORTS
 // ======================
@@ -514,10 +517,10 @@ module.exports = {
     resolveApplicationPermissions,
     addOwnersToApp,
     addUsersToApp,
-    /*
-      // Roles
-      getRolesPreview,
-      getAllRoles, */
+
+    // Roles
+    getDirectoryRoles,
+    getDirectoryRoleTemplates,
 
 
 };

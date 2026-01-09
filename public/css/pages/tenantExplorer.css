@@ -124,3 +124,89 @@
   color: var(--color2);
   font-size: 0.9rem;
 }
+
+/* Roles layout */
+.roles-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* Each column */
+.roles-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-title {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.muted.small {
+  font-size: 12px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  margin: 16px 0;
+}
+
+/* Roles: scroll inside each column card like users/groups/apps */
+.roles-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make the body scrollable */
+.roles-scroll {
+  max-height: 520px;   /* ajusta si vols més/menys */
+  overflow-y: auto;
+}
+
+/* Directory roles: two independent scroll areas */
+.roles-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.roles-subscroll {
+  max-height: 220px;     /* ajusta com vulguis */
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.roles-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch; /* important: mateixa alçada */
+}
+
+.roles-column {
+  display: flex;
+  flex-direction: column;
+  height: 600px; /* o calc(100vh - 360px) si ho vols dinàmic */
+}
+
+.roles-column .card-content {
+  flex: 1;
+  overflow: hidden; /* per no “trencar” el layout intern */
+}
+
+/* Left column scroll (whole list) */
+.roles-column:first-child .card-content {
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.roles-subscroll {
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.roles-subscroll-small { max-height: 180px; }
+.roles-subscroll-large { max-height: 320px; }

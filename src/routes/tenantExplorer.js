@@ -43,6 +43,10 @@ const {
     addOwnersToApp,
     addUsersToApp,
 
+    // Roles
+    getDirectoryRoles,
+    getDirectoryRoleTemplates,
+
 } = require('../controllers/tenantController');
 
 // Middleware per protegir rutes: si no hi ha sessió, envia a login
@@ -672,21 +676,30 @@ router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireAuth, 
 
 
 /* -- ROLES -- */
-
+// GET /tenant/roles
 router.get('/tenant/roles', requireAuth, async (req, res) => {
     try {
-        const user = req.session.user;
+        const account = req.session.user;
+    const accessToken = await getTokenForGraph(account);
+
+        const portalRoles = [
+            { key: 'Portal.Reader', description: 'Read-only access to the portal.' },
+            { key: 'Portal.GroupAdmin', description: 'Manage groups and memberships.' },
+            { key: 'Portal.RoleAdmin', description: 'Manage directory roles and portal RBAC.' },
+        ];
+
+        const directoryRoles = await getDirectoryRoles(accessToken);
+        const roleTemplates = await getDirectoryRoleTemplates(accessToken);
 
         res.render('tenantExplorer/roles', {
             title: 'Roles',
-            user,
-            
-            activeDirectoryRoles: [],
-            roleTemplates: [],
-            portalRoles: [],
+            user: account,
+            directoryRoles,
+            roleTemplates,
+            portalRoles,
         });
     } catch (err) {
-        console.error('Error carregant Roles:', err);
+        console.error('Error carregant /tenant/roles:', err);
         res.status(500).send("No s'ha pogut carregar el mòdul de Roles");
     }
 });
