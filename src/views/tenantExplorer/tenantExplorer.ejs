@@ -66,9 +66,9 @@
         <!-- Users -->
         <article class="card tenant-card">
           <header class="tenant-card-header">
-            <h3>Usuaris</h3>
+            <h3>Users</h3>
             <button class="btn btn-primary" onclick="location.href='/tenant/users'">
-              Veure detalls
+              View
             </button>
           </header>
           <div class="tenant-card-body tenant-card-scroll">
@@ -101,9 +101,9 @@
         <!-- Groups -->
         <article class="card tenant-card">
           <header class="tenant-card-header">
-            <h3>Grups</h3>
+            <h3>Groups</h3>
             <button class="btn btn-primary" onclick="location.href='/tenant/groups'">
-              Veure detalls
+              View
             </button>
           </header>
           <div class="tenant-card-body tenant-card-scroll">
@@ -138,42 +138,45 @@
         <!-- Roles -->
         <article class="card tenant-card">
           <header class="tenant-card-header">
-            <h3>Directory Roles</h3>
+            <h3>Roles</h3>
             <button class="btn btn-primary" onclick="location.href='/tenant/roles'">
-              Veure detalls
+              View
             </button>
           </header>
           <div class="tenant-card-body">
-            <p class="tenant-card-desc">
-              Rols privilegiats del tenant i els seus membres principals.
-            </p>
+            <div class="preview-list">
+              <div class="preview-item">
+                <div class="preview-title">Directory Roles</div>
+                <div class="preview-meta">Group-based role assignments</div>
+              </div>
+              <div class="preview-item">
+                <div class="preview-title">Portal RBAC</div>
+                <div class="preview-meta">Internal portal roles</div>
+              </div>
+            </div>
           </div>
+
         </article>
 
         <!-- Apps -->
         <article class="card tenant-card">
           <header class="tenant-card-header">
-            <h3>Aplicacions</h3>
+            <h3>Applications</h3>
             <button class="btn btn-primary" onclick="location.href='/tenant/apps'">
-              Veure detalls
+              View
             </button>
           </header>
 
           <div class="tenant-card-body tenant-card-scroll">
             <% if (appsPreview && appsPreview.length> 0) { %>
               <div class="preview-list">
-                <% appsPreview.forEach(function (a) { const mode=(a.preferredSingleSignOnMode || '' ).toLowerCase(); let
-                  label='Desconegut / per defecte' ; if (mode==='saml' ) label='SAML' ; else if (mode==='oidc' )
-                  label='OIDC / OAuth2' ; %>
+                <% appsPreview.forEach(function (a) { %>
                   <div class="preview-item">
                     <div class="preview-title">
                       <%= a.displayName || '(Sense nom)' %>
                     </div>
                     <div class="preview-meta">
                       App ID: <%= a.appId || '—' %>
-                    </div>
-                    <div class="preview-type">
-                      <%= label %>
                     </div>
                   </div>
                   <% }); %>
@@ -183,6 +186,7 @@
                   No s'han pogut carregar aplicacions del tenant.
                 </p>
                 <% } %>
+
           </div>
         </article>
 

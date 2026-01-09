@@ -254,7 +254,8 @@ async function deleteGroups(accessToken, groupIds) {
 
 // Llista d'apps (Enterprise apps / service principals)
 async function getAppsPreview(accessToken, top = 5) {
-    const endpoint = `/servicePrincipals?$select=id,displayName,appId,servicePrincipalType,preferredSingleSignOnMode&$top=${top}`;
+    //const endpoint = `/servicePrincipals?$select=id,displayName,appId,servicePrincipalType,preferredSingleSignOnMode&$top=${top}`;
+    const endpoint = `/applications?$select=id,displayName,appId&$top=${top}`;
     const json = await callGraph(endpoint, accessToken);
     return json.value || [];
 }

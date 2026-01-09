@@ -671,4 +671,26 @@ router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireAuth, 
 });
 
 
+/* -- ROLES -- */
+
+router.get('/tenant/roles', requireAuth, async (req, res) => {
+    try {
+        const user = req.session.user;
+
+        res.render('tenantExplorer/roles', {
+            title: 'Roles',
+            user,
+            
+            activeDirectoryRoles: [],
+            roleTemplates: [],
+            portalRoles: [],
+        });
+    } catch (err) {
+        console.error('Error carregant Roles:', err);
+        res.status(500).send("No s'ha pogut carregar el mòdul de Roles");
+    }
+});
+
+
+
 module.exports = router;
