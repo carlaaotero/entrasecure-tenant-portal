@@ -2,409 +2,388 @@
 <html lang="ca">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>
-        <%= title %> · EntraSecure
-    </title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title><%= title %></title>
 
-    <!-- Design foundation -->
-    <link rel="stylesheet" href="/css/foundation.css" />
-    <!-- Utilities -->
-    <link rel="stylesheet" href="/css/utilities.css" />
+  <!-- Design foundation -->
+  <link rel="stylesheet" href="/css/foundation.css" />
+  <!-- Utilities -->
+  <link rel="stylesheet" href="/css/utilities.css" />
 
-    <!-- Components -->
-    <link rel="stylesheet" href="/css/components/navbar.css" />
-    <link rel="stylesheet" href="/css/components/button.css" />
-    <link rel="stylesheet" href="/css/components/card.css" />
-    <link rel="stylesheet" href="/css/components/avatar.css" />
+  <!-- Components -->
+  <link rel="stylesheet" href="/css/components/navbar.css" />
+  <link rel="stylesheet" href="/css/components/button.css" />
+  <link rel="stylesheet" href="/css/components/card.css" />
+  <link rel="stylesheet" href="/css/components/avatar.css" />
 
-    <!-- Reuse page styles -->
-    <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
-    <link rel="stylesheet" href="/css/pages/tenantExplorer.css" />
+  <!-- Mateix layout que My Identity / Group Identity -->
+  <link rel="stylesheet" href="/css/pages/identity.css" />
+  <!-- Reutilitzem estils del selector d'usuaris (dropdown + chips) -->
+  <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
+
 </head>
 
-<body>
-    <!-- Navbar (igual que a la resta) -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <div class="brand">EntraSecure Tenant Portal</div>
-            <ul class="nav-links">
-                <li><a href="/" class="nav-link">Home</a></li>
-                <% if (user) { %>
-                    <li><a href="/me" class="nav-link">My Identity</a></li>
-                    <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
-                    <li><a href="/security" class="nav-link">Security</a></li>
-                    <% } %>
-            </ul>
+<body class="role-identity-page">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <div class="brand">EntraSecure Tenant Portal</div>
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <% if (user) { %>
+          <li><a href="/me" class="nav-link">My Identity</a></li>
+          <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
+          <li><a href="/security" class="nav-link">Security</a></li>
+        <% } %>
+      </ul>
+    </div>
+
+    <div class="navbar-right">
+      <% if (user) { %>
+        <div class="user-pill">
+          <span class="user-initial">
+            <% const navName = user.name || user.username || 'U'; const navInitial = navName.charAt(0).toUpperCase(); %>
+            <%= navInitial %>
+          </span>
+          <span class="user-name"><%= user.name || user.username || 'Usuari' %></span>
+        </div>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline-light">Login</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <main class="identity-main">
+    <section class="identity-layout">
+
+      <!-- PERFIL DEL ROLE (columna esquerra) -->
+      <article class="card identity-profile-card">
+        <div class="identity-avatar-wrapper">
+          <div class="profile-avatar">
+            <span>
+              <% const rName = (role && role.displayName) ? role.displayName : 'Role'; const rInitial = rName.charAt(0).toUpperCase(); %>
+              <%= rInitial %>
+            </span>
+          </div>
         </div>
 
-        <div class="navbar-right">
-            <% if (user) { %>
-                <div class="user-pill">
-                    <span class="user-initial">
-                        <% if (user.name) { %>
-                            <%= user.name.charAt(0).toUpperCase() %>
-                                <% } else if (user.username) { %>
-                                    <%= user.username.charAt(0).toUpperCase() %>
-                                        <% } else { %>U<% } %>
-                    </span>
-                    <span class="user-name">
-                        <%= user.name || user.username || 'Usuari' %>
-                    </span>
-                </div>
-                <% } else { %>
-                    <a href="/auth/login" class="btn btn-outline-light">Login</a>
-                    <% } %>
+        <div class="identity-profile-info">
+          <h2 class="identity-title">
+            <%= (role && role.displayName) ? role.displayName : 'Directory Role' %>
+          </h2>
         </div>
-    </nav>
 
-    <main class="tenant-users-main">
-        <section class="tenant-users-layout">
+        <!-- Detalls del role (mateix estil que group/user) -->
+        <dl class="identity-details">
+          <div class="identity-detail-row">
+            <dt>Display name</dt>
+            <dd><%= role && role.displayName ? role.displayName : '—' %></dd>
+          </div>
 
-            <!-- Header -->
-            <header class="users-header">
-                <h1>Role Identity</h1>
-                <p>Directory role details and assignments (users + groups).</p>
-            </header>
+          <div class="identity-detail-row">
+            <dt>Role ID</dt>
+            <dd><%= role && role.id ? role.id : '—' %></dd>
+          </div>
 
-            <!-- 2 column layout -->
-            <div class="roles-layout">
+          <div class="identity-detail-row">
+            <dt>Template ID</dt>
+            <dd><%= role && role.roleTemplateId ? role.roleTemplateId : '—' %></dd>
+          </div>
 
-                <!-- LEFT: Role info -->
-                <article class="card roles-column">
-                    <header class="card-header">
-                        <h3>Role details</h3>
-                        <p class="muted">Basic information of the activated directory role.</p>
-                    </header>
+          <div class="identity-detail-row">
+            <dt>Description</dt>
+            <dd>
+              <%= (role && role.description && role.description.length > 0) ? role.description : '—' %>
+            </dd>
+          </div>
+        </dl>
+      </article>
 
-                    <div class="card-content users-card-body">
-                        <div class="identity-grid">
-                            <div class="identity-row">
-                                <div class="identity-label">Display name</div>
-                                <div class="identity-value">
-                                    <%= role && role.displayName ? role.displayName : '—' %>
-                                </div>
-                            </div>
+      <!-- ASSIGNMENTS (columna dreta, com Members/Owners en groups) -->
+      <article class="card identity-card identity-groups-card">
+        <h3>Assignments</h3>
+        <div class="identity-card-content">
 
-                            <div class="identity-row">
-                                <div class="identity-label">Role ID</div>
-                                <div class="identity-value">
-                                    <%= role && role.id ? role.id : '—' %>
-                                </div>
-                            </div>
+          <!-- Formulari per afegir membres amb desplegable -->
+          <form id="addRoleMembersForm" method="POST"
+            action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/add"
+            class="identity-inline-form">
 
-                            <div class="identity-row">
-                                <div class="identity-label">Template ID</div>
-                                <div class="identity-value">
-                                    <%= role && role.roleTemplateId ? role.roleTemplateId : '—' %>
-                                </div>
-                            </div>
+            <label for="roleMembersInput" class="identity-inline-label">
+              Afegir membres al rol
+            </label>
 
-                            <div class="identity-row">
-                                <div class="identity-label">Description</div>
-                                <div class="identity-value">
-                                    <%= (role && role.description && role.description.length> 0) ? role.description :
-                                        'No description available.' %>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="margin-top:16px;">
-                            <a href="/tenant/roles" class="btn btn-secondary">Back to roles</a>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- RIGHT: Members + add dropdown -->
-                <article class="card roles-column">
-                    <header class="card-header">
-                        <h3>Assignments</h3>
-                        <p class="muted">Users and groups currently assigned to this role.</p>
-                    </header>
-
-                    <div class="card-content users-card-body">
-
-                        <!-- ADD USERS FORM -->
-                        <form id="addRoleMembersForm" method="POST"
-                            action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/add">
-                            <div class="form-group">
-                                <label for="addUsersInput">Add users to this role</label>
-                                <input id="addUsersInput" type="text" class="users-input"
-                                    placeholder="Search users by name or UPN" autocomplete="off" />
-
-                                <small class="field-hint">
-                                    Select one or more users and click <strong>Add selected</strong>.
-                                </small>
-
-                                <!-- Dropdown -->
-                                <div id="usersDropdown" class="owners-dropdown" style="display:none;"></div>
-
-                                <!-- Chips -->
-                                <div id="usersChips" class="owners-chip-list"></div>
-
-                                <!-- Hidden -->
-                                <input type="hidden" name="memberKeys" id="usersHidden" />
-                            </div>
-
-                            <div style="margin-top:10px;">
-                                <button type="submit" class="btn btn-primary">Add to role</button>
-                            </div>
-                        </form>
-
-
-                        <hr class="divider" style="margin:18px 0;" />
-
-                        <!-- MEMBERS LIST (scroll) -->
-                        <div class="roles-subscroll roles-subscroll-large">
-                            <% if (members && members.length> 0) { %>
-                                <div class="preview-list">
-                                    <% members.forEach(function(m) { const
-                                        isGroup=(m['@odata.type']==='#microsoft.graph.group' ) || (!m.userPrincipalName
-                                        && !m.appId); const label=m.userPrincipalName ? 'User' : (m.appId
-                                        ? 'Service principal' : 'Group' ); %>
-                                        <div class="preview-item">
-                                            <div class="preview-title">
-                                                <%= m.displayName || '(No name)' %>
-                                                    <span class="muted small" style="margin-left:8px;">· <%= label %>
-                                                    </span>
-                                            </div>
-
-                                            <div class="preview-meta">
-                                                <% if (m.userPrincipalName) { %>
-                                                    <%= m.userPrincipalName %>
-                                                        <% } else if (m.appId) { %>
-                                                            App ID: <%= m.appId %>
-                                                                <% } else { %>
-                                                                    Object ID: <%= m.id %>
-                                                                        <% } %>
-                                            </div>
-
-                                            <!-- Remove button -->
-                                            <form method="POST"
-                                                action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/<%= encodeURIComponent(m.id) %>/remove"
-                                                style="margin-top:10px;"
-                                                onsubmit="return confirm('Remove this assignment from the role?');">
-                                                <button type="submit" class="btn btn-secondary">Remove</button>
-                                            </form>
-                                        </div>
-                                        <% }); %>
-                                </div>
-                                <% } else { %>
-                                    <p class="preview-empty">No members assigned to this role.</p>
-                                    <% } %>
-                        </div>
-
-                    </div>
-                </article>
-
+            <div class="identity-inline-input">
+              <input id="roleMembersInput" type="text" class="users-input"
+                placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
+              <div id="roleMembersDropdown" class="owners-dropdown" style="display:none;"></div>
             </div>
-        </section>
-    </main>
 
-    <!-- JS: dropdown + chips (groups) -->
-    <script>
-        (function () {
-            const input = document.getElementById('addUsersInput');
-            const dropdown = document.getElementById('usersDropdown');
-            const chips = document.getElementById('usersChips');
-            const hiddenIds = document.getElementById('usersHidden');
-            const hiddenUpns = document.getElementById('userUpnsHidden');
+            <small class="field-hint">
+              Pots seleccionar usuaris amb el desplegable o escriure UPNs manualment (separats per comes o Enter).
+            </small>
 
-            const allUsers = <%- JSON.stringify(users || []) %>;
+            <!-- Chips -->
+            <div id="roleMembersChips" class="owners-chip-list"></div>
 
-            const selectedIds = [];
-            const selectedUpns = [];
+            <!-- Hidden -->
+            <input type="hidden" name="memberKeys" id="roleMembersHidden" />
 
-            function updateHidden() {
-                if (hiddenIds) hiddenIds.value = selectedIds.join(',');
-                if (hiddenUpns) hiddenUpns.value = selectedUpns.join(',');
+            <div class="identity-inline-actions">
+              <button type="submit" class="btn btn-primary btn-sm">
+                Afegir membres seleccionats
+              </button>
+            </div>
+          </form>
+
+          <% if (members && members.length > 0) { %>
+            <div class="identity-item-list">
+              <% members.forEach(function(m) {
+                const label = m.userPrincipalName ? 'User' : (m.appId ? 'Service principal' : 'Group');
+                const subtitle = m.userPrincipalName
+                  ? m.userPrincipalName
+                  : (m.appId ? ('App ID: ' + m.appId) : ('Object ID: ' + m.id));
+              %>
+
+                <div class="identity-item-card identity-removable">
+
+                  <!-- BOTÓ ELIMINAR (creu) com a grups -->
+                  <form method="POST"
+                    action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/<%= encodeURIComponent(m.id) %>/remove"
+                    onsubmit="return confirm('Vols eliminar «<%= m.displayName || m.userPrincipalName || m.id %>» del rol?');"
+                    class="remove-form">
+                    <button type="submit" class="remove-btn">×</button>
+                  </form>
+
+                  <!-- INFO -->
+                  <div class="identity-item-title">
+                    <% if (m.userPrincipalName) { %>
+                      <!-- si és usuari, enllacem al seu detall com als altres mòduls -->
+                      <a href="/tenant/users/<%= encodeURIComponent(m.id) %>" class="identity-link">
+                        <%= m.displayName || m.userPrincipalName || '(Sense nom)' %>
+                      </a>
+                    <% } else { %>
+                      <%= m.displayName || '(Sense nom)' %>
+                    <% } %>
+                  </div>
+
+                  <div class="identity-item-meta">
+                    <%= subtitle %><br />
+                    <%= label %>
+                  </div>
+
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <p class="identity-empty">
+              No hi ha membres assignats a aquest rol o no es pot llegir la informació.
+            </p>
+          <% } %>
+
+        </div>
+      </article>
+
+      <!-- Targeta explicativa (com grups) -->
+      <article class="card identity-edu-card">
+        <h3 class="identity-edu-title">Com llegir aquesta informació</h3>
+        <p class="identity-edu">
+          Aquesta vista mostra la identitat d’un Directory Role del tenant i els seus membres assignats.
+          Pots afegir usuaris al rol i eliminar assignacions existents.
+        </p>
+      </article>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+  </footer>
+
+  <!-- JS: selector desplegable + chips (mateix patró que groupIdentity) -->
+  <script>
+    (function () {
+      const allUsers = <%- JSON.stringify(users || []) %>;
+
+      function setupUserSelector(config) {
+        const { inputId, dropdownId, chipsId, hiddenId } = config;
+
+        const input = document.getElementById(inputId);
+        const dropdown = document.getElementById(dropdownId);
+        const chips = document.getElementById(chipsId);
+        const hidden = document.getElementById(hiddenId);
+
+        const selected = [];
+
+        function updateHidden() {
+          if (hidden) hidden.value = selected.join(',');
+        }
+
+        function renderChips() {
+          if (!chips) return;
+          chips.innerHTML = '';
+
+          selected.forEach((key, index) => {
+            const chip = document.createElement('span');
+            chip.className = 'owner-chip';
+            chip.textContent = key + ' ';
+
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'owner-chip-remove';
+            closeBtn.textContent = '×';
+            closeBtn.addEventListener('click', () => {
+              selected.splice(index, 1);
+              updateHidden();
+              renderChips();
+            });
+
+            chip.appendChild(closeBtn);
+            chips.appendChild(chip);
+          });
+        }
+
+        function buildDropdown() {
+          if (!dropdown) return;
+          dropdown.innerHTML = '';
+
+          const header = document.createElement('div');
+          header.className = 'owners-dropdown-header';
+
+          const searchBox = document.createElement('input');
+          searchBox.type = 'text';
+          searchBox.placeholder = 'Cerca per nom o UPN';
+          searchBox.className = 'users-input owners-search-input';
+
+          const addBtn = document.createElement('button');
+          addBtn.type = 'button';
+          addBtn.textContent = 'Afegir seleccionats';
+          addBtn.className = 'btn btn-primary owners-add-btn';
+
+          header.appendChild(searchBox);
+          header.appendChild(addBtn);
+
+          const list = document.createElement('div');
+          list.className = 'owners-dropdown-list';
+
+          dropdown.appendChild(header);
+          dropdown.appendChild(list);
+
+          function renderList(filterTerm = '') {
+            const term = (filterTerm || '').trim().toLowerCase();
+            list.innerHTML = '';
+
+            const filtered = (allUsers || []).filter(u => {
+              const dn = (u.displayName || '').toLowerCase();
+              const upn = (u.userPrincipalName || '').toLowerCase();
+              if (!term) return true;
+              return dn.includes(term) || upn.includes(term);
+            });
+
+            filtered.forEach(u => {
+              const option = document.createElement('label');
+              option.className = 'owner-option';
+
+              const checkbox = document.createElement('input');
+              checkbox.type = 'checkbox';
+              checkbox.className = 'owner-option-checkbox';
+              checkbox.value = u.userPrincipalName || '';
+
+              const info = document.createElement('div');
+              info.className = 'owner-option-info';
+              info.innerHTML = `
+                <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
+                <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
+                <span class="owner-option-type">${u.userType || ''}</span>
+              `;
+
+              option.appendChild(checkbox);
+              option.appendChild(info);
+              list.appendChild(option);
+            });
+          }
+
+          renderList('');
+
+          searchBox.addEventListener('input', (e) => renderList(e.target.value || ''));
+
+          addBtn.addEventListener('click', () => {
+            const checked = list.querySelectorAll('.owner-option-checkbox:checked');
+            checked.forEach(cb => {
+              const key = cb.value;
+              if (key && !selected.includes(key)) selected.push(key);
+            });
+            updateHidden();
+            renderChips();
+            checked.forEach(cb => cb.checked = false);
+          });
+        }
+
+        // Obrir/tancar desplegable
+        if (input && dropdown) {
+          input.addEventListener('focus', () => {
+            if (!dropdown.hasChildNodes()) buildDropdown();
+            dropdown.style.display = 'block';
+          });
+
+          document.addEventListener('click', (e) => {
+            if (input.contains(e.target) || dropdown.contains(e.target)) return;
+            dropdown.style.display = 'none';
+          });
+        }
+
+        // Afegir manualment amb Enter (i també permet comes)
+        if (input) {
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const value = input.value.trim();
+              if (!value) return;
+
+              value.split(',')
+                .map(v => v.trim())
+                .filter(Boolean)
+                .forEach(v => { if (!selected.includes(v)) selected.push(v); });
+
+              updateHidden();
+              renderChips();
+              input.value = '';
             }
+          });
+        }
 
-            function renderChips() {
-                if (!chips) return;
-                chips.innerHTML = '';
+        function flushInput() {
+          if (!input) return;
+          const value = input.value.trim();
+          if (!value) return;
 
-                // chips per IDs (del dropdown)
-                selectedIds.forEach((id, idx) => {
-                    const u = (allUsers || []).find(x => x.id === id);
-                    const label = u ? `${u.displayName || '(No name)'} · ${u.userPrincipalName || ''}` : id;
+          value.split(',')
+            .map(v => v.trim())
+            .filter(Boolean)
+            .forEach(v => { if (!selected.includes(v)) selected.push(v); });
 
-                    const chip = document.createElement('span');
-                    chip.className = 'owner-chip';
-                    chip.textContent = label + ' ';
+          updateHidden();
+          renderChips();
+          input.value = '';
+        }
 
-                    const closeBtn = document.createElement('button');
-                    closeBtn.type = 'button';
-                    closeBtn.className = 'owner-chip-remove';
-                    closeBtn.textContent = '×';
-                    closeBtn.addEventListener('click', () => {
-                        selectedIds.splice(idx, 1);
-                        updateHidden();
-                        renderChips();
-                    });
+        return { flushInput };
+      }
 
-                    chip.appendChild(closeBtn);
-                    chips.appendChild(chip);
-                });
+      const selector = setupUserSelector({
+        inputId: 'roleMembersInput',
+        dropdownId: 'roleMembersDropdown',
+        chipsId: 'roleMembersChips',
+        hiddenId: 'roleMembersHidden',
+      });
 
-                // chips per UPNs (manual)
-                selectedUpns.forEach((upn, idx) => {
-                    const chip = document.createElement('span');
-                    chip.className = 'owner-chip';
-                    chip.textContent = upn + ' ';
-
-                    const closeBtn = document.createElement('button');
-                    closeBtn.type = 'button';
-                    closeBtn.className = 'owner-chip-remove';
-                    closeBtn.textContent = '×';
-                    closeBtn.addEventListener('click', () => {
-                        selectedUpns.splice(idx, 1);
-                        updateHidden();
-                        renderChips();
-                    });
-
-                    chip.appendChild(closeBtn);
-                    chips.appendChild(chip);
-                });
-            }
-
-            function buildDropdown() {
-                if (!dropdown) return;
-                dropdown.innerHTML = '';
-
-                const header = document.createElement('div');
-                header.className = 'owners-dropdown-header';
-
-                const searchBox = document.createElement('input');
-                searchBox.type = 'text';
-                searchBox.placeholder = 'Search user name or UPN';
-                searchBox.className = 'users-input owners-search-input';
-
-                const addBtn = document.createElement('button');
-                addBtn.type = 'button';
-                addBtn.textContent = 'Add selected';
-                addBtn.className = 'btn btn-primary owners-add-btn';
-
-                header.appendChild(searchBox);
-                header.appendChild(addBtn);
-
-                const list = document.createElement('div');
-                list.className = 'owners-dropdown-list';
-
-                dropdown.appendChild(header);
-                dropdown.appendChild(list);
-
-                function renderList(term) {
-                    const q = (term || '').trim().toLowerCase();
-                    list.innerHTML = '';
-
-                    const filtered = (allUsers || []).filter(u => {
-                        const dn = (u.displayName || '').toLowerCase();
-                        const upn = (u.userPrincipalName || '').toLowerCase();
-                        return !q || dn.includes(q) || upn.includes(q);
-                    });
-
-                    filtered.forEach(u => {
-                        if (!u.id) return;
-
-                        const option = document.createElement('label');
-                        option.className = 'owner-option';
-
-                        const cb = document.createElement('input');
-                        cb.type = 'checkbox';
-                        cb.className = 'owner-option-checkbox';
-                        cb.value = u.userPrincipalName || u.id;
-
-                        const info = document.createElement('div');
-                        info.className = 'owner-option-info';
-                        info.innerHTML = `
-            <span class="owner-option-name">${u.displayName || '(No name)'}</span>
-            <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
-            <span class="owner-option-type">${u.userType || ''}</span>
-          `;
-
-                        option.appendChild(cb);
-                        option.appendChild(info);
-                        list.appendChild(option);
-                    });
-                }
-
-                renderList('');
-
-                searchBox.addEventListener('input', (e) => renderList(e.target.value || ''));
-
-                addBtn.addEventListener('click', () => {
-                    const checked = list.querySelectorAll('.owner-option-checkbox:checked');
-                    checked.forEach(cb => {
-                        const id = cb.value;
-                        if (id && !selectedIds.includes(id)) selectedIds.push(id);
-                    });
-                    updateHidden();
-                    renderChips();
-                    checked.forEach(cb => cb.checked = false);
-                });
-            }
-
-            // Obrir/tancar dropdown
-            if (input && dropdown) {
-                input.addEventListener('focus', () => { dropdown.style.display = 'block'; });
-
-                document.addEventListener('click', (e) => {
-                    if (input.contains(e.target) || dropdown.contains(e.target)) return;
-                    dropdown.style.display = 'none';
-                });
-            }
-
-
-            // Afegir UPN manualment amb Enter
-            if (input) {
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const value = input.value.trim();
-                        if (!value) return;
-                        value.split(',')
-                            .map(v => v.trim())
-                            .filter(Boolean)
-                            .forEach(v => {
-                                if (!selected.includes(v)) selected.push(v);
-                            });
-                        updateHidden();
-                        renderChips();
-                        input.value = '';
-                    }
-                });
-            }
-
-            function flushInput() {
-                if (!input) return;
-                const value = input.value.trim();
-                if (!value) return;
-                value.split(',')
-                    .map(v => v.trim())
-                    .filter(Boolean)
-                    .forEach(v => {
-                        if (!selected.includes(v)) selected.push(v);
-                    });
-                updateHidden();
-                renderChips();
-                input.value = '';
-            }
-
-            // Flush en submit
-            const form = document.getElementById('addRoleMembersForm');
-            if (form) {
-                form.addEventListener('submit', () => flushInput());
-            }
-
-
-
-            buildDropdown();
-        })();
-    </script>
-
+      const form = document.getElementById('addRoleMembersForm');
+      if (form && selector) {
+        form.addEventListener('submit', () => selector.flushInput());
+      }
+    })();
+  </script>
 
 </body>
-
 </html>
