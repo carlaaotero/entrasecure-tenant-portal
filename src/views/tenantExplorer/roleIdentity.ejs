@@ -19,13 +19,13 @@
     <link rel="stylesheet" href="/css/components/card.css" />
     <link rel="stylesheet" href="/css/components/avatar.css" />
 
+    <!-- Reuse page styles -->
     <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
     <link rel="stylesheet" href="/css/pages/tenantExplorer.css" />
-
 </head>
 
 <body>
-    <!-- Navbar -->
+    <!-- Navbar (igual que a la resta) -->
     <nav class="navbar">
         <div class="navbar-left">
             <div class="brand">EntraSecure Tenant Portal</div>
@@ -49,7 +49,6 @@
                                     <%= user.username.charAt(0).toUpperCase() %>
                                         <% } else { %>U<% } %>
                     </span>
-
                     <span class="user-name">
                         <%= user.name || user.username || 'Usuari' %>
                     </span>
@@ -59,5 +58,353 @@
                     <% } %>
         </div>
     </nav>
+
+    <main class="tenant-users-main">
+        <section class="tenant-users-layout">
+
+            <!-- Header -->
+            <header class="users-header">
+                <h1>Role Identity</h1>
+                <p>Directory role details and assignments (users + groups).</p>
+            </header>
+
+            <!-- 2 column layout -->
+            <div class="roles-layout">
+
+                <!-- LEFT: Role info -->
+                <article class="card roles-column">
+                    <header class="card-header">
+                        <h3>Role details</h3>
+                        <p class="muted">Basic information of the activated directory role.</p>
+                    </header>
+
+                    <div class="card-content users-card-body">
+                        <div class="identity-grid">
+                            <div class="identity-row">
+                                <div class="identity-label">Display name</div>
+                                <div class="identity-value">
+                                    <%= role && role.displayName ? role.displayName : '—' %>
+                                </div>
+                            </div>
+
+                            <div class="identity-row">
+                                <div class="identity-label">Role ID</div>
+                                <div class="identity-value">
+                                    <%= role && role.id ? role.id : '—' %>
+                                </div>
+                            </div>
+
+                            <div class="identity-row">
+                                <div class="identity-label">Template ID</div>
+                                <div class="identity-value">
+                                    <%= role && role.roleTemplateId ? role.roleTemplateId : '—' %>
+                                </div>
+                            </div>
+
+                            <div class="identity-row">
+                                <div class="identity-label">Description</div>
+                                <div class="identity-value">
+                                    <%= (role && role.description && role.description.length> 0) ? role.description :
+                                        'No description available.' %>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:16px;">
+                            <a href="/tenant/roles" class="btn btn-secondary">Back to roles</a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- RIGHT: Members + add dropdown -->
+                <article class="card roles-column">
+                    <header class="card-header">
+                        <h3>Assignments</h3>
+                        <p class="muted">Users and groups currently assigned to this role.</p>
+                    </header>
+
+                    <div class="card-content users-card-body">
+
+                        <!-- ADD USERS FORM -->
+                        <form id="addRoleMembersForm" method="POST"
+                            action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/add">
+                            <div class="form-group">
+                                <label for="addUsersInput">Add users to this role</label>
+                                <input id="addUsersInput" type="text" class="users-input"
+                                    placeholder="Search users by name or UPN" autocomplete="off" />
+
+                                <small class="field-hint">
+                                    Select one or more users and click <strong>Add selected</strong>.
+                                </small>
+
+                                <!-- Dropdown -->
+                                <div id="usersDropdown" class="owners-dropdown" style="display:none;"></div>
+
+                                <!-- Chips -->
+                                <div id="usersChips" class="owners-chip-list"></div>
+
+                                <!-- Hidden -->
+                                <input type="hidden" name="memberKeys" id="usersHidden" />
+                            </div>
+
+                            <div style="margin-top:10px;">
+                                <button type="submit" class="btn btn-primary">Add to role</button>
+                            </div>
+                        </form>
+
+
+                        <hr class="divider" style="margin:18px 0;" />
+
+                        <!-- MEMBERS LIST (scroll) -->
+                        <div class="roles-subscroll roles-subscroll-large">
+                            <% if (members && members.length> 0) { %>
+                                <div class="preview-list">
+                                    <% members.forEach(function(m) { const
+                                        isGroup=(m['@odata.type']==='#microsoft.graph.group' ) || (!m.userPrincipalName
+                                        && !m.appId); const label=m.userPrincipalName ? 'User' : (m.appId
+                                        ? 'Service principal' : 'Group' ); %>
+                                        <div class="preview-item">
+                                            <div class="preview-title">
+                                                <%= m.displayName || '(No name)' %>
+                                                    <span class="muted small" style="margin-left:8px;">· <%= label %>
+                                                    </span>
+                                            </div>
+
+                                            <div class="preview-meta">
+                                                <% if (m.userPrincipalName) { %>
+                                                    <%= m.userPrincipalName %>
+                                                        <% } else if (m.appId) { %>
+                                                            App ID: <%= m.appId %>
+                                                                <% } else { %>
+                                                                    Object ID: <%= m.id %>
+                                                                        <% } %>
+                                            </div>
+
+                                            <!-- Remove button -->
+                                            <form method="POST"
+                                                action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/<%= encodeURIComponent(m.id) %>/remove"
+                                                style="margin-top:10px;"
+                                                onsubmit="return confirm('Remove this assignment from the role?');">
+                                                <button type="submit" class="btn btn-secondary">Remove</button>
+                                            </form>
+                                        </div>
+                                        <% }); %>
+                                </div>
+                                <% } else { %>
+                                    <p class="preview-empty">No members assigned to this role.</p>
+                                    <% } %>
+                        </div>
+
+                    </div>
+                </article>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- JS: dropdown + chips (groups) -->
+    <script>
+        (function () {
+            const input = document.getElementById('addUsersInput');
+            const dropdown = document.getElementById('usersDropdown');
+            const chips = document.getElementById('usersChips');
+            const hiddenIds = document.getElementById('usersHidden');
+            const hiddenUpns = document.getElementById('userUpnsHidden');
+
+            const allUsers = <%- JSON.stringify(users || []) %>;
+
+            const selectedIds = [];
+            const selectedUpns = [];
+
+            function updateHidden() {
+                if (hiddenIds) hiddenIds.value = selectedIds.join(',');
+                if (hiddenUpns) hiddenUpns.value = selectedUpns.join(',');
+            }
+
+            function renderChips() {
+                if (!chips) return;
+                chips.innerHTML = '';
+
+                // chips per IDs (del dropdown)
+                selectedIds.forEach((id, idx) => {
+                    const u = (allUsers || []).find(x => x.id === id);
+                    const label = u ? `${u.displayName || '(No name)'} · ${u.userPrincipalName || ''}` : id;
+
+                    const chip = document.createElement('span');
+                    chip.className = 'owner-chip';
+                    chip.textContent = label + ' ';
+
+                    const closeBtn = document.createElement('button');
+                    closeBtn.type = 'button';
+                    closeBtn.className = 'owner-chip-remove';
+                    closeBtn.textContent = '×';
+                    closeBtn.addEventListener('click', () => {
+                        selectedIds.splice(idx, 1);
+                        updateHidden();
+                        renderChips();
+                    });
+
+                    chip.appendChild(closeBtn);
+                    chips.appendChild(chip);
+                });
+
+                // chips per UPNs (manual)
+                selectedUpns.forEach((upn, idx) => {
+                    const chip = document.createElement('span');
+                    chip.className = 'owner-chip';
+                    chip.textContent = upn + ' ';
+
+                    const closeBtn = document.createElement('button');
+                    closeBtn.type = 'button';
+                    closeBtn.className = 'owner-chip-remove';
+                    closeBtn.textContent = '×';
+                    closeBtn.addEventListener('click', () => {
+                        selectedUpns.splice(idx, 1);
+                        updateHidden();
+                        renderChips();
+                    });
+
+                    chip.appendChild(closeBtn);
+                    chips.appendChild(chip);
+                });
+            }
+
+            function buildDropdown() {
+                if (!dropdown) return;
+                dropdown.innerHTML = '';
+
+                const header = document.createElement('div');
+                header.className = 'owners-dropdown-header';
+
+                const searchBox = document.createElement('input');
+                searchBox.type = 'text';
+                searchBox.placeholder = 'Search user name or UPN';
+                searchBox.className = 'users-input owners-search-input';
+
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.textContent = 'Add selected';
+                addBtn.className = 'btn btn-primary owners-add-btn';
+
+                header.appendChild(searchBox);
+                header.appendChild(addBtn);
+
+                const list = document.createElement('div');
+                list.className = 'owners-dropdown-list';
+
+                dropdown.appendChild(header);
+                dropdown.appendChild(list);
+
+                function renderList(term) {
+                    const q = (term || '').trim().toLowerCase();
+                    list.innerHTML = '';
+
+                    const filtered = (allUsers || []).filter(u => {
+                        const dn = (u.displayName || '').toLowerCase();
+                        const upn = (u.userPrincipalName || '').toLowerCase();
+                        return !q || dn.includes(q) || upn.includes(q);
+                    });
+
+                    filtered.forEach(u => {
+                        if (!u.id) return;
+
+                        const option = document.createElement('label');
+                        option.className = 'owner-option';
+
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.className = 'owner-option-checkbox';
+                        cb.value = u.userPrincipalName || u.id;
+
+                        const info = document.createElement('div');
+                        info.className = 'owner-option-info';
+                        info.innerHTML = `
+            <span class="owner-option-name">${u.displayName || '(No name)'}</span>
+            <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
+            <span class="owner-option-type">${u.userType || ''}</span>
+          `;
+
+                        option.appendChild(cb);
+                        option.appendChild(info);
+                        list.appendChild(option);
+                    });
+                }
+
+                renderList('');
+
+                searchBox.addEventListener('input', (e) => renderList(e.target.value || ''));
+
+                addBtn.addEventListener('click', () => {
+                    const checked = list.querySelectorAll('.owner-option-checkbox:checked');
+                    checked.forEach(cb => {
+                        const id = cb.value;
+                        if (id && !selectedIds.includes(id)) selectedIds.push(id);
+                    });
+                    updateHidden();
+                    renderChips();
+                    checked.forEach(cb => cb.checked = false);
+                });
+            }
+
+            // Obrir/tancar dropdown
+            if (input && dropdown) {
+                input.addEventListener('focus', () => { dropdown.style.display = 'block'; });
+
+                document.addEventListener('click', (e) => {
+                    if (input.contains(e.target) || dropdown.contains(e.target)) return;
+                    dropdown.style.display = 'none';
+                });
+            }
+
+
+            // Afegir UPN manualment amb Enter
+            if (input) {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const value = input.value.trim();
+                        if (!value) return;
+                        value.split(',')
+                            .map(v => v.trim())
+                            .filter(Boolean)
+                            .forEach(v => {
+                                if (!selected.includes(v)) selected.push(v);
+                            });
+                        updateHidden();
+                        renderChips();
+                        input.value = '';
+                    }
+                });
+            }
+
+            function flushInput() {
+                if (!input) return;
+                const value = input.value.trim();
+                if (!value) return;
+                value.split(',')
+                    .map(v => v.trim())
+                    .filter(Boolean)
+                    .forEach(v => {
+                        if (!selected.includes(v)) selected.push(v);
+                    });
+                updateHidden();
+                renderChips();
+                input.value = '';
+            }
+
+            // Flush en submit
+            const form = document.getElementById('addRoleMembersForm');
+            if (form) {
+                form.addEventListener('submit', () => flushInput());
+            }
+
+
+
+            buildDropdown();
+        })();
+    </script>
+
+
 </body>
+
 </html>
