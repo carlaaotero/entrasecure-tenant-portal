@@ -1,0 +1,328 @@
+/* public/css/pages/tenantSecurity.css */
+
+.security-main {
+  padding: 24px;
+}
+
+.security-section {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.security-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.security-header h1 {
+  margin: 0;
+}
+
+.security-header-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* --- Badges --- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.badge-ok { background: rgba(16, 185, 129, 0.12); }
+.badge-warn { background: rgba(245, 158, 11, 0.14); }
+.badge-crit { background: rgba(239, 68, 68, 0.14); }
+.badge-info { background: rgba(59, 130, 246, 0.14); }
+
+/* --- Stat cards --- */
+.security-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1100px) {
+  .security-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.stat-card {
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.stat-value {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.stat-meta {
+  font-size: 12px;
+}
+
+/* accents: barra superior fina */
+.accent-blue { border-top: 3px solid rgba(59,130,246,0.9); }
+.accent-purple { border-top: 3px solid rgba(139,92,246,0.9); }
+.accent-amber { border-top: 3px solid rgba(245,158,11,0.9); }
+.accent-red { border-top: 3px solid rgba(239,68,68,0.9); }
+.accent-gray { border-top: 3px solid rgba(100,116,139,0.9); }
+
+/* --- Two-column layout --- */
+.security-two-col {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 1000px) {
+  .security-two-col { grid-template-columns: 1fr; }
+}
+
+.security-card .card-header {
+  padding-bottom: 0;
+}
+
+.security-card .card-content {
+  padding-top: 12px;
+}
+
+/* --- Findings --- */
+.finding {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.finding:last-child {
+  border-bottom: none;
+}
+
+.finding-title {
+  font-weight: 700;
+}
+
+.finding-right {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+/* --- Progress bars --- */
+.progress {
+  width: 180px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.fill-ok { background: rgba(16,185,129,0.75); }
+.fill-warn { background: rgba(245,158,11,0.8); }
+.fill-crit { background: rgba(239,68,68,0.8); }
+.fill-info { background: rgba(59,130,246,0.7); }
+
+.quick-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* --- Donuts --- */
+.donuts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 520px) {
+  .donuts-grid { grid-template-columns: 1fr; }
+}
+
+.donut-card {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.donut {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(59,130,246,0.85) calc(var(--p) * 1%),
+    rgba(0,0,0,0.08) 0
+  );
+  position: relative;
+}
+
+.donut::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  background: white;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  text-align: center;
+}
+
+.donut-big {
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.donut-small {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.donut-title {
+  font-weight: 700;
+}
+
+/* --- Metrics rows --- */
+.metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.metric-label {
+  font-weight: 650;
+}
+
+.metric-value {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* --- Capacity --- */
+.cap-row {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.cap-row:last-child { border-bottom: none; }
+
+.cap-title { font-weight: 700; }
+
+.cap-notes {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.capabilities-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+@media (max-width: 520px) {
+  .capabilities-grid { grid-template-columns: 1fr; }
+}
+
+.capability {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* --- Mini bars for Portal RBAC --- */
+.mini-bars {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.mini-bar-row {
+  display: grid;
+  grid-template-columns: 1fr 180px 32px;
+  gap: 10px;
+  align-items: center;
+}
+
+.mini-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.mini-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(139,92,246,0.75);
+}
+
+.mini-bar-label {
+  font-weight: 650;
+}
+
+.mini-bar-count {
+  text-align: right;
+}
+
+.scroll-box{
+  max-height: 260px;
+  overflow: auto;
+  padding-right: 6px;
+}

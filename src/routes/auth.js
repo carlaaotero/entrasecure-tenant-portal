@@ -31,6 +31,13 @@ router.get('/redirect', async (req, res) => {
     const response = await cca.acquireTokenByCode(tokenRequest);
     req.session.user = response.account; // Guardem el compte a sessió per tornar-lo a cridar
 
+    // RBAC INTERN DEL PORTAL (App Roles via claims)
+    const portalRoles = response.idTokenClaims?.roles || [];
+    req.session.portalRoles = Array.isArray(portalRoles)
+      ? portalRoles
+      : [portalRoles];
+    console.log('[RBAC] Portal roles:', req.session.portalRoles);
+
     res.redirect('/'); // tornar a home (ja autenticat)
   } catch (error) {
     console.error(error);

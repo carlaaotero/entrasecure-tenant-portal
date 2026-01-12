@@ -43,11 +43,13 @@ const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
 const identityRoutes = require('./routes/identity');
 const tenantExplorerRoutes = require('./routes/tenantExplorer');
+const securityRoutes = require('./routes/security');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/', identityRoutes);
 app.use('/', tenantExplorerRoutes);
+app.use('/', securityRoutes);
 
 // Healthcheck
 app.get('/health', (_req, res) => {
