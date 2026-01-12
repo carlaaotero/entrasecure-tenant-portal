@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const { getTokenForGraph } = require('../auth/AuthProvider');
-const { callGraphDELETE, callGraph } = require('../controllers/graphController');
+const { callGraphDELETE, callGraph, callGraphPOST } = require('../controllers/graphController');
 
 
 const {
@@ -50,6 +50,8 @@ const {
     //addGroupToDirectoryRole,
     addUserToDirectoryRole,
     resolveUserIdByUPN,
+    findActivatedDirectoryRoleByTemplateId,
+    activateDirectoryRole,
 
 } = require('../controllers/tenantController');
 
@@ -695,12 +697,16 @@ router.get('/tenant/roles', requireAuth, async (req, res) => {
         const directoryRoles = await getDirectoryRoles(accessToken);
         const roleTemplates = await getDirectoryRoleTemplates(accessToken);
 
+        const flash = req.session.flash;
+        req.session.flash = null;
+
         res.render('tenantExplorer/roles', {
             title: 'Roles',
             user: account,
             directoryRoles,
             roleTemplates,
             portalRoles,
+            flash,
         });
     } catch (err) {
         console.error('Error carregant /tenant/roles:', err);
@@ -733,32 +739,32 @@ router.get('/tenant/roles/:id', requireAuth, async (req, res) => {
 
 
 router.post('/tenant/roles/:roleId/members/add', requireAuth, async (req, res) => {
-  try {
-    const account = req.session.user;
-    const accessToken = await getTokenForGraph(account);
-    const roleId = req.params.roleId;
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const roleId = req.params.roleId;
 
-    const { memberKeys } = req.body;
+        const { memberKeys } = req.body;
 
-    const keys = (memberKeys || '')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
+        const keys = (memberKeys || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
 
-    for (const key of keys) {
-      // Resol UPN o ID -> objectId
-      const userRes = await callGraph(`/users/${encodeURIComponent(key)}?$select=id`, accessToken);
-      const userId = userRes && userRes.id;
-      if (!userId) continue;
+        for (const key of keys) {
+            // Resol UPN o ID -> objectId
+            const userRes = await callGraph(`/users/${encodeURIComponent(key)}?$select=id`, accessToken);
+            const userId = userRes && userRes.id;
+            if (!userId) continue;
 
-      await addUserToDirectoryRole(accessToken, roleId, userId);
+            await addUserToDirectoryRole(accessToken, roleId, userId);
+        }
+
+        res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
+    } catch (err) {
+        console.error('Error afegint usuaris al rol:', err.message || err);
+        res.status(500).send("No s'ha pogut afegir l'usuari al rol");
     }
-
-    res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
-  } catch (err) {
-    console.error('Error afegint usuaris al rol:', err.message || err);
-    res.status(500).send("No s'ha pogut afegir l'usuari al rol");
-  }
 });
 
 
@@ -782,5 +788,35 @@ router.post('/tenant/roles/:roleId/members/:memberId/remove', requireAuth, async
         res.status(500).send("No s'ha pogut eliminar el member del rol");
     }
 });
+
+router.post('/tenant/roles/activate', requireAuth, async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const { templateId } = req.body;
+
+        await activateDirectoryRole(accessToken, templateId);
+
+        req.session.flash = { type: 'success', message: 'Rol activat correctament.' };
+        return res.redirect('/tenant/roles');
+    } catch (err) {
+        const msg = (err.message || '').toLowerCase();
+
+        // cas “no activable”
+        if (msg.includes('implicit user role')) {
+            req.session.flash = {
+                type: 'info',
+                message:
+                    'Aquest rol és un rol intern del sistema (implicit user role). Microsoft Entra ID no permet activar-lo ni gestionar-lo manualment perquè s’assigna automàticament segons l’estat/tipus d’usuari.'
+            };
+            return res.redirect('/tenant/roles');
+        }
+
+        req.session.flash = { type: 'error', message: 'No s’ha pogut activar el rol.' };
+        return res.redirect('/tenant/roles');
+    }
+});
+
+
 
 module.exports = router;

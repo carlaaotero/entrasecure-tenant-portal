@@ -210,3 +210,20 @@
 }
 .roles-subscroll-small { max-height: 180px; }
 .roles-subscroll-large { max-height: 320px; }
+
+
+
+/* Button que es veu com un link (per roles templates) */
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--link-color);
+  cursor: pointer;
+  text-align: left;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}

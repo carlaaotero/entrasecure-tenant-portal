@@ -70,110 +70,131 @@
                 </p>
             </header>
 
-            <div class="roles-layout">
+            <% if (flash && flash.message) { %>
+                <div class="card" style="margin: 12px 0; padding: 12px;">
+                    <strong>
+                        <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+                    </strong>
+                    <span>
+                        <%= flash.message %>
+                    </span>
+                </div>
+                <% } %>
 
-                <!-- LEFT: Portal roles -->
-                <article class="card roles-column">
-                    <header class="card-header">
-                        <h3>Portal roles</h3>
-                        <p class="muted">Internal portal roles mapped to Entra ID groups.</p>
-                    </header>
 
-                    <div class="card-content users-card-body">
-                        <% if (portalRoles && portalRoles.length> 0) { %>
-                            <div class="preview-list">
-                                <% portalRoles.forEach(function(r) { %>
-                                    <div class="preview-item">
-                                        <div class="preview-title">
-                                            <%= r.key %>
-                                        </div>
-                                        <div class="preview-meta">
-                                            <%= r.description %>
-                                        </div>
-                                    </div>
-                                    <% }); %>
-                            </div>
-                            <% } else { %>
-                                <p class="preview-empty">No portal roles defined.</p>
-                                <% } %>
-                    </div>
-                </article>
+                    <div class="roles-layout">
 
-                <!-- RIGHT: Directory roles -->
-                <article class="card roles-column">
-                    <header class="card-header">
-                        <h3>Directory roles</h3>
-                        <p class="muted">Microsoft Entra ID directory roles (tenant governance).</p>
-                    </header>
+                        <!-- LEFT: Portal roles -->
+                        <article class="card roles-column">
+                            <header class="card-header">
+                                <h3>Portal roles</h3>
+                                <p class="muted">Internal portal roles mapped to Entra ID groups.</p>
+                            </header>
 
-                    <div class="card-content users-card-body">
-
-                        <!-- Activated roles -->
-                        <div class="roles-subsection">
-                            <div class="roles-subsection-header">
-                                <h4 class="section-title">Activated roles</h4>
-                                <p class="muted small">Only roles currently activated in the tenant.</p>
-                            </div>
-
-                            <div class="roles-subscroll roles-subscroll-small">
-                                <% if (directoryRoles && directoryRoles.length> 0) { %>
+                            <div class="card-content users-card-body">
+                                <% if (portalRoles && portalRoles.length> 0) { %>
                                     <div class="preview-list">
-                                        <% directoryRoles.forEach(function(r) { %>
+                                        <% portalRoles.forEach(function(r) { %>
                                             <div class="preview-item">
                                                 <div class="preview-title">
-                                                    <a class="users-link"
-                                                        href="/tenant/roles/<%= encodeURIComponent(r.id) %>">
-                                                        <%= r.displayName %>
-                                                    </a>
-                                                </div>
-
-                                                <div class="preview-meta">Role ID: <%= r.id %>
-                                                </div>
-                                            </div>
-                                            <% }); %>
-                                    </div>
-                                    <% } else { %>
-                                        <p class="preview-empty">No activated directory roles found.</p>
-                                        <% } %>
-                            </div>
-                        </div>
-
-                        <hr class="divider" />
-
-                        <!-- All roles (templates) -->
-                        <div class="roles-subsection">
-                            <div class="roles-subsection-header">
-                                <h4 class="section-title">All roles (templates)</h4>
-                                <p class="muted small">Full catalog of available directory roles.</p>
-                            </div>
-
-                            <div class="roles-subscroll roles-subscroll-large">
-                                <% if (roleTemplates && roleTemplates.length> 0) { %>
-                                    <div class="preview-list">
-                                        <% roleTemplates.forEach(function(t) { %>
-                                            <div class="preview-item">
-                                                <div class="preview-title">
-                                                    <%= t.displayName %>
+                                                    <%= r.key %>
                                                 </div>
                                                 <div class="preview-meta">
-                                                    <%= (t.description && t.description.length> 0) ? t.description : 'No description available.' %>
+                                                    <%= r.description %>
                                                 </div>
                                             </div>
                                             <% }); %>
-
                                     </div>
                                     <% } else { %>
-                                        <p class="preview-empty">No role templates available.</p>
+                                        <p class="preview-empty">No portal roles defined.</p>
                                         <% } %>
                             </div>
-                        </div>
+                        </article>
+
+                        <!-- RIGHT: Directory roles -->
+                        <article class="card roles-column">
+                            <header class="card-header">
+                                <h3>Directory roles</h3>
+                                <p class="muted">Microsoft Entra ID directory roles (tenant governance).</p>
+                            </header>
+
+                            <div class="card-content users-card-body">
+
+                                <!-- Activated roles -->
+                                <div class="roles-subsection">
+                                    <div class="roles-subsection-header">
+                                        <h4 class="section-title">Activated roles</h4>
+                                        <p class="muted small">Only roles currently activated in the tenant.</p>
+                                    </div>
+
+                                    <div class="roles-subscroll roles-subscroll-small">
+                                        <% if (directoryRoles && directoryRoles.length> 0) { %>
+                                            <div class="preview-list">
+                                                <% directoryRoles.forEach(function(r) { %>
+                                                    <div class="preview-item">
+                                                        <div class="preview-title">
+                                                            <a class="users-link"
+                                                                href="/tenant/roles/<%= encodeURIComponent(r.id) %>">
+                                                                <%= r.displayName %>
+                                                            </a>
+                                                        </div>
+
+                                                        <div class="preview-meta">Role ID: <%= r.id %>
+                                                        </div>
+                                                    </div>
+                                                    <% }); %>
+                                            </div>
+                                            <% } else { %>
+                                                <p class="preview-empty">No activated directory roles found.</p>
+                                                <% } %>
+                                    </div>
+                                </div>
+
+                                <hr class="divider" />
+
+                                <!-- All roles (templates) -->
+                                <div class="roles-subsection">
+                                    <div class="roles-subsection-header">
+                                        <h4 class="section-title">All roles (templates)</h4>
+                                        <p class="muted small">Full catalog of available directory roles.</p>
+                                    </div>
+
+                                    <div class="roles-subscroll roles-subscroll-large">
+                                        <% if (roleTemplates && roleTemplates.length> 0) { %>
+                                            <div class="preview-list">
+                                                <% roleTemplates.forEach(function(t) { %>
+                                                    <div class="preview-item">
+                                                        <div class="preview-title">
+                                                            <form method="POST" action="/tenant/roles/activate"
+                                                                style="display:inline;">
+                                                                <input type="hidden" name="templateId"
+                                                                    value="<%= t.id %>" />
+                                                                <button type="submit" class="link-button">
+                                                                    <%= t.displayName %>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+
+                                                        <div class="preview-meta">
+                                                            <%= (t.description && t.description.length> 0) ?
+                                                                t.description : 'No description available.' %>
+                                                        </div>
+                                                    </div>
+                                                    <% }); %>
+
+                                            </div>
+                                            <% } else { %>
+                                                <p class="preview-empty">No role templates available.</p>
+                                                <% } %>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </article>
+
+
 
                     </div>
-                </article>
-
-
-
-            </div>
 
         </section>
     </main>

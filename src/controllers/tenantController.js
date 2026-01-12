@@ -502,12 +502,26 @@ module.exports = { /*...*/ addUserToDirectoryRole };
 
 // GET /users/{upn}?$select=id
 async function resolveUserIdByUPN(accessToken, upn) {
- 
-  const safe = encodeURIComponent(upn);
-  const user = await callGraph(`/users/${safe}?$select=id`, accessToken);
-  return user && user.id ? user.id : null;
+
+    const safe = encodeURIComponent(upn);
+    const user = await callGraph(`/users/${safe}?$select=id`, accessToken);
+    return user && user.id ? user.id : null;
 }
 
+// Troba si un role template ja està activat (directoryRole existent)
+async function findActivatedDirectoryRoleByTemplateId(accessToken, templateId) {
+    const endpoint =
+        `/directoryRoles?$filter=roleTemplateId eq '${templateId}'&$select=id,displayName,roleTemplateId`;
+    const json = await callGraph(endpoint, accessToken);
+    return (json.value && json.value[0]) ? json.value[0] : null;
+}
+
+// Activa un role template (si no està activat)
+async function activateDirectoryRole(accessToken, templateId) {
+    const endpoint = `/directoryRoles`;
+    const body = { roleTemplateId: templateId };
+    return await callGraphPOST(endpoint, accessToken, body);
+}
 
 
 
@@ -559,7 +573,9 @@ module.exports = {
     //addGroupToDirectoryRole,
     addUserToDirectoryRole,
     resolveUserIdByUPN,
+    findActivatedDirectoryRoleByTemplateId,
+    activateDirectoryRole,
 
-    
+
 
 };
