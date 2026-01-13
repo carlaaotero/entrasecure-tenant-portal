@@ -65,10 +65,11 @@ function countExpiringCreds(appRegs, withinDays = 30) {
 // Service principal del portal via appId
 async function getPortalServicePrincipal(accessToken, portalAppId) {
     const endpoint =
-        `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id,appId,displayName`;
+        `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id,appId,displayName,appRoles`;
     const json = await callGraph(endpoint, accessToken);
     return (json.value && json.value[0]) ? json.value[0] : null;
 }
+
 
 async function getPortalRbacDistribution(accessToken, portalSpId) {
     // App role assignments de la teva Enterprise App
@@ -121,9 +122,14 @@ async function buildSecurityOverview(accessToken, options = {}) {
     // 3) Groups without owners (1 crida per grup)
     const groupOwnersResults = await mapWithConcurrency(groups, 6, async (g) => {
         try {
-            const json = await callGraph(`/groups/${g.id}/owners?$select=id`, accessToken);
-            const owners = json.value || [];
+            const json = await callGraph(`/groups/${g.id}/owners/microsoft.graph.user?$select=id`, accessToken);
+
+
+
+            const owners = (json.value || []);
             return { group: g, ownersCount: owners.length, status: 'ok' };
+
+
         } catch (err) {
             // si no podem comprovar owners, ho marquem com "unknown"
             return { group: g, ownersCount: null, status: 'error' };
@@ -134,6 +140,12 @@ async function buildSecurityOverview(accessToken, options = {}) {
         x => x.status === 'ok' && x.ownersCount === 0
     );
 
+    console.log('DEBUG owners check:');
+    groupOwnersResults.forEach(x => {
+        console.log(x.group.displayName, 'status=', x.status, 'ownersCount=', x.ownersCount);
+    });
+
+    console.log('groupsWithoutOwners:', groupsWithoutOwners.map(x => x.group.displayName));
 
     // 4) Apps without owners (1 crida per app / service principal)
     const appOwnersResults = await mapWithConcurrency(ownEnterpriseApps, 6, async (sp) => {
@@ -173,13 +185,31 @@ async function buildSecurityOverview(accessToken, options = {}) {
         .filter(x => x.highImpact)
         .reduce((sum, x) => sum + x.count, 0);
 
-    const privilegedRolesInUse = membersPerRole
-        .filter(x => x.highImpact && x.count > 0)
-        .map(x => ({
-            id: x.role.id,
-            displayName: x.role.displayName,
-            members: x.count
-        }));
+    const privilegedRolesInUse = await mapWithConcurrency(
+        membersPerRole.filter(x => x.highImpact && x.count > 0),
+        4,
+        async (x) => {
+            // Tornem a demanar els membres per tenir els noms (per UI)
+            const members = await getDirectoryRoleMembers(accessToken, x.role.id);
+
+            // Ens quedem només amb usuaris (ignorem service principals si surten)
+            const users = (members || [])
+                .filter(m => !m.appId) // si té appId normalment és SP
+                .map(m => ({
+                    id: m.id,
+                    displayName: m.displayName,
+                    userPrincipalName: m.userPrincipalName
+                }));
+
+            return {
+                id: x.role.id,
+                displayName: x.role.displayName,
+                membersCount: users.length,
+                users
+            };
+        }
+    );
+
 
 
     // 7) Portal RBAC distribution (optional)
@@ -191,18 +221,25 @@ async function buildSecurityOverview(accessToken, options = {}) {
 
             // Mapa d’IDs → labels (tu ho adaptes als teus App Roles)
             // IMPORTANT: aquí posa els appRoleId reals dels teus Portal roles (del App Registration)
-            const roleIdToLabel = options.roleIdToLabel || {
-                // 'xxxxxxxx-....': 'Portal.UserAdmin',
-                // 'yyyyyyyy-....': 'Portal.GroupAdmin',
-                // ...
+            // Construïm el mapping automàtic: appRoleId -> nom del rol
+            const roleIdToLabel = {
                 '00000000-0000-0000-0000-000000000000': 'Default access',
             };
 
+            // portalSp.appRoles ve del Graph: id + displayName/value
+            const appRoles = (portalSp.appRoles || []);
+            for (const r of appRoles) {
+                if (!r || !r.id) continue;
+                // Prioritza displayName (més friendly); si no existeix, value; i si no, l'id
+                roleIdToLabel[r.id] = r.displayName || r.value || r.id;
+            }
+
             const byLabel = {};
             for (const [appRoleId, c] of Object.entries(dist.byAppRoleId)) {
-                const label = roleIdToLabel[appRoleId] || appRoleId;
+                const label = roleIdToLabel[appRoleId] || appRoleId; // fallback per si algun rol no ve
                 byLabel[label] = (byLabel[label] || 0) + c;
             }
+
 
             portalRbac = {
                 portalAppId,
@@ -269,11 +306,12 @@ async function buildSecurityOverview(accessToken, options = {}) {
         // Governance
         groupsWithoutOwners: {
             count: groupsWithoutOwners.length,
-            items: groupsWithoutOwners.slice(0, 8).map(x => ({ id: x.group.id, displayName: x.group.displayName })),
+            items: groupsWithoutOwners.map(x => ({ id: x.group.id, displayName: x.group.displayName })),
+
         },
         appsWithoutOwners: {
             count: appsWithoutOwners.length,
-            items: appsWithoutOwners.slice(0, 8).map(x => ({ id: x.sp.id, displayName: x.sp.displayName, appId: x.sp.appId })),
+            items: appsWithoutOwners.map(x => ({ id: x.sp.id, displayName: x.sp.displayName, appId: x.sp.appId })),
         },
 
         // Credentials

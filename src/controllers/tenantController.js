@@ -87,7 +87,7 @@ async function getGroupsPreview(accessToken, top = 5) {
 }
 
 async function getAllGroups(accessToken) {
-    const endpoint = `/groups?$select=id,displayName,groupTypes,onPremisesSyncEnabled`;
+    const endpoint = `/groups?$select=id,displayName,groupTypes,securityEnabled,onPremisesSyncEnabled`;
     const json = await callGraph(endpoint, accessToken);
     return json.value || [];
 }

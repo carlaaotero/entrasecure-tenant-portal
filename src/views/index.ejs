@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
@@ -7,7 +7,7 @@
   <title>
     <%= title %> · EntraSecure
   </title>
-  <!--<link rel="stylesheet" href="/css/styles.css" />-->
+
   <!-- Design foundation -->
   <link rel="stylesheet" href="/css/foundation.css" />
 
@@ -22,11 +22,10 @@
 
   <!-- Page-specific -->
   <link rel="stylesheet" href="/css/pages/home.css" />
-
 </head>
 
 <body>
-  <!-- Navbar senzilla -->
+  <!-- Simple navbar -->
   <nav class="navbar">
     <div class="navbar-left">
       <div class="brand">EntraSecure Tenant Portal</div>
@@ -38,28 +37,29 @@
           <li><a href="/me" class="nav-link">My Identity</a></li>
           <li><a href="/tenant" class="nav-link">Tenant Explorer</a></li>
           <li><a href="/security" class="nav-link">Security</a></li>
-          <% } %>
+        <% } %>
       </ul>
     </div>
+
     <div class="navbar-right">
       <% if (user) { %>
         <div class="user-pill">
           <span class="user-initial">
             <% if (user.name) { %>
               <%= user.name.charAt(0).toUpperCase() %>
-                <% } else if (user.username) { %>
-                  <%= user.username.charAt(0).toUpperCase() %>
-                    <% } else { %>
-                      U
-                      <% } %>
+            <% } else if (user.username) { %>
+              <%= user.username.charAt(0).toUpperCase() %>
+            <% } else { %>
+              U
+            <% } %>
           </span>
           <span class="user-name">
-            <%= user.name || user.username || 'Usuari' %>
+            <%= user.name || user.username || 'User' %>
           </span>
         </div>
-        <% } else { %>
-          <a href="/auth/login" class="btn btn-outline-light">Login</a>
-          <% } %>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline-light">Sign in</a>
+      <% } %>
     </div>
   </nav>
 
@@ -67,74 +67,74 @@
     <!-- Hero -->
     <section class="hero">
       <div class="hero-inner">
-        <h1>Benvingut/da a EntraSecure Tenant Portal</h1>
+        <h1>Welcome to EntraSecure Tenant Portal</h1>
         <p class="hero-subtitle">
-          Portal de demostració per aprendre a integrar Microsoft Entra ID (Azure AD)
-          amb aplicacions web Node.js, Express i Microsoft Graph.
+          A learning portal to explore Microsoft Entra ID (Azure AD) through a custom web app built with Node.js,
+          Express and Microsoft Graph.
         </p>
 
         <% if (!user) { %>
           <div class="hero-cta-wrapper">
             <a href="/auth/login" class="btn btn-primary hero-cta">
-              Inicia sessió amb Microsoft Entra ID
+              Sign in with Microsoft Entra ID
             </a>
           </div>
-          <% } else { %>
-            <div class="profile-card">
-              <div class="profile-avatar">
-                <span>
-                  <% if (user.name) { %>
-                    <%= user.name.charAt(0).toUpperCase() %>
-                      <% } else if (user.username) { %>
-                        <%= user.username.charAt(0).toUpperCase() %>
-                          <% } else { %>
-                            U
-                            <% } %>
-                </span>
+        <% } else { %>
+          <div class="profile-card">
+            <div class="profile-avatar">
+              <span>
+                <% if (user.name) { %>
+                  <%= user.name.charAt(0).toUpperCase() %>
+                <% } else if (user.username) { %>
+                  <%= user.username.charAt(0).toUpperCase() %>
+                <% } else { %>
+                  U
+                <% } %>
+              </span>
+            </div>
+            <div class="profile-info">
+              <div class="profile-name">
+                <%= user.name || 'Signed-in user' %>
               </div>
-              <div class="profile-info">
-                <div class="profile-name">
-                  <%= user.name || 'Usuari autenticat' %>
-                </div>
-                <div class="profile-upn">
-                  <%= user.username || '' %>
-                </div>
+              <div class="profile-upn">
+                <%= user.username || '' %>
               </div>
             </div>
-            <% } %>
+          </div>
+        <% } %>
       </div>
     </section>
 
-    <!-- Info del projecte -->
+    <!-- Project info -->
     <section class="info-section">
       <div class="info-intro">
-        <h2>Sobre aquest portal</h2>
+        <h2>About this portal</h2>
         <p>
-          EntraSecure Tenant Portal és el meu Treball de Fi de Grau d'Enginyeria Telemàtica:
-          una aplicació de demostració que mostra com integrar autenticació, autorització i
-          accés a dades d'un tenant de Microsoft Entra ID.
+          EntraSecure Tenant Portal is my Bachelor's Thesis (Telematics Engineering). It is a self-built IAM portal that
+          reproduces and simplifies key features of the Microsoft Entra Admin Center, focusing on users, groups,
+          applications and roles through Microsoft Graph.
         </p>
       </div>
 
       <div class="info-grid">
         <article class="card">
-          <h3>Objectiu del projecte</h3>
-          <p>
-            Crear una demo funcional i didàctica que il·lustri:
-          </p>
+          <h3>Project goals</h3>
           <ul>
-            <li>FALTA FICAR</li>
+            <li>Explore IAM objects: users, groups, enterprise apps and directory roles.</li>
+            <li>Understand delegated access and token-based authentication (OIDC/OAuth2) with MSAL.</li>
+            <li>See identity relationships: memberships and role assignments.</li>
+            <li>Apply internal RBAC for the portal using App Roles (claims-based authorization).</li>
           </ul>
         </article>
 
         <article class="card">
-          <h3>Tecnologies clau</h3>
+          <h3>Key technologies</h3>
           <ul class="tech-list">
             <li><strong>Node.js</strong> v20.17.0</li>
-            <li><strong>Express</strong> 5 + <strong>EJS</strong> com a view engine</li>
-            <li><strong>MSAL Node</strong> per a l'autenticació OIDC / OAuth2</li>
-            <li><strong>Microsoft Graph API</strong> per accedir a dades del tenant</li>
-            <li><strong>express-session</strong> per gestionar la sessió d'usuari</li>
+            <li><strong>Express</strong> 5 + <strong>EJS</strong> as view engine</li>
+            <li><strong>MSAL Node</strong> for OIDC / OAuth2 authentication</li>
+            <li><strong>Microsoft Graph API</strong> to access tenant data</li>
+            <li><strong>express-session</strong> for user session management</li>
           </ul>
         </article>
       </div>

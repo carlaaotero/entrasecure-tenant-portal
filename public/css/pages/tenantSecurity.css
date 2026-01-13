@@ -27,6 +27,37 @@
   flex-wrap: wrap;
 }
 
+/* =========================================================
+   Theme bridge: usa foundation.css per defecte
+   (però manté els 3 colors que t’agraden)
+   ========================================================= */
+:root{
+  /* Paleta base (foundation.css) */
+  --ts-ink: var(--color1);
+  --ts-muted: var(--color2);
+  --ts-primary: var(--color3);  /* blau principal */
+  --ts-soft: var(--color4);     /* blau fluix */
+  --ts-bg: var(--color5);
+
+  /* Els 3 que vols mantenir (no els canviem) */
+  --ts-ok-bg: rgba(16, 185, 129, 0.12);   /* IAM */
+  --ts-warn-bg: rgba(245, 158, 11, 0.14); /* Privileged */
+  --ts-info-bg: rgba(59, 130, 246, 0.14); /* Plan badge */
+
+  /* Altres */
+  --ts-crit-bg: rgba(239, 68, 68, 0.14);
+
+  /* Fills (progress) */
+  --ts-ok-fill: rgba(16,185,129,0.75);
+  --ts-warn-fill: rgba(245,158,11,0.80);
+  --ts-info-fill: rgba(59,130,246,0.70);
+  --ts-crit-fill: rgba(239,68,68,0.80);
+
+  /* Tracks / borders suaus */
+  --ts-track: rgba(0,0,0,0.06);
+  --ts-border: rgba(0,0,0,0.06);
+}
+
 /* --- Badges --- */
 .badge {
   display: inline-flex;
@@ -39,10 +70,13 @@
   border: 1px solid rgba(0,0,0,0.08);
 }
 
-.badge-ok { background: rgba(16, 185, 129, 0.12); }
-.badge-warn { background: rgba(245, 158, 11, 0.14); }
-.badge-crit { background: rgba(239, 68, 68, 0.14); }
-.badge-info { background: rgba(59, 130, 246, 0.14); }
+/* manté aquests 3 colors perquè t’agraden */
+.badge-ok   { background: var(--ts-ok-bg); }
+.badge-warn { background: var(--ts-warn-bg); }
+.badge-info { background: var(--ts-info-bg); }
+
+/* crit: el deixem com està (coherent) */
+.badge-crit { background: var(--ts-crit-bg); }
 
 /* --- Stat cards --- */
 .security-stats-grid {
@@ -73,6 +107,7 @@
 .stat-label {
   font-weight: 700;
   letter-spacing: 0.2px;
+  color: var(--ts-ink);
 }
 
 .stat-value {
@@ -80,18 +115,20 @@
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 6px;
+  color: var(--ts-ink);
 }
 
 .stat-meta {
   font-size: 12px;
+  color: var(--ts-muted);
 }
 
-/* accents: barra superior fina */
-.accent-blue { border-top: 3px solid rgba(59,130,246,0.9); }
-.accent-purple { border-top: 3px solid rgba(139,92,246,0.9); }
-.accent-amber { border-top: 3px solid rgba(245,158,11,0.9); }
-.accent-red { border-top: 3px solid rgba(239,68,68,0.9); }
-.accent-gray { border-top: 3px solid rgba(100,116,139,0.9); }
+/* accents: barra superior fina (ara usa foundation) */
+.accent-blue   { border-top: 3px solid var(--ts-primary); }
+.accent-purple { border-top: 3px solid var(--ts-primary); } /* no hi ha morat al foundation -> blau */
+.accent-amber  { border-top: 3px solid var(--ts-warn-fill); } /* manté taronja (t’agrada) */
+.accent-red    { border-top: 3px solid var(--ts-crit-fill); }
+.accent-gray   { border-top: 3px solid var(--ts-muted); }     /* gris del foundation */
 
 /* --- Two-column layout --- */
 .security-two-col {
@@ -105,12 +142,14 @@
   .security-two-col { grid-template-columns: 1fr; }
 }
 
+/* Redueix espai header -> content */
 .security-card .card-header {
-  padding-bottom: 0;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
 }
 
 .security-card .card-content {
-  padding-top: 12px;
+  padding-top: 0px;
 }
 
 /* --- Findings --- */
@@ -120,7 +159,7 @@
   justify-content: space-between;
   gap: 14px;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid var(--ts-border);
 }
 
 .finding:last-child {
@@ -129,6 +168,7 @@
 
 .finding-title {
   font-weight: 700;
+  color: var(--ts-ink);
 }
 
 .finding-right {
@@ -142,7 +182,7 @@
   width: 180px;
   height: 10px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.06);
+  background: var(--ts-track);
   overflow: hidden;
 }
 
@@ -151,10 +191,10 @@
   border-radius: 999px;
 }
 
-.fill-ok { background: rgba(16,185,129,0.75); }
-.fill-warn { background: rgba(245,158,11,0.8); }
-.fill-crit { background: rgba(239,68,68,0.8); }
-.fill-info { background: rgba(59,130,246,0.7); }
+.fill-ok   { background: var(--ts-ok-fill); }
+.fill-warn { background: var(--ts-warn-fill); }
+.fill-crit { background: var(--ts-crit-fill); }
+.fill-info { background: var(--ts-info-fill); }
 
 .quick-actions {
   display: flex;
@@ -182,11 +222,12 @@
 }
 
 .donut {
-  width: 64px;
-  height: 64px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
+  /* ara usa el blau del foundation (color3) */
   background: conic-gradient(
-    rgba(59,130,246,0.85) calc(var(--p) * 1%),
+    rgba(103,137,166,0.85) calc(var(--p) * 1%),
     rgba(0,0,0,0.08) 0
   );
   position: relative;
@@ -198,7 +239,7 @@
   inset: 10px;
   background: white;
   border-radius: 50%;
-  border: 1px solid rgba(0,0,0,0.06);
+  border: 1px solid var(--ts-border);
 }
 
 .donut-center {
@@ -214,15 +255,18 @@
   font-weight: 800;
   font-size: 14px;
   line-height: 1;
+  color: var(--ts-ink);
 }
 
 .donut-small {
   font-size: 11px;
   margin-top: 2px;
+  color: var(--ts-muted);
 }
 
 .donut-title {
   font-weight: 700;
+  color: var(--ts-ink);
 }
 
 /* --- Metrics rows --- */
@@ -235,6 +279,7 @@
 
 .metric-label {
   font-weight: 650;
+  color: var(--ts-muted);
 }
 
 .metric-value {
@@ -250,12 +295,12 @@
   gap: 14px;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid var(--ts-border);
 }
 
 .cap-row:last-child { border-bottom: none; }
 
-.cap-title { font-weight: 700; }
+.cap-title { font-weight: 700; color: var(--ts-ink); }
 
 .cap-notes {
   margin-top: 12px;
@@ -303,26 +348,238 @@
 .mini-bar-track {
   height: 10px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.06);
+  background: var(--ts-track);
   overflow: hidden;
 }
 
 .mini-bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: rgba(139,92,246,0.75);
+  /* abans morat: ara blau del foundation */
+  background: var(--ts-primary);
+  opacity: 0.75;
 }
 
 .mini-bar-label {
   font-weight: 650;
+  color: var(--ts-muted);
 }
 
 .mini-bar-count {
   text-align: right;
+  color: var(--ts-muted);
 }
 
 .scroll-box{
   max-height: 260px;
   overflow: auto;
   padding-right: 6px;
+}
+
+/* Cards compactes (governance/hygiene) */
+.compact-card .card-header {
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+}
+
+.compact-card .card-header h3 {
+  font-size: 1rem;
+}
+
+.compact-card .card-content {
+  padding-top: 6px;
+}
+
+/* Scroll-box més baix dins cards compactes */
+.compact-card .scroll-box {
+  max-height: 180px;
+}
+
+/* Subtítols / labels interns (diferents dels h3) */
+.subtle-title {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(28, 15, 27, 0.75);
+}
+
+/* “label” estil UI */
+.metric-label.subtle-title,
+.mini-bar-label.subtle-title {
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: rgba(80, 72, 69, 0.85);
+}
+
+
+
+/* =========================================================
+   UI polish: accents i badges de les mini-cards (top stats)
+   ========================================================= */
+
+/* 1) Accents de les stat-cards: tot a blau brand (donut / --color3)
+      Excepte que vulguis marcar risc crític en vermell (opcional) */
+.accent-blue,
+.accent-purple,
+.accent-amber,
+.accent-gray {
+  border-top-color: var(--ts-primary) !important;
+}
+
+/* Si vols que "Directory roles" (accent-red) segueixi sent crític:
+.accent-red { border-top-color: var(--ts-crit-fill) !important; }
+   Si el vols també blau:
+*/
+.accent-red { border-top-color: var(--ts-primary) !important; }
+
+/* 2) Badges dins les mini-cards de dalt (Users/Groups/Apps/Roles/Credentials)
+      - IAM (badge-ok) el deixem verd (t’agrada)
+      - La resta els fem "neutral/brand" i només alertem quan cal */
+
+/* Base aesthetic per badges dins stat cards */
+.stat-card .badge {
+  background: rgba(103,137,166,0.14); /* blau fluix (foundation color3) */
+  color: var(--ts-ink);
+  border-color: rgba(103,137,166,0.18);
+}
+
+/* Manté IAM verdós tal qual */
+.stat-card .badge.badge-ok {
+  background: var(--ts-ok-bg);
+  color: var(--ts-ink);
+  border-color: rgba(16,185,129,0.18);
+}
+
+/* "without owners" i "High impact" -> que no siguin taronja sempre */
+.stat-card .badge.badge-warn {
+  background: rgba(103,137,166,0.14);  /* blau fluix */
+  color: var(--ts-ink);
+  border-color: rgba(103,137,166,0.18);
+}
+
+/* "expiring" -> neutre si 0, vermell només si >0.
+   (com que no tenim selector per valor, ho fem per classe: badge-crit ja és quan >0 al teu EJS) */
+.stat-card .badge.badge-info {
+  /* deixem el plan badge com està (t’agrada) */
+  background: var(--ts-info-bg);
+  color: var(--ts-ink);
+  border-color: rgba(59,130,246,0.18);
+}
+
+.stat-card .badge.badge-crit {
+  background: var(--ts-crit-bg);
+  color: var(--ts-ink);
+  border-color: rgba(239,68,68,0.20);
+}
+
+/* =========================================================
+   FINAL POLISH (top stats badges + findings colors)
+   ========================================================= */
+
+/* Colors suaus extra (compatibles, sense color-mix) */
+:root{
+  --soft-gray-bg: rgba(100,116,139,0.12);
+  --soft-gray-bd: rgba(100,116,139,0.18);
+
+  --soft-amber-bg: rgba(245,158,11,0.14);  /* taronja fluix */
+  --soft-amber-bd: rgba(245,158,11,0.18);
+
+  --soft-blue-bg: rgba(59,130,246,0.14);   /* blau fluix */
+  --soft-blue-bd: rgba(59,130,246,0.18);
+
+  --soft-purple-bg: rgba(139,92,246,0.12); /* lila fluix */
+  --soft-purple-bd: rgba(139,92,246,0.18);
+
+  --soft-brand-bg: rgba(103,137,166,0.14); /* foundation color3 */
+  --soft-brand-bd: rgba(103,137,166,0.18);
+}
+
+/* ---------------------------------------------------------
+   1) FILA DE DALT: badges estètics per posició de card
+      ordre: Users, Groups, Apps, Directory roles, Credentials
+   --------------------------------------------------------- */
+
+/* Base */
+.security-stats-grid > .stat-card .badge{
+  color: var(--ts-ink);
+}
+
+/* 1) Users -> IAM verd (ja t'agrada) */
+.security-stats-grid > .stat-card:nth-child(1) .badge{
+  background: var(--ts-ok-bg);
+  border-color: rgba(16,185,129,0.18);
+}
+
+/* 2) Groups -> gris suau */
+.security-stats-grid > .stat-card:nth-child(2) .badge{
+  background: var(--soft-gray-bg);
+  border-color: var(--soft-gray-bd);
+}
+
+/* 3) Apps -> taronja fluix */
+.security-stats-grid > .stat-card:nth-child(3) .badge{
+  background: var(--soft-amber-bg);
+  border-color: var(--soft-amber-bd);
+}
+
+/* 4) Directory roles -> blau fluix */
+.security-stats-grid > .stat-card:nth-child(4) .badge{
+  background: var(--soft-blue-bg);
+  border-color: var(--soft-blue-bd);
+}
+
+/* 5) Credentials -> lila fluix (enganxa bé amb blau i taronja) */
+.security-stats-grid > .stat-card:nth-child(5) .badge{
+  background: var(--soft-purple-bg);
+  border-color: var(--soft-purple-bd);
+}
+
+/* Però: el badge del "plan" (Microsoft Entra ID Free) el volem mantenir blau fluix com t'agrada */
+.security-header-badges .badge-info{
+  background: var(--ts-info-bg);
+  border-color: rgba(59,130,246,0.18);
+}
+
+/* ---------------------------------------------------------
+   2) SECURITY FINDINGS: treure taronja fort dels progress fills
+      i fer-ho coherent amb el brand (blau donut)
+   --------------------------------------------------------- */
+
+/* per defecte, els progress fills que no siguin crit: blau brand */
+.fill-warn,
+.fill-info{
+  background: var(--ts-primary) !important; /* blau del donut / foundation */
+  opacity: 0.75;
+}
+
+/* deixa OK verd com està i CRIT vermell com està */
+.fill-ok{ background: var(--ts-ok-fill) !important; }
+.fill-crit{ background: var(--ts-crit-fill) !important; }
+
+/* ---------------------------------------------------------
+   3) Badges rodons de la dreta (comptadors dins findings)
+      Ara tots coherents (blau suau), crit vermell suau
+   --------------------------------------------------------- */
+
+/* dins findings, tots els badges per defecte blau suau */
+.security-two-col .finding-right .badge{
+  background: var(--soft-brand-bg) !important;
+  border-color: var(--soft-brand-bd) !important;
+  color: var(--ts-ink);
+}
+
+/* si és crític: vermell suau */
+.security-two-col .finding-right .badge.badge-crit{
+  background: var(--ts-crit-bg) !important;
+  border-color: rgba(239,68,68,0.20) !important;
+}
+
+/* si és OK (0 expiring) i vols que NO sigui verd, comenta aquest bloc.
+   Si el vols neutre també (recomanat per consistència), el deixem blau com el base. */
+.security-two-col .finding-right .badge.badge-ok{
+  background: var(--soft-brand-bg) !important;
+  border-color: var(--soft-brand-bd) !important;
 }
