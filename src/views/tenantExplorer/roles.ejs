@@ -21,6 +21,8 @@
 
     <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
     <link rel="stylesheet" href="/css/pages/tenantExplorer.css" />
+    <link rel="stylesheet" href="/css/pages/tenantRoles.css" />
+
 
 </head>
 
@@ -97,8 +99,17 @@
                                         <% portalRoles.forEach(function(r) { %>
                                             <div class="preview-item">
                                                 <div class="preview-title">
-                                                    <%= r.key %>
+                                                    <% if (r.id) { %>
+                                                        <a class="users-link"
+                                                            href="/tenant/roles/portal/<%= encodeURIComponent(r.id) %>">
+                                                            <%= r.key %>
+                                                        </a>
+                                                        <% } else { %>
+                                                            <%= r.key %>
+                                                                <% } %>
                                                 </div>
+
+
                                                 <div class="preview-meta">
                                                     <%= r.description %>
                                                 </div>

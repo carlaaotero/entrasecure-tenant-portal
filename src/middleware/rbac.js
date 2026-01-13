@@ -5,17 +5,45 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function getRoles(req) {
+  return req.session?.portalRoles || [];
+}
+
 function hasRole(req, role) {
-  const roles = req.session?.portalRoles || [];
+  const roles = getRoles(req);
+
+  // superuser del portal
+  if (roles.includes('Portal.TenantAdmin')) return true;
+
   return roles.includes(role);
 }
 
-function requireTenantAdmin(req, res, next) {
-  if (!req.session.user) return res.redirect('/auth/login');
-  if (!hasRole(req, 'Portal.TenantAdmin')) {
-    return res.status(403).send('Forbidden: TenantAdmin required');
-  }
-  next();
+function deny(req, res, message = 'Forbidden') {
+  req.session.flash = { type: 'error', message };
+  return res.redirect(req.get('referer') || '/tenant');
 }
 
-module.exports = { requireAuth, requireTenantAdmin, hasRole };
+function requireRole(role, opts = {}) {
+  return (req, res, next) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    if (!hasRole(req, role)) return deny(req, res, opts.message || `Cal el rol ${role}`);
+    next();
+  };
+}
+
+function requireAnyRole(roles, opts = {}) {
+  return (req, res, next) => {
+    if (!req.session.user) return res.redirect('/auth/login');
+    const ok = (roles || []).some(r => hasRole(req, r));
+    if (!ok) return deny(req, res, opts.message || `Cal un d'aquests rols: ${roles.join(', ')}`);
+    next();
+  };
+}
+
+const requireTenantAdmin = requireRole('Portal.TenantAdmin', {
+  message: 'Forbidden: TenantAdmin required',
+});
+
+module.exports = { requireAuth, hasRole, requireRole, requireAnyRole, requireTenantAdmin };
+
+

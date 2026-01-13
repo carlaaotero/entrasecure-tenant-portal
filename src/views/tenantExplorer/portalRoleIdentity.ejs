@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>
+        <%= title %> · EntraSecure
+    </title>
+
+    <link rel="stylesheet" href="/css/foundation.css" />
+    <link rel="stylesheet" href="/css/utilities.css" />
+    <link rel="stylesheet" href="/css/components/navbar.css" />
+    <link rel="stylesheet" href="/css/components/button.css" />
+    <link rel="stylesheet" href="/css/components/card.css" />
+    <link rel="stylesheet" href="/css/components/avatar.css" />
+    <link rel="stylesheet" href="/css/pages/identity.css" />
+    <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
+    <link rel="stylesheet" href="/css/pages/tenantRoles.css" />
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <div class="brand">EntraSecure Tenant Portal</div>
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <% if (user) { %>
+                    <li><a href="/me" class="nav-link">My Identity</a></li>
+                    <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
+                    <li><a href="/security" class="nav-link">Security</a></li>
+                    <% } %>
+            </ul>
+        </div>
+
+        <div class="navbar-right">
+            <% if (user) { %>
+                <div class="user-pill">
+                    <span class="user-initial">
+                        <%= (user.name || user.username || 'U' ).charAt(0).toUpperCase() %>
+                    </span>
+                    <span class="user-name">
+                        <%= user.name || user.username || 'Usuari' %>
+                    </span>
+                </div>
+                <% } else { %>
+                    <a href="/auth/login" class="btn btn-outline-light">Login</a>
+                    <% } %>
+        </div>
+    </nav>
+
+    <main class="identity-main roles-page">
+        <section class="identity-layout">
+
+            <% if (flash && flash.type==='error' ) { %>
+                <div class="card" style="margin: 12px 0; padding: 12px;">
+                    <strong>Error:</strong>
+                    <span>
+                        <%= flash.message %>
+                    </span>
+                </div>
+                <% } %>
+
+                    <!-- Perfil (esquerra) -->
+                    <article class="card identity-profile-card">
+                        <div class="identity-profile-info">
+                            <h2 class="identity-title">
+                                <%= role.displayName || role.value %>
+                            </h2>
+                            <p class="identity-upn">Portal App Role (RBAC intern)</p>
+                        </div>
+
+                        <dl class="identity-details">
+                            <div class="identity-detail-row">
+                                <dt>Role ID</dt>
+                                <dd>
+                                    <%= role.id %>
+                                </dd>
+                            </div>
+
+                            <div class="identity-detail-row">
+                                <dt>Value</dt>
+                                <dd>
+                                    <%= role.value || '—' %>
+                                </dd>
+                            </div>
+
+                            <div class="identity-detail-row">
+                                <dt>Description</dt>
+                                <dd>
+                                    <%= role.description || '—' %>
+                                </dd>
+                            </div>
+                        </dl>
+                    </article>
+
+                    <!-- Assignacions (dreta) -->
+                    <article class="card identity-card identity-groups-card">
+                        <h3>Users assigned</h3>
+                        <div class="identity-card-content">
+
+                            <!-- ✅ FORM amb el patró "Directory Roles": input + dropdown amb checkboxes + chips -->
+                            <form id="addPortalRoleUsersForm" method="POST"
+                                action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/add"
+                                class="identity-inline-form">
+
+                                <label for="portalRoleUsersInput" class="identity-inline-label">Assignar usuaris al
+                                    rol</label>
+
+                                <div class="identity-inline-input">
+                                    <input id="portalRoleUsersInput" type="text" class="users-input"
+                                        placeholder="Cerca per nom o UPN (o fes Enter per afegir manualment)"
+                                        autocomplete="off" />
+                                    <div id="portalRoleUsersDropdown" class="owners-dropdown" style="display:none;">
+                                    </div>
+                                </div>
+
+                                <small class="field-hint">
+                                    <%= helpfulInfo %>
+                                </small>
+
+                                <div id="portalRoleUsersChips" class="owners-chip-list"></div>
+                                <input type="hidden" name="userIds" id="portalRoleUsersHidden" />
+
+                                <div class="identity-inline-actions">
+                                    <button type="submit" class="btn btn-primary btn-sm">Assignar seleccionats</button>
+                                </div>
+                            </form>
+
+                            <% if (assignments && assignments.length> 0) { %>
+                                <div class="identity-item-list">
+                                    <% assignments.forEach(function(a) { %>
+                                        <div class="identity-item-card identity-removable">
+
+                                            <form method="POST"
+                                                action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/<%= encodeURIComponent(a.id) %>/remove"
+                                                onsubmit="return confirm('Vols eliminar aquesta assignació?');"
+                                                class="remove-form">
+                                                <button type="submit" class="remove-btn">×</button>
+                                            </form>
+
+                                            <div class="identity-item-title">
+                                                <%= a.principalDisplayName || a.principalId %>
+                                            </div>
+                                            <div class="identity-item-meta">User · <%= a.principalId %>
+                                            </div>
+                                        </div>
+                                        <% }); %>
+                                </div>
+                                <% } else { %>
+                                    <p class="identity-empty">No hi ha usuaris assignats a aquest rol.</p>
+                                    <% } %>
+
+                        </div>
+                    </article>
+
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            // Llista completa d'usuaris (del backend)
+            const ALL_USERS = <% - JSON.stringify(users || []) %>;
+
+            function setupUserSelector({ inputId, dropdownId, chipsId, hiddenId, formId }) {
+                const input = document.getElementById(inputId);
+                const dropdown = document.getElementById(dropdownId);
+                const chips = document.getElementById(chipsId);
+                const hidden = document.getElementById(hiddenId);
+                const form = document.getElementById(formId);
+
+                // Guardem IDs (GUID) perquè Graph necessita principalId = userId
+                const selectedIds = [];
+
+                function updateHidden() {
+                    if (hidden) hidden.value = selectedIds.join(',');
+                }
+
+                function renderChips() {
+                    if (!chips) return;
+                    chips.innerHTML = '';
+
+                    selectedIds.forEach((id, index) => {
+                        const u = ALL_USERS.find(x => x.id === id);
+                        const label = u
+                            ? `${u.displayName || '(Sense nom)'}${u.userPrincipalName ? ' · ' + u.userPrincipalName : ''}`
+                            : id;
+
+                        const chip = document.createElement('span');
+                        chip.className = 'owner-chip';
+                        chip.textContent = label + ' ';
+
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'owner-chip-remove';
+                        btn.textContent = '×';
+                        btn.addEventListener('click', () => {
+                            selectedIds.splice(index, 1);
+                            updateHidden();
+                            renderChips();
+                        });
+
+                        chip.appendChild(btn);
+                        chips.appendChild(chip);
+                    });
+                }
+
+                function renderDropdownList(container, term) {
+                    const t = (term || '').trim().toLowerCase();
+
+                    const filtered = ALL_USERS.filter(u => {
+                        const dn = (u.displayName || '').toLowerCase();
+                        const upn = (u.userPrincipalName || '').toLowerCase();
+                        if (!t) return true;
+                        return dn.includes(t) || upn.includes(t);
+                    });
+
+                    container.innerHTML = '';
+
+                    filtered.forEach(u => {
+                        const option = document.createElement('label');
+                        option.className = 'owner-option';
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'owner-option-checkbox';
+                        checkbox.value = u.id;
+
+                        const info = document.createElement('div');
+                        info.className = 'owner-option-info';
+                        info.innerHTML = `
+              <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
+              <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
+              <span class="owner-option-type">${u.userType || ''}</span>
+            `;
+
+                        option.appendChild(checkbox);
+                        option.appendChild(info);
+                        container.appendChild(option);
+                    });
+                }
+
+                function buildDropdown() {
+                    if (!dropdown) return;
+
+                    dropdown.innerHTML = '';
+
+                    const header = document.createElement('div');
+                    header.className = 'owners-dropdown-header';
+
+                    const search = document.createElement('input');
+                    search.type = 'text';
+                    search.placeholder = 'Cerca per nom o UPN';
+                    search.className = 'users-input owners-search-input';
+
+                    const addBtn = document.createElement('button');
+                    addBtn.type = 'button';
+                    addBtn.textContent = 'Afegir seleccionats';
+                    addBtn.className = 'btn btn-primary owners-add-btn';
+
+                    header.appendChild(search);
+                    header.appendChild(addBtn);
+
+                    const list = document.createElement('div');
+                    list.className = 'owners-dropdown-list';
+
+                    dropdown.appendChild(header);
+                    dropdown.appendChild(list);
+
+                    // render inicial
+                    renderDropdownList(list, '');
+
+                    search.addEventListener('input', (e) => {
+                        renderDropdownList(list, e.target.value || '');
+                    });
+
+                    addBtn.addEventListener('click', () => {
+                        const checked = list.querySelectorAll('.owner-option-checkbox:checked');
+                        checked.forEach(cb => {
+                            const id = cb.value;
+                            if (id && !selectedIds.includes(id)) selectedIds.push(id);
+                        });
+
+                        checked.forEach(cb => cb.checked = false);
+                        updateHidden();
+                        renderChips();
+                    });
+                }
+
+                function openDropdown() {
+                    if (!dropdown) return;
+                    if (!dropdown.hasChildNodes()) buildDropdown();
+                    dropdown.style.display = 'block';
+                }
+
+                function closeDropdown() {
+                    if (!dropdown) return;
+                    dropdown.style.display = 'none';
+                }
+
+                // obrir en focus (com directory roles)
+                if (input) {
+                    input.addEventListener('focus', openDropdown);
+
+                    // permet afegir manualment amb Enter (IDs o coma-separat)
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key !== 'Enter') return;
+                        e.preventDefault();
+
+                        const value = (input.value || '').trim();
+                        if (!value) return;
+
+                        value.split(',')
+                            .map(v => v.trim())
+                            .filter(Boolean)
+                            .forEach(v => {
+                                // si escrius UPN, el backend NO el podrà assignar (necessita id).
+                                // Això és només un fallback per IDs.
+                                if (!selectedIds.includes(v)) selectedIds.push(v);
+                            });
+
+                        input.value = '';
+                        updateHidden();
+                        renderChips();
+                    });
+                }
+
+                // tancar fent click fora
+                document.addEventListener('click', (e) => {
+                    if (!dropdown || !input) return;
+                    if (input.contains(e.target) || dropdown.contains(e.target)) return;
+                    closeDropdown();
+                });
+
+                // abans de submit: afegim el que quedi escrit (si és id)
+                function flushInput() {
+                    if (!input) return;
+                    const value = (input.value || '').trim();
+                    if (!value) return;
+
+                    value.split(',')
+                        .map(v => v.trim())
+                        .filter(Boolean)
+                        .forEach(v => { if (!selectedIds.includes(v)) selectedIds.push(v); });
+
+                    input.value = '';
+                    updateHidden();
+                    renderChips();
+                }
+
+                if (form) {
+                    form.addEventListener('submit', () => flushInput());
+                }
+
+                // inicial
+                updateHidden();
+                renderChips();
+            }
+
+            setupUserSelector({
+                inputId: 'portalRoleUsersInput',
+                dropdownId: 'portalRoleUsersDropdown',
+                chipsId: 'portalRoleUsersChips',
+                hiddenId: 'portalRoleUsersHidden',
+                formId: 'addPortalRoleUsersForm'
+            });
+        })();
+    </script>
+</body>
+
+</html>

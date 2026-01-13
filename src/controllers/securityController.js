@@ -70,7 +70,6 @@ async function getPortalServicePrincipal(accessToken, portalAppId) {
     return (json.value && json.value[0]) ? json.value[0] : null;
 }
 
-
 async function getPortalRbacDistribution(accessToken, portalSpId) {
     // App role assignments de la teva Enterprise App
     // Nota: l'API retorna l'assignació al resource (servicePrincipal)
@@ -88,6 +87,30 @@ async function getPortalRbacDistribution(accessToken, portalSpId) {
     return { totalAssignments: items.length, byAppRoleId: counts };
 }
 
+async function getTenantInfo(accessToken) {
+  // organization: id + verifiedDomains
+  const org = await callGraph(
+    `/organization?$select=id,displayName,verifiedDomains`,
+    accessToken
+  );
+
+  const o = org.value?.[0];
+  const domains = o?.verifiedDomains || [];
+
+  // Primary domain: preferim isDefault; si no, el primer
+  const primary =
+    domains.find(d => d.isDefault)?.name ||
+    domains[0]?.name ||
+    null;
+
+  return {
+    tenantId: o?.id || null,
+    displayName: o?.displayName || null,
+    primaryDomain: primary,
+  };
+}
+
+
 async function buildSecurityOverview(accessToken, options = {}) {
     const portalAppId = process.env.AZURE_CLIENT_ID || null;
 
@@ -102,6 +125,9 @@ async function buildSecurityOverview(accessToken, options = {}) {
 
     const m365Groups = groups.filter(g => (g.groupTypes || []).includes('Unified')).length;
     const securityGroups = groups.filter(g => !(g.groupTypes || []).includes('Unified') && g.securityEnabled === true).length;
+
+    const tenantInfo = await getTenantInfo(accessToken);
+
 
     // --- FILTER: només Enterprise Apps pròpies ---
     const ownAppIds = new Set(
@@ -254,6 +280,9 @@ async function buildSecurityOverview(accessToken, options = {}) {
         portalRbac = { error: 'AZURE_CLIENT_ID not configured' };
     }
 
+
+
+
     // 8) Capacity indicators (qualitatius)
     function levelByThreshold(n, t1, t2) {
         if (n < t1) return { label: 'Low', pct: 25 };
@@ -296,6 +325,8 @@ async function buildSecurityOverview(accessToken, options = {}) {
             directoryRoles: directoryRoles.length,
             plan: 'Microsoft Entra ID Free',
         },
+
+        tenantInfo,
 
         groupsBreakdown: { security: securityGroups, m365: m365Groups },
 

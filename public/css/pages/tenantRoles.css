@@ -1,0 +1,77 @@
+/* ===========================
+   Tenant Roles - Page overrides
+   Només afecta pages de ROLES
+   =========================== */
+
+/* 1) Layout més ample i amb més aire */
+.identity-layout,
+.tenant-explorer-layout,
+.roles-layout {
+  max-width: 1400px;
+  gap: 2.25rem;
+}
+
+/* 2) Cards més grans (padding + sensació enterprise) */
+.identity-profile-card,
+.identity-card,
+.roles-card {
+  padding: 2rem 2.25rem;
+}
+
+/* 3) Tipografia una mica més gran */
+.identity-title,
+.roles-title,
+.identity-card h3,
+.roles-card h2 {
+  font-size: 1.35rem;
+}
+
+/* 4) FORCEM “cap a baix”: cards més altes */
+.identity-profile-card {
+  min-height: 320px;  /* card de l'esquerra (perfil rol) */
+}
+
+.identity-groups-card {
+  min-height: 520px;  /* card de la dreta (Users assigned) */
+}
+
+/* 5) Si l'identity layout és grid, fem la columna dreta més ampla */
+.identity-layout {
+  grid-template-columns: 1fr 1.35fr; /* dreta més gran */
+}
+
+/* 6) Input i dropdown més còmodes */
+.identity-groups-card .users-input,
+.identity-card .users-input {
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
+}
+
+/* 7) Llista de chips i assignacions: que no “peti” la card */
+.owners-chip-list {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  max-height: 120px;     /* chips creixen cap a baix però amb límit */
+  overflow-y: auto;
+}
+
+/* 8) Llista d’assignacions scrollable (card gran però controlada) */
+.identity-item-list {
+  margin-top: 1rem;
+  max-height: 320px;     /* així sempre queda espai pel buscador */
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* 9) Millor separació dins la card */
+.identity-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* 10) Empty state amb aire */
+.identity-empty {
+  margin-top: 1rem;
+  color: var(--color2);
+}

@@ -61,6 +61,20 @@
                 <div>
                     <h1>Tenant Security Overview</h1>
 
+                    <div class="muted small" style="margin-top:6px; display:flex; gap:14px; flex-wrap:wrap;">
+                        <span>
+                            <strong>Tenant ID:</strong>
+                            <%= (model.tenantInfo && model.tenantInfo.tenantId) ? model.tenantInfo.tenantId : '—' %>
+                        </span>
+
+                        <span>
+                            <strong>Primary domain:</strong>
+                            <%= (model.tenantInfo && model.tenantInfo.primaryDomain) ? model.tenantInfo.primaryDomain
+                                : '—' %>
+                        </span>
+                    </div>
+
+
                 </div>
 
                 <div class="security-header-badges">
@@ -198,7 +212,8 @@
 
                         <div class="finding">
                             <div class="finding-left">
-                                <div class="finding-title subtle-title">Secrets expiring (&lt;<%= model.credentials.withinDays %>d)
+                                <div class="finding-title subtle-title">Secrets expiring (&lt;<%=
+                                        model.credentials.withinDays %>d)
                                 </div>
                                 <div class="muted small">Credential hygiene</div>
                             </div>
@@ -329,7 +344,7 @@
                                 </div>
                             </div>
                             <% } else { %>
-                                <p class="preview-empty">No s’han detectat apps sense owners.</p>
+                                <p class="preview-empty">No apps without assigned owners were found.</p>
                                 <% } %>
 
                                     <hr style="margin: 14px 0; opacity: .2;" />
@@ -361,14 +376,15 @@
                                             </div>
                                         </div>
                                         <% } else { %>
-                                            <p class="preview-empty">No credentials nearing expiration have been detected.
+                                            <p class="preview-empty">No credentials nearing expiration have been
+                                                detected.
                                             </p>
                                             <% } %>
 
                     </div>
 
                 </article>
-                
+
                 <article class="card security-card compact-card">
                     <header class="card-header">
                         <h3>Groups governance</h3>
@@ -402,12 +418,12 @@
                                 </div>
                             </div>
                             <% } else { %>
-                                <p class="preview-empty">No s’han detectat grups sense owners.</p>
+                                <p class="preview-empty">No groups without assigned owners were found.</p>
                                 <% } %>
                     </div>
                 </article>
 
-                
+
             </div>
 
             <!-- Row: capacity & portal RBAC -->
@@ -452,65 +468,64 @@
                                     Portal RBAC not available: <%= (model.portalRbac && model.portalRbac.error) ?
                                         model.portalRbac.error : 'unknown' %>
                                 </p>
-                                <p class="muted small">
-                                    Afegeix <code>PORTAL_APP_ID</code> al .env per habilitar aquesta secció.
-                                </p>
                                 <% } %>
                     </div>
                 </article>
                 <!-- RIGHT: Directory roles (High impact in use) -->
-  <article class="card security-card">
-    <header class="card-header">
-      <h3>Directory roles (high impact)</h3>
-    </header>
+                <article class="card security-card">
+                    <header class="card-header">
+                        <h3>Directory roles (high impact)</h3>
+                    </header>
 
-    <div class="card-content">
-      <div class="metric-row">
-        <div class="metric-label subtle-title">Roles in use</div>
-        <div class="metric-value">
-          <span class="badge <%= (model.privilegedRolesInUse && model.privilegedRolesInUse.length > 0) ? 'badge-warn' : 'badge-ok' %>">
-            <%= (model.privilegedRolesInUse || []).length %>
-          </span>
-        </div>
-      </div>
+                    <div class="card-content">
+                        <div class="metric-row">
+                            <div class="metric-label subtle-title">Roles in use</div>
+                            <div class="metric-value">
+                                <span
+                                    class="badge <%= (model.privilegedRolesInUse && model.privilegedRolesInUse.length > 0) ? 'badge-warn' : 'badge-ok' %>">
+                                    <%= (model.privilegedRolesInUse || []).length %>
+                                </span>
+                            </div>
+                        </div>
 
-      <% if (model.privilegedRolesInUse && model.privilegedRolesInUse.length > 0) { %>
+                        <% if (model.privilegedRolesInUse && model.privilegedRolesInUse.length> 0) { %>
 
-        <div class="scroll-box">
-          <div class="preview-list">
-            <% model.privilegedRolesInUse.forEach(function(r) { %>
+                            <div class="scroll-box">
+                                <div class="preview-list">
+                                    <% model.privilegedRolesInUse.forEach(function(r) { %>
 
-              <div class="preview-item">
-                <div class="preview-title">
-                  <%= r.displayName %>
-                  <span class="muted small">· <%= r.membersCount %> member(s)</span>
-                </div>
+                                        <div class="preview-item">
+                                            <div class="preview-title">
+                                                <%= r.displayName %>
+                                                    <span class="muted small">· <%= r.membersCount %> member(s)</span>
+                                            </div>
 
-                <% if (r.users && r.users.length > 0) { %>
-                  <div class="muted small" style="margin-top:6px;">Assigned users</div>
+                                            <% if (r.users && r.users.length> 0) { %>
+                                                <div class="muted small" style="margin-top:6px;">Assigned users</div>
 
-                  <% r.users.forEach(function(u) { %>
-                    <div class="preview-meta" style="margin-top:4px;">
-                      <a class="users-link" href="/tenant/users/<%= encodeURIComponent(u.id) %>">
-                        <%= u.displayName || '(No name)' %>
-                      </a>
-                      <% if (u.userPrincipalName) { %>
-                        
-                      <% } %>
+                                                <% r.users.forEach(function(u) { %>
+                                                    <div class="preview-meta" style="margin-top:4px;">
+                                                        <a class="users-link"
+                                                            href="/tenant/users/<%= encodeURIComponent(u.id) %>">
+                                                            <%= u.displayName || '(No name)' %>
+                                                        </a>
+                                                        <% if (u.userPrincipalName) { %>
+
+                                                            <% } %>
+                                                    </div>
+                                                    <% }); %>
+                                                        <% } %>
+                                        </div>
+
+                                        <% }); %>
+                                </div>
+                            </div>
+
+                            <% } else { %>
+                                <p class="preview-empty">No high-impact roles assigned.</p>
+                                <% } %>
                     </div>
-                  <% }); %>
-                <% } %>
-              </div>
-
-            <% }); %>
-          </div>
-        </div>
-
-      <% } else { %>
-        <p class="preview-empty">No high-impact roles assigned.</p>
-      <% } %>
-    </div>
-  </article>
+                </article>
             </div>
 
         </section>
