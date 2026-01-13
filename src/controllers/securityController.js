@@ -380,6 +380,10 @@ async function buildSecurityOverview(accessToken, options = {}) {
 
 
 
+        PRIVILEGED_DIRECTORY_ROLE_KEYWORDS,
+
+
+
 
     };
 }

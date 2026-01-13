@@ -5,6 +5,7 @@ const router = express.Router();
 const { getTokenForGraph } = require('../auth/AuthProvider');
 const { callGraphDELETE, callGraph, callGraphPOST } = require('../controllers/graphController');
 const { requireRole } = require('../middleware/rbac');
+const { PRIVILEGED_DIRECTORY_ROLE_KEYWORDS } = require('../controllers/securityController');
 
 
 const {
@@ -689,31 +690,52 @@ router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) =>
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
 
-// 0) Portal appId (App Registration del teu portal)
-const portalAppId = process.env.AZURE_CLIENT_ID;
+        // 0) Portal appId (App Registration del teu portal)
+        const portalAppId = process.env.AZURE_CLIENT_ID;
 
-// 1) Busquem el service principal del portal (Enterprise Application)
-const spJson = await callGraph(
-  `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id,displayName,appRoles`,
-  accessToken
-);
+        // 1) Busquem el service principal del portal (Enterprise Application)
+        const spJson = await callGraph(
+            `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id,displayName,appRoles`,
+            accessToken
+        );
 
-const portalSp = spJson.value?.[0] || null;
+        const portalSp = spJson.value?.[0] || null;
 
-// 2) Construïm portalRoles AMB ID REAL (GUID)
-const portalRoles = (portalSp?.appRoles || [])
-  .filter(r => r.isEnabled)
-  .filter(r => (r.allowedMemberTypes || []).includes('User')) // important: assignació a usuaris
-  .map(r => ({
-    id: r.id, // ✅ això evita "undefined"
-    key: r.value || r.displayName || '(Unnamed)',
-    description: r.description || '',
-    displayName: r.displayName || r.value || ''
-  }));
+        // 2) Construïm portalRoles AMB ID REAL (GUID)
+        const portalRoles = (portalSp?.appRoles || [])
+            .filter(r => r.isEnabled)
+            .filter(r => (r.allowedMemberTypes || []).includes('User')) // important: assignació a usuaris
+            .map(r => ({
+                id: r.id, // ✅ això evita "undefined"
+                key: r.value || r.displayName || '(Unnamed)',
+                description: r.description || '',
+                displayName: r.displayName || r.value || ''
+            }));
+
+        // 3) Marcar Portal Roles privilegiats (RBAC intern)
+        const portalPrivilegedValues = new Set([
+            'Portal.TenantAdmin',
+            'Portal.RoleAdmin',
+        ]);
+
+        const portalRolesWithFlags = (portalRoles || []).map(r => ({
+            ...r,
+            isPrivileged: portalPrivilegedValues.has(r.key) || portalPrivilegedValues.has(r.displayName),
+        }));
 
 
-        const directoryRoles = await getDirectoryRoles(accessToken);
+
+        const directoryRolesRaw = await getDirectoryRoles(accessToken);
+
+        const directoryRoles = (directoryRolesRaw || []).map(r => {
+            const name = (r.displayName || '').toLowerCase();
+            const isPrivileged = (PRIVILEGED_DIRECTORY_ROLE_KEYWORDS || [])
+                .some(k => name.includes(k.toLowerCase()));
+            return { ...r, isPrivileged };
+        });
+
         const roleTemplates = await getDirectoryRoleTemplates(accessToken);
+
 
         const flash = req.session.flash;
         req.session.flash = null;
@@ -723,7 +745,7 @@ const portalRoles = (portalSp?.appRoles || [])
             user: account,
             directoryRoles,
             roleTemplates,
-            portalRoles,
+            portalRoles: portalRolesWithFlags,
             portalSp,
             flash,
         });
@@ -732,6 +754,8 @@ const portalRoles = (portalSp?.appRoles || [])
         res.status(500).send("No s'ha pogut carregar el mòdul de Roles");
     }
 });
+
+
 
 router.get('/tenant/roles/:id', requireRole('Portal.RoleAdmin'), async (req, res) => {
     try {
@@ -841,128 +865,128 @@ router.post('/tenant/roles/activate', requireAuth, async (req, res) => {
 
 // GET /tenant/roles/portal/:appRoleId
 router.get('/tenant/roles/portal/:appRoleId', requireRole('Portal.RoleAdmin'), async (req, res) => {
-  try {
-    const account = req.session.user;
-    const accessToken = await getTokenForGraph(account);
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
 
-    const portalAppId = process.env.AZURE_CLIENT_ID;
+        const portalAppId = process.env.AZURE_CLIENT_ID;
 
-    // 1) Portal service principal
-    const spJson = await callGraph(
-      `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id,displayName,appRoles`,
-      accessToken
-    );
-    const portalSp = spJson.value?.[0];
-    if (!portalSp) throw new Error('Portal service principal not found');
+        // 1) Portal service principal
+        const spJson = await callGraph(
+            `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id,displayName,appRoles`,
+            accessToken
+        );
+        const portalSp = spJson.value?.[0];
+        if (!portalSp) throw new Error('Portal service principal not found');
 
-    // 2) Role seleccionat
-    const appRoleId = req.params.appRoleId;
-    const role = (portalSp.appRoles || []).find(r => r.id === appRoleId);
-    if (!role) return res.status(404).send('Portal role not found');
+        // 2) Role seleccionat
+        const appRoleId = req.params.appRoleId;
+        const role = (portalSp.appRoles || []).find(r => r.id === appRoleId);
+        if (!role) return res.status(404).send('Portal role not found');
 
-    // 3) Assignacions (només Users)
-    const asgJson = await callGraph(
-      `/servicePrincipals/${portalSp.id}/appRoleAssignedTo?$select=id,principalId,principalType,principalDisplayName,appRoleId`,
-      accessToken
-    );
+        // 3) Assignacions (només Users)
+        const asgJson = await callGraph(
+            `/servicePrincipals/${portalSp.id}/appRoleAssignedTo?$select=id,principalId,principalType,principalDisplayName,appRoleId`,
+            accessToken
+        );
 
-    const assignments = (asgJson.value || [])
-      .filter(a => a.appRoleId === appRoleId)
-      .filter(a => a.principalType === 'User');
+        const assignments = (asgJson.value || [])
+            .filter(a => a.appRoleId === appRoleId)
+            .filter(a => a.principalType === 'User');
 
-    // 4) Llista d'usuaris per dropdown
-    const users = await getAllUsers(accessToken);
+        // 4) Llista d'usuaris per dropdown
+        const users = await getAllUsers(accessToken);
 
-    const flash = req.session.flash || null;
-    req.session.flash = null;
+        const flash = req.session.flash || null;
+        req.session.flash = null;
 
-    const helpfulInfo =
-      "RBAC intern del portal basat en App Roles. Amb Entra ID Free, " +
-      "les assignacions es realitzen directament a usuaris. " +
-      "Quan un usuari té un App Role assignat, apareix al claim 'roles' del token.";
+        const helpfulInfo =
+            "RBAC intern del portal basat en App Roles. Amb Entra ID Free, " +
+            "les assignacions es realitzen directament a usuaris. " +
+            "Quan un usuari té un App Role assignat, apareix al claim 'roles' del token.";
 
-    res.render('tenantExplorer/portalRoleIdentity', {
-      title: `Portal role · ${role.displayName || role.value}`,
-      user: account,
-      portalSp,
-      role,
-      assignments,
-      users,
-      helpfulInfo,
-      flash,
-    });
-  } catch (err) {
-    console.error('PortalRoleIdentity error:', err);
-    res.status(500).send("No s'ha pogut carregar el portal role");
-  }
+        res.render('tenantExplorer/portalRoleIdentity', {
+            title: `Portal role · ${role.displayName || role.value}`,
+            user: account,
+            portalSp,
+            role,
+            assignments,
+            users,
+            helpfulInfo,
+            flash,
+        });
+    } catch (err) {
+        console.error('PortalRoleIdentity error:', err);
+        res.status(500).send("No s'ha pogut carregar el portal role");
+    }
 });
 
 
 // POST /tenant/roles/portal/:appRoleId/assignments/add
 router.post('/tenant/roles/portal/:appRoleId/assignments/add', requireRole('Portal.RoleAdmin'), async (req, res) => {
-  const { appRoleId } = req.params;
+    const { appRoleId } = req.params;
 
-  try {
-    const account = req.session.user;
-    const accessToken = await getTokenForGraph(account);
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
 
-    const portalAppId = process.env.AZURE_CLIENT_ID;
+        const portalAppId = process.env.AZURE_CLIENT_ID;
 
-    const spJson = await callGraph(
-      `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id`,
-      accessToken
-    );
-    const portalSp = spJson.value?.[0];
-    if (!portalSp) throw new Error('Portal service principal not found');
+        const spJson = await callGraph(
+            `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id`,
+            accessToken
+        );
+        const portalSp = spJson.value?.[0];
+        if (!portalSp) throw new Error('Portal service principal not found');
 
-    // Hidden field: "id1,id2,id3"
-    const raw = req.body.userIds || '';
-    const userIds = raw.split(',').map(s => s.trim()).filter(Boolean);
+        // Hidden field: "id1,id2,id3"
+        const raw = req.body.userIds || '';
+        const userIds = raw.split(',').map(s => s.trim()).filter(Boolean);
 
-    for (const uid of userIds) {
-      await callGraphPOST(`/servicePrincipals/${portalSp.id}/appRoleAssignedTo`, accessToken, {
-        principalId: uid,         // USER objectId
-        resourceId: portalSp.id,  // portal service principal id
-        appRoleId: appRoleId,     // role id
-      });
+        for (const uid of userIds) {
+            await callGraphPOST(`/servicePrincipals/${portalSp.id}/appRoleAssignedTo`, accessToken, {
+                principalId: uid,         // USER objectId
+                resourceId: portalSp.id,  // portal service principal id
+                appRoleId: appRoleId,     // role id
+            });
+        }
+
+        req.session.flash = { type: 'success', message: 'Usuaris assignats correctament.' };
+        res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
+    } catch (err) {
+        console.error('Assign portal role error:', err);
+        req.session.flash = { type: 'error', message: 'No s’ha pogut assignar el rol.' };
+        res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
     }
-
-    req.session.flash = { type: 'success', message: 'Usuaris assignats correctament.' };
-    res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
-  } catch (err) {
-    console.error('Assign portal role error:', err);
-    req.session.flash = { type: 'error', message: 'No s’ha pogut assignar el rol.' };
-    res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
-  }
 });
 
 
 // POST /tenant/roles/portal/:appRoleId/assignments/:assignmentId/remove
 router.post('/tenant/roles/portal/:appRoleId/assignments/:assignmentId/remove', requireRole('Portal.RoleAdmin'), async (req, res) => {
-  const { appRoleId, assignmentId } = req.params;
+    const { appRoleId, assignmentId } = req.params;
 
-  try {
-    const account = req.session.user;
-    const accessToken = await getTokenForGraph(account);
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
 
-    const portalAppId = process.env.AZURE_CLIENT_ID;
+        const portalAppId = process.env.AZURE_CLIENT_ID;
 
-    const spJson = await callGraph(
-      `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id`,
-      accessToken
-    );
-    const portalSp = spJson.value?.[0];
-    if (!portalSp) throw new Error('Portal service principal not found');
+        const spJson = await callGraph(
+            `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id`,
+            accessToken
+        );
+        const portalSp = spJson.value?.[0];
+        if (!portalSp) throw new Error('Portal service principal not found');
 
-    await callGraphDELETE(`/servicePrincipals/${portalSp.id}/appRoleAssignedTo/${assignmentId}`, accessToken);
+        await callGraphDELETE(`/servicePrincipals/${portalSp.id}/appRoleAssignedTo/${assignmentId}`, accessToken);
 
-    req.session.flash = { type: 'success', message: 'Assignació eliminada.' };
-    res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
-  } catch (err) {
-    console.error('Remove portal role assignment error:', err);
-    req.session.flash = { type: 'error', message: 'No s’ha pogut eliminar l’assignació.' };
-    res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
-  }
+        req.session.flash = { type: 'success', message: 'Assignació eliminada.' };
+        res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
+    } catch (err) {
+        console.error('Remove portal role assignment error:', err);
+        req.session.flash = { type: 'error', message: 'No s’ha pogut eliminar l’assignació.' };
+        res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
+    }
 });
 
 

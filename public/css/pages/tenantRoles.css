@@ -75,3 +75,26 @@
   margin-top: 1rem;
   color: var(--color2);
 }
+
+/* Badge "Privileged" per a Roles */
+.role-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.role-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  white-space: nowrap;
+}
+
+.role-badge-priv {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.25);
+  color: rgba(220, 38, 38, 0.95);
+}
