@@ -98,3 +98,42 @@
   border-color: rgba(220, 38, 38, 0.25);
   color: rgba(220, 38, 38, 0.95);
 }
+
+/* PortalRoleIdentity - assegurar dropdown correcte */
+.roles-page .identity-inline-input {
+  position: relative;
+}
+
+.roles-page .owners-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+/* =========================================================
+   FIX dropdown PortalRoleIdentity (evitar que quedi clipejat)
+   ========================================================= */
+
+/* IMPORTANT: el dropdown és absolute, així que el pare NO pot tenir overflow:auto */
+.roles-page .identity-card-content {
+  overflow: visible !important;
+}
+
+/* El scroll l’apliquem només a la llista d’assignacions */
+.roles-page .assignments-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* Per si algun contenidor superior també clipeja (extra segur) */
+.roles-page .identity-card {
+  overflow: visible;
+}
+
+/* Assegurar que el dropdown queda per sobre */
+.roles-page .owners-dropdown {
+  z-index: 9999;
+}
