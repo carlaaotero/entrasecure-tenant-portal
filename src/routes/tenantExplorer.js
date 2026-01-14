@@ -98,7 +98,7 @@ router.get('/tenant', requireAuth, async (req, res) => {
 /* -- USERS -- */
 
 // GET /tenant/users -> vista completa de tots els usuaris del tenant
-router.get('/tenant/users', requireAuth, async (req, res) => {
+router.get('/tenant/users', requireRole('Portal.UserAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -113,113 +113,6 @@ router.get('/tenant/users', requireAuth, async (req, res) => {
     } catch (err) {
         console.error('Error carregant /tenant/users:', err);
         res.status(500).send('Error carregant la llista d\'usuaris');
-    }
-});
-
-
-// POST /tenant/users/create -> crear un usuari
-router.post('/tenant/users/create', requireAuth, async (req, res) => {
-    try {
-        const account = req.session.user;
-        const accessToken = await getTokenForGraph(account);
-
-        const { displayName, userPrincipalName, password } = req.body;
-        const userType = 'Member';
-
-        const newUser = {
-            accountEnabled: true,
-            displayName,
-            mailNickname: displayName.replace(/\s+/g, ''), // sense espais
-            userPrincipalName,
-            userType,
-            passwordProfile: {
-                forceChangePasswordNextSignIn: true,
-                password,
-            },
-        };
-
-        await createUser(accessToken, newUser);
-
-        res.redirect('/tenant/users');
-    } catch (err) {
-        console.error("Error creant usuari:", err);
-        res.status(500).send("No s'ha pogut crear l'usuari.");
-    }
-});
-
-
-// POST /tenant/users/delete -> eliminar un o més usuaris seleccionats
-router.post('/tenant/users/delete', requireAuth, async (req, res) => {
-    try {
-        const account = req.session.user;
-        const accessToken = await getTokenForGraph(account);
-
-        let { userIds } = req.body;
-
-        // Si no s'ha seleccionat cap usuari, simplement tornem a la llista
-        if (!userIds) {
-            return res.redirect('/tenant/users');
-        }
-
-        // userIds pot ser un string (1 usuari) o un array (varis usuaris)
-        await deleteUsers(accessToken, userIds);
-
-        // Més endavant afegir missatge de "X usuaris eliminats"
-        res.redirect('/tenant/users');
-    } catch (err) {
-        console.error('Error a /tenant/users/delete:', err);
-        res.status(500).send('Error eliminant usuaris del tenant');
-    }
-});
-
-// Afegir owners a un grup existent (des del detall del grup)
-router.post('/tenant/groups/:id/owners/add', requireAuth, async (req, res) => {
-    try {
-        const account = req.session.user;
-        const accessToken = await getTokenForGraph(account);
-        const groupId = req.params.id;
-
-        const { ownerKeys } = req.body; // un string "upn1,upn2" o un sol valor
-
-        const keys = (ownerKeys || '')
-            .split(',')
-            .map(s => s.trim())
-            .filter(Boolean);
-
-        if (keys.length > 0) {
-            await addOwnersToGroup(accessToken, groupId, keys);
-        }
-
-        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
-    } catch (err) {
-        console.error('Error afegint owners al grup:', err);
-        res.status(500).send('No s\'ha pogut afegir owners al grup');
-    }
-});
-
-
-// Afegir members a un grup existent (des del detall del grup)
-router.post('/tenant/groups/:id/members/add', requireAuth, async (req, res) => {
-    try {
-        const account = req.session.user;
-        const accessToken = await getTokenForGraph(account);
-        const groupId = req.params.id;
-
-        const { memberKeys } = req.body; // string "upn1,upn2" o un sol valor
-
-        const keys = (memberKeys || '')
-            .split(',')
-            .map(s => s.trim())
-            .filter(Boolean);
-
-        if (keys.length > 0) {
-            await addMembersToGroup(accessToken, groupId, keys);
-        }
-
-        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
-    } catch (err) {
-        console.error('Error afegint members al grup:', err);
-        res.status(500).send('No s\'ha pogut afegir members al grup');
     }
 });
 
@@ -273,10 +166,67 @@ on té rols assignats. És útil per analitzar el context d'accés d'un usuari c
 });
 
 
+// POST /tenant/users/create -> crear un usuari
+router.post('/tenant/users/create', requireRole('Portal.UserAdmin'), async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        const { displayName, userPrincipalName, password } = req.body;
+        const userType = 'Member';
+
+        const newUser = {
+            accountEnabled: true,
+            displayName,
+            mailNickname: displayName.replace(/\s+/g, ''), // sense espais
+            userPrincipalName,
+            userType,
+            passwordProfile: {
+                forceChangePasswordNextSignIn: true,
+                password,
+            },
+        };
+
+        await createUser(accessToken, newUser);
+
+        res.redirect('/tenant/users');
+    } catch (err) {
+        console.error("Error creant usuari:", err);
+        res.status(500).send("No s'ha pogut crear l'usuari.");
+    }
+});
+
+
+// POST /tenant/users/delete -> eliminar un o més usuaris seleccionats
+router.post('/tenant/users/delete', requireRole('Portal.UserAdmin'), async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+
+        let { userIds } = req.body;
+
+        // Si no s'ha seleccionat cap usuari, simplement tornem a la llista
+        if (!userIds) {
+            return res.redirect('/tenant/users');
+        }
+
+        // userIds pot ser un string (1 usuari) o un array (varis usuaris)
+        await deleteUsers(accessToken, userIds);
+
+        // Més endavant afegir missatge de "X usuaris eliminats"
+        res.redirect('/tenant/users');
+    } catch (err) {
+        console.error('Error a /tenant/users/delete:', err);
+        res.status(500).send('Error eliminant usuaris del tenant');
+    }
+});
+
+
+
 /* -- GROUPS -- */
 
 // GET /tenant/groups -> vista completa de tots els groups del tenant
-router.get('/tenant/groups', requireAuth, async (req, res) => {
+router.get('/tenant/groups', requireRole('Portal.GroupAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -291,7 +241,7 @@ router.get('/tenant/groups', requireAuth, async (req, res) => {
             title: 'Tenant groups',
             user: account,  // per la navbar
             groups,
-            users,          // 👈 molt important: això és el que feia falta
+            users,
         });
     } catch (err) {
         console.error('Error carregant /tenant/groups:', err);
@@ -300,9 +250,45 @@ router.get('/tenant/groups', requireAuth, async (req, res) => {
 });
 
 
+// Detall d'un grup concret del tenant
+router.get('/tenant/groups/:id', requireRole('Portal.GroupAdmin'), async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const groupId = req.params.id;
+
+        const groupProfile = await getTenantGroupById(accessToken, groupId);
+        const members = await getTenantGroupMembers(accessToken, groupId);
+        const owners = await getTenantGroupOwners(accessToken, groupId);
+        const directoryRoles = await getTenantGroupDirectoryRoles(accessToken, groupId);
+        const appAssignments = await getTenantGroupAppRoleAssignments(accessToken, groupId);
+        const users = await getAllUsers(accessToken);
+
+        const helpfulInfo =
+            'Aquesta vista mostra informació bàsica del grup, els seus membres, ' +
+            'owners, rols de directori on el grup actua com a administrador i les aplicacions ' +
+            'on té app roles assignats.';
+
+        res.render('tenantExplorer/groupIdentity', {
+            title: `Group · ${groupProfile.displayName || 'Detall'}`,
+            user: account,          // usuari logat (navbar)
+            groupProfile,
+            members,
+            owners,
+            directoryRoles,
+            appAssignments,
+            helpfulInfo,
+            users,
+        });
+    } catch (err) {
+        console.error('Error carregant /tenant/groups/:id:', err);
+        res.status(500).send('Error carregant el detall del grup');
+    }
+});
+
 
 // POST /tenant/groups/create -> crear un nou grup
-router.post('/tenant/groups/create', requireAuth, async (req, res) => {
+router.post('/tenant/groups/create', requireRole('Portal.GroupAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -381,7 +367,7 @@ router.post('/tenant/groups/create', requireAuth, async (req, res) => {
 
 
 // POST /tenant/groups/delete -> eliminar un o més groups seleccionats
-router.post('/tenant/groups/delete', requireAuth, async (req, res) => {
+router.post('/tenant/groups/delete', requireRole('Portal.GroupAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -405,45 +391,60 @@ router.post('/tenant/groups/delete', requireAuth, async (req, res) => {
 });
 
 
-// Detall d'un grup concret del tenant
-router.get('/tenant/groups/:id', requireAuth, async (req, res) => {
+// Afegir owners a un grup existent (des del detall del grup)
+router.post('/tenant/groups/:id/owners/add', requireRole('Portal.GroupAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
         const groupId = req.params.id;
 
-        const groupProfile = await getTenantGroupById(accessToken, groupId);
-        const members = await getTenantGroupMembers(accessToken, groupId);
-        const owners = await getTenantGroupOwners(accessToken, groupId);
-        const directoryRoles = await getTenantGroupDirectoryRoles(accessToken, groupId);
-        const appAssignments = await getTenantGroupAppRoleAssignments(accessToken, groupId);
-        const users = await getAllUsers(accessToken);
+        const { ownerKeys } = req.body; // un string "upn1,upn2" o un sol valor
 
-        const helpfulInfo =
-            'Aquesta vista mostra informació bàsica del grup, els seus membres, ' +
-            'owners, rols de directori on el grup actua com a administrador i les aplicacions ' +
-            'on té app roles assignats.';
+        const keys = (ownerKeys || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
 
-        res.render('tenantExplorer/groupIdentity', {
-            title: `Group · ${groupProfile.displayName || 'Detall'}`,
-            user: account,          // usuari logat (navbar)
-            groupProfile,
-            members,
-            owners,
-            directoryRoles,
-            appAssignments,
-            helpfulInfo,
-            users,
-        });
+        if (keys.length > 0) {
+            await addOwnersToGroup(accessToken, groupId, keys);
+        }
+
+        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
     } catch (err) {
-        console.error('Error carregant /tenant/groups/:id:', err);
-        res.status(500).send('Error carregant el detall del grup');
+        console.error('Error afegint owners al grup:', err);
+        res.status(500).send('No s\'ha pogut afegir owners al grup');
+    }
+});
+
+
+// Afegir members a un grup existent (des del detall del grup)
+router.post('/tenant/groups/:id/members/add', requireRole('Portal.GroupAdmin'), async (req, res) => {
+    try {
+        const account = req.session.user;
+        const accessToken = await getTokenForGraph(account);
+        const groupId = req.params.id;
+
+        const { memberKeys } = req.body; // string "upn1,upn2" o un sol valor
+
+        const keys = (memberKeys || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
+        if (keys.length > 0) {
+            await addMembersToGroup(accessToken, groupId, keys);
+        }
+
+        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
+    } catch (err) {
+        console.error('Error afegint members al grup:', err);
+        res.status(500).send('No s\'ha pogut afegir members al grup');
     }
 });
 
 
 // Treure un member d'un grup
-router.post('/tenant/groups/:groupId/members/:memberId/remove', requireAuth, async (req, res) => {
+router.post('/tenant/groups/:groupId/members/:memberId/remove', requireRole('Portal.GroupAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -465,7 +466,7 @@ router.post('/tenant/groups/:groupId/members/:memberId/remove', requireAuth, asy
 
 
 // Treure un owner d'un grup
-router.post('/tenant/groups/:groupId/owners/:ownerId/remove', requireAuth, async (req, res) => {
+router.post('/tenant/groups/:groupId/owners/:ownerId/remove', requireRole('Portal.GroupAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -490,7 +491,7 @@ router.post('/tenant/groups/:groupId/owners/:ownerId/remove', requireAuth, async
 /* -- APPS -- */
 
 // GET /tenant/apps -> llista de totes les apps (service principals) del tenant
-router.get('/tenant/apps', requireAuth, async (req, res) => {
+router.get('/tenant/apps', requireRole('Portal.AppAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -517,7 +518,7 @@ router.get('/tenant/apps', requireAuth, async (req, res) => {
 
 
 // GET /tenant/apps/:id -> detall d'una app (service principal + application)
-router.get('/tenant/apps/:id', requireAuth, async (req, res) => {
+router.get('/tenant/apps/:id', requireRole('Portal.AppAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -587,8 +588,9 @@ els usuaris i grups amb app roles assignats i els tipus de credencial que utilit
     }
 });
 
+
 // Afegir owners a una app (des del detall)
-router.post('/tenant/apps/:id/owners/add', requireAuth, async (req, res) => {
+router.post('/tenant/apps/:id/owners/add', requireRole('Portal.AppAdmin'), async (req, res) => {
     console.log('BODY1 owners/add:', req.body);
     try {
         const account = req.session.user;
@@ -614,8 +616,9 @@ router.post('/tenant/apps/:id/owners/add', requireAuth, async (req, res) => {
 });
 
 
+
 // Treure un owner d'una app
-router.post('/tenant/apps/:spId/owners/:ownerId/remove', requireAuth, async (req, res) => {
+router.post('/tenant/apps/:spId/owners/:ownerId/remove', requireRole('Portal.AppAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -637,7 +640,7 @@ router.post('/tenant/apps/:spId/owners/:ownerId/remove', requireAuth, async (req
 
 
 // Afegir usuaris assignats a una app (appRoleAssignedTo)
-router.post('/tenant/apps/:id/assignments/add', requireAuth, async (req, res) => {
+router.post('/tenant/apps/:id/assignments/add', requireRole('Portal.AppAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -661,8 +664,8 @@ router.post('/tenant/apps/:id/assignments/add', requireAuth, async (req, res) =>
 });
 
 
-// Treure una assignació (id de appRoleAssignedTo)
-router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireAuth, async (req, res) => {
+// Treure un o més usuaris d'una app (id de appRoleAssignedTo)
+router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireRole('Portal.AppAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -683,7 +686,8 @@ router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireAuth, 
 });
 
 
-/* -- ROLES -- */
+/* -- ROLES (Directory Roles) -- */
+
 // GET /tenant/roles
 router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) => {
     try {
@@ -756,7 +760,6 @@ router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) =>
 });
 
 
-
 router.get('/tenant/roles/:id', requireRole('Portal.RoleAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
@@ -781,7 +784,7 @@ router.get('/tenant/roles/:id', requireRole('Portal.RoleAdmin'), async (req, res
 });
 
 
-router.post('/tenant/roles/:roleId/members/add', requireAuth, async (req, res) => {
+router.post('/tenant/roles/:roleId/members/add', requireRole('Portal.RoleAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -811,9 +814,7 @@ router.post('/tenant/roles/:roleId/members/add', requireAuth, async (req, res) =
 });
 
 
-
-
-router.post('/tenant/roles/:roleId/members/:memberId/remove', requireAuth, async (req, res) => {
+router.post('/tenant/roles/:roleId/members/:memberId/remove', requireRole('Portal.RoleAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);

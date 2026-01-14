@@ -188,7 +188,7 @@ async function buildSecurityOverview(accessToken, options = {}) {
 
     // 6) Privileged directory role assignments
     // Llista curta “didàctica” (sense top 5)
-    const HIGH_IMPACT = new Set([
+    const PRIVILEGED_DIRECTORY_ROLE_KEYWORDS = new Set([
         'Global Administrator',
         'Privileged Role Administrator',
         'Security Administrator',
@@ -203,7 +203,7 @@ async function buildSecurityOverview(accessToken, options = {}) {
     const membersPerRole = await mapWithConcurrency(directoryRoles, 5, async (r) => {
         const members = await getDirectoryRoleMembers(accessToken, r.id);
         const count = (members || []).length;
-        const highImpact = HIGH_IMPACT.has(r.displayName);
+        const highImpact = PRIVILEGED_DIRECTORY_ROLE_KEYWORDS.has(r.displayName);
         return { role: r, count, highImpact };
     });
 
