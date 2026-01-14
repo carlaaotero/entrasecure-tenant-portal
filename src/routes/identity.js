@@ -1,10 +1,11 @@
 // La ruta pel mòdul "My Identity" ---- mostra el perfil de l'usuari que s'ha autenticat
 
-
 const express = require('express');
 const router = express.Router();
 
 const { getTokenForGraph } = require('../auth/AuthProvider');
+const { handleRouteError } = require('../errors/graphErrorHandler');
+const { requireAuth } = require('../middleware/rbac');
 const {
   getUserIdentity,
   getUserMemberOf,
@@ -12,23 +13,39 @@ const {
   getUserDevices,
 } = require('../controllers/graphController');
 
-// Middleware per protegir rutes: si no hi ha sessió, envia a login
-function requireAuth(req, res, next) {
-  if (!req.session.user) {
-    return res.redirect('/auth/login');
-  }
-  next();
-}
 
 // GET /me -> pàgina "My Identity"
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const account = req.session.user;
-    console.log('[IDENTITY] account de sessió:', account);
+
+    const flash = req.session.flash || null;
+    req.session.flash = null;
+
+    // Si venim d'un error (p. ex. 403) evitem bucle: renderitzem amb dades buides però mantenim el missatge.
+    if (req.query.blocked === '1') {
+      const helpfulInfo = `
+Aquest apartat mostra informació bàsica de la identitat a Microsoft Entra ID
+(per exemple, display name, UPN, tipus d'usuari i dates clau), així com la
+seva pertinença a grups, rols de directori, aplicacions assignades i
+dispositius registrats.
+`.trim();
+
+      return res.render('identity', {
+        title: 'My Identity · EntraSecure',
+        user: account,
+        userProfile: null,
+        groups: [],
+        roles: [],
+        apps: [],
+        devices: [],
+        helpfulInfo,
+        flash,
+      });
+    }
 
     // 1) Access token per Graph
     const accessToken = await getTokenForGraph(account);
-    console.log('[IDENTITY] accessToken (primeres 40 lletres):', accessToken.slice(0, 40), '...');
 
     // 2) Crides en paral·lel a Graph
     const [userProfile, memberOfRaw, appRoleAssignments, devices] =
@@ -39,11 +56,6 @@ router.get('/me', requireAuth, async (req, res) => {
         getUserDevices(accessToken),
       ]);
 
-    console.log('[IDENTITY] /me profile rebut:', JSON.stringify(userProfile, null, 2));
-    console.log('[IDENTITY] memberOf count:', memberOfRaw.length);
-    console.log('[IDENTITY] appRoleAssignments count:', appRoleAssignments.length);
-    console.log('[IDENTITY] devices count:', devices.length);
-
     // 3) Separar grups i directory roles a partir de memberOf
     const groups = memberOfRaw.filter(
       (o) => o['@odata.type'] === '#microsoft.graph.group'
@@ -52,9 +64,6 @@ router.get('/me', requireAuth, async (req, res) => {
     const directoryRoles = memberOfRaw.filter(
       (o) => o['@odata.type'] === '#microsoft.graph.directoryRole'
     );
-    
-    console.log('[IDENTITY] groups filtrats:', groups.length);
-    console.log('[IDENTITY] directoryRoles filtrats:', directoryRoles.length);
 
     // 4) Preparar dades per la vista
     const roles = directoryRoles; // per ara, mostrem ROLES de directori tal qual
@@ -78,10 +87,17 @@ els objectes dins d'un tenant d'Entra ID.
       apps,
       devices: userDevices,
       helpfulInfo,
+      flash,
     });
   } catch (error) {
-    console.error('Error a /me:', error);
-    res.status(500).send('Error carregant la informació de My Identity');
+    return handleRouteError({
+      req,
+      res,
+      err: error,
+      actionKey: 'identity.read',
+      // Evitem bucle si el Graph continua retornant 403
+      redirectTo: '/me?blocked=1',
+    });
   }
 });
 

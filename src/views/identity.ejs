@@ -62,6 +62,16 @@
     <main class="identity-main">
     <section class="identity-layout">
 
+      <% if (flash && flash.message) { %>
+  <div class="card" style="margin: 12px 0; padding: 12px;">
+    <strong>
+      <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info') %>:
+    </strong>
+    <span><%= flash.message %></span>
+  </div>
+<% } %>
+
+
       <!-- Perfil: columna esquerra, ocupant les 3 primeres files -->
       <article class="card identity-profile-card">
         <div class="identity-avatar-wrapper">
