@@ -6,7 +6,9 @@ const { getTokenForGraph } = require('../auth/AuthProvider');
 const { callGraphDELETE, callGraph, callGraphPOST } = require('../controllers/graphController');
 const { requireRole } = require('../middleware/rbac');
 const { PRIVILEGED_DIRECTORY_ROLE_KEYWORDS } = require('../controllers/securityController');
-
+const { handleRouteError } = require('../errors/graphErrorHandler');
+const { ERROR_MESSAGES } = require('../errors/errorCatalog');
+const { requireAuth } = require('../middleware/rbac'); // Middleware per protegir rutes: si no hi ha sessió, envia a login
 
 const {
     //Users
@@ -57,14 +59,11 @@ const {
 
 } = require('../controllers/tenantController');
 
-// Middleware per protegir rutes: si no hi ha sessió, envia a login
-function requireAuth(req, res, next) {
-    if (!req.session.user) {
-        return res.redirect('/auth/login');
-    }
-    next();
+function consumeFlash(req) {
+    const flash = req.session.flash || null;
+    req.session.flash = null;
+    return flash;
 }
-
 
 // GET /tenant -> pantalla principal del Tenant Explorer
 router.get('/tenant', requireAuth, async (req, res) => {
@@ -99,6 +98,7 @@ router.get('/tenant', requireAuth, async (req, res) => {
 
 // GET /tenant/users -> vista completa de tots els usuaris del tenant
 router.get('/tenant/users', requireRole('Portal.UserAdmin'), async (req, res) => {
+    const flash = consumeFlash(req);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -109,16 +109,23 @@ router.get('/tenant/users', requireRole('Portal.UserAdmin'), async (req, res) =>
             title: 'Usuaris del tenant',
             user: account,
             users,
+            flash,
         });
     } catch (err) {
-        console.error('Error carregant /tenant/users:', err);
-        res.status(500).send('Error carregant la llista d\'usuaris');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'users.list',
+            redirectTo: '/tenant/users',
+        });
     }
 });
 
 
 // Detall d'un user concret del tenant
 router.get('/tenant/users/:id', requireAuth, async (req, res) => {
+    const flash = consumeFlash(req);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -158,29 +165,40 @@ on té rols assignats. És útil per analitzar el context d'accés d'un usuari c
             roles,
             apps,
             helpfulInfo,
+            flash,
         });
     } catch (err) {
-        console.error('Error carregant /tenant/users/:id:', err);
-        res.status(500).send('Error carregant el detall de l\'usuari');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'users.read',
+            redirectTo: '/tenant/users',
+        });
     }
 });
 
 
 // POST /tenant/users/create -> crear un usuari
 router.post('/tenant/users/create', requireRole('Portal.UserAdmin'), async (req, res) => {
+    const { displayName, userPrincipalName, password } = req.body;
+
+    if (!displayName || !userPrincipalName || !password) {
+        req.session.flash = { type: 'error', message: ERROR_MESSAGES.USERS_CREATE_MISSING_FIELDS };
+        return res.redirect('/tenant/users');
+    }
+
     try {
+        
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
-
-        const { displayName, userPrincipalName, password } = req.body;
-        const userType = 'Member';
 
         const newUser = {
             accountEnabled: true,
             displayName,
-            mailNickname: displayName.replace(/\s+/g, ''), // sense espais
+            mailNickname: displayName.replace(/\s+/g, ''),
             userPrincipalName,
-            userType,
+            userType: 'Member',
             passwordProfile: {
                 forceChangePasswordNextSignIn: true,
                 password,
@@ -189,10 +207,16 @@ router.post('/tenant/users/create', requireRole('Portal.UserAdmin'), async (req,
 
         await createUser(accessToken, newUser);
 
-        res.redirect('/tenant/users');
+        req.session.flash = { type: 'success', message: `Usuari creat: ${displayName}` };
+        return res.redirect('/tenant/users');
     } catch (err) {
-        console.error("Error creant usuari:", err);
-        res.status(500).send("No s'ha pogut crear l'usuari.");
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'users.create',
+            redirectTo: '/tenant/users',
+        });
     }
 });
 
@@ -207,17 +231,25 @@ router.post('/tenant/users/delete', requireRole('Portal.UserAdmin'), async (req,
 
         // Si no s'ha seleccionat cap usuari, simplement tornem a la llista
         if (!userIds) {
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.USERS_DELETE_NO_SELECTION };
             return res.redirect('/tenant/users');
         }
+
+        const count = Array.isArray(userIds) ? userIds.length : 1;
 
         // userIds pot ser un string (1 usuari) o un array (varis usuaris)
         await deleteUsers(accessToken, userIds);
 
-        // Més endavant afegir missatge de "X usuaris eliminats"
-        res.redirect('/tenant/users');
+        req.session.flash = { type: 'success', message: `Usuaris eliminats: ${count}` };
+        return res.redirect('/tenant/users');
     } catch (err) {
-        console.error('Error a /tenant/users/delete:', err);
-        res.status(500).send('Error eliminant usuaris del tenant');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'users.delete',
+            redirectTo: '/tenant/users',
+        });
     }
 });
 

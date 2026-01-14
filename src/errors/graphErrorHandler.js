@@ -1,14 +1,14 @@
 // src/errors/graphErrorHandler.js
 const { ERROR_MESSAGES } = require('./errorCatalog');
 
-function getGraphStatus(err) {
+/*function getGraphStatus(err) {
   return (
     err?.status ||
     err?.response?.status ||
     err?.response?.statusCode ||
     err?.response?.data?.error?.code
   );
-}
+}*/
 
 function isForbidden(err) {
   const status = err?.status || err?.response?.status;
@@ -23,10 +23,15 @@ function isBadRequest(err) {
 function mapForbiddenToMessage(actionKey) {
   // actionKey = 'users.create', 'groups.modify', 'apps.modify', 'roles.modify'...
   if (actionKey.startsWith('identity.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_IDENTITY_READ;
-  if (actionKey === 'users.create' || actionKey === 'users.delete') return ERROR_MESSAGES.GRAPH_FORBIDDEN_USER_ADMIN;
+
+  if (actionKey.startsWith('users.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_USER_ADMIN;
+
   if (actionKey.startsWith('groups.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_GROUP_ADMIN;
+
   if (actionKey.startsWith('apps.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_APP_ADMIN;
+  
   if (actionKey.startsWith('roles.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_PRIV_ROLE_ADMIN;
+
   return ERROR_MESSAGES.GRAPH_GENERIC_FORBIDDEN;
 }
 

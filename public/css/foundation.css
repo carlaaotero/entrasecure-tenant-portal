@@ -46,3 +46,9 @@ a:hover {
   color: var(--color2);
   font-size: 0.85rem;
 }
+
+.field-hint.error,
+.password-hint.error {
+  color: var(--color2); /* gris del tema */
+  font-weight: 500;
+}

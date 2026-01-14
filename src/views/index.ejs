@@ -64,6 +64,15 @@
   </nav>
 
   <main>
+    <% if (flash && flash.message) { %>
+  <div class="card" style="margin: 12px auto; padding: 12px; max-width: 720px;">
+    <strong>
+      <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info') %>:
+    </strong>
+    <span><%= flash.message %></span>
+  </div>
+<% } %>
+
     <!-- Hero -->
     <section class="hero">
       <div class="hero-inner">

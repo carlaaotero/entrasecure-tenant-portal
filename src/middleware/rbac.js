@@ -1,5 +1,7 @@
 // src/middleware/rbac.js
 
+const { ERROR_MESSAGES } = require('../errors/errorCatalog');
+
 function requireAuth(req, res, next) {
   if (!req.session?.user) return res.redirect('/auth/login');
   next();
@@ -29,7 +31,11 @@ function requireRole(...allowedRoles) {
     const roles = getRoles(req);
     const ok = allowedRoles.some(r => roles.includes(r));
 
-    if (!ok) return res.status(403).send('Forbidden: missing portal role');
+    if (!ok) {
+      req.session.flash = { type: 'info', message: ERROR_MESSAGES.FORBIDDEN_PORTAL_ROLE };
+      return res.redirect('/');
+    }
+
     next();
   };
 }

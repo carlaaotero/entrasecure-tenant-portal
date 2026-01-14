@@ -5,7 +5,7 @@ const router = express.Router();
 
 const { getTokenForGraph } = require('../auth/AuthProvider');
 const { handleRouteError } = require('../errors/graphErrorHandler');
-const { requireAuth } = require('../middleware/rbac');
+const { requireAuth } = require('../middleware/rbac'); // Middleware per protegir rutes: si no hi ha sessió, envia a login
 const {
   getUserIdentity,
   getUserMemberOf,

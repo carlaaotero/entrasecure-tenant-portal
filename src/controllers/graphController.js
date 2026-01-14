@@ -1,8 +1,27 @@
+/**
+ * graphController.js
+ * ------------------
+ * Wrapper genèric per fer crides a Microsoft Graph (v1.0) utilitzant node-fetch.
+ *
+ * Objectius:
+ *  - Centralitzar el "boilerplate" (headers, base URL, logs, gestió d'errors)
+ *  - Proporcionar helpers reutilitzables per:
+ *      - GET (callGraph)
+ *      - POST (callGraphPOST)
+ *      - DELETE (callGraphDELETE)
+ *  - Incloure funcions específiques per la secció "My Identity" (/me)
+ *
+ * IMPORTANT:
+ *  - Aquest mòdul NO decideix autorització / RBAC.
+ *  - Si Graph retorna 403/401, aquí es llença un error i la ruta el tracta
+ *    amb el sistema de "flash + redirect" (graphErrorHandler).
+ */
+
 const fetch = require('node-fetch');
 
 const GRAPH_BASE_URL = 'https://graph.microsoft.com/v1.0';
 
-//Cridar a Graph amb un accessToken vàlid
+// Crida genèrica GET a Microsoft Graph amb un accessToken vàlid
 async function callGraph(endpoint, accessToken) {
   const url = endpoint.startsWith('http')
     ? endpoint
@@ -19,6 +38,7 @@ async function callGraph(endpoint, accessToken) {
 
   console.log('[GRAPH] status', response.status, response.statusText);
 
+  // Gestió d'errors: si Graph no retorna 2xx, llancem una excepció amb el body (el tractament UX es farà a la capa de routes amb graphErrorHandler)
   if (!response.ok) {
     const text = await response.text();
     throw new Error(`Graph call failed (${url}): ${response.status} ${text}`);
@@ -26,7 +46,7 @@ async function callGraph(endpoint, accessToken) {
 
   const json = await response.json();
 
-  //només mostrem la longitud:
+  // Logs útils per debugging: si és col·lecció, mostrem la longitud; si és objecte, el contingut
   if (Array.isArray(json.value)) {
     console.log('[GRAPH] resposta té', json.value.length, 'elements');
   } else {
@@ -34,10 +54,87 @@ async function callGraph(endpoint, accessToken) {
   }
 
   return json;
-  //return await response.json();
 }
 
-// Propietats que volem del /me
+// Crida genèrica POST a Microsoft Graph
+async function callGraphPOST(endpoint, accessToken, body) {
+  const url = endpoint.startsWith('http')
+    ? endpoint
+    : `${GRAPH_BASE_URL}${endpoint}`;
+
+  console.log('[GRAPH] POST', url);
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  console.log('[GRAPH] status', response.status, response.statusText);
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Graph POST failed (${url}): ${response.status} ${errorBody}`);
+  }
+
+
+  // Cas habitual: 204 No Content
+  if (response.status === 204) {
+    return true;
+  }
+
+  // Alguns endpoints poden retornar body buit tot i ser 200/201
+  const text = await response.text();
+  if (!text) {
+    return true;
+  }
+
+  // Si hi ha contingut, intentem parsejar JSON
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    // Últim recurs: retornem el text per debugging
+    return { raw: text };
+  }
+
+}
+
+
+
+// Crida genèrica DELETE a Microsoft Graph
+async function callGraphDELETE(endpoint, accessToken) {
+  const url = endpoint.startsWith('http')
+    ? endpoint
+    : `${GRAPH_BASE_URL}${endpoint}`;
+
+  console.log('[GRAPH] DELETE', url);
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  console.log('[GRAPH] status', response.status, response.statusText);
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Graph DELETE failed (${url}): ${response.status} ${text}`);
+  }
+
+  return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+/*                             MY IDENTITY (/me)                              */
+/* -------------------------------------------------------------------------- */
+
+// Selecció de propietats de /me que s'utilitzen a My Identity
 const PROFILE_SELECT = [
   'id',
   'displayName',
@@ -48,7 +145,8 @@ const PROFILE_SELECT = [
   'lastPasswordChangeDateTime'
 ].join(',');
 
-//Retorna identity /me de Graph amb un accessToken vàlid
+
+//Retorna l'objecte princiàñ de l'usuari autenticat (/me)
 async function getUserIdentity(accessToken) {
   const endpoint = `/me?$select=${PROFILE_SELECT}`;
   const json = await callGraph(endpoint, accessToken);
@@ -88,83 +186,10 @@ async function getUserDevices(accessToken) {
   return json.value || [];
 }
 
-// Cridar a Graph amb POST
-async function callGraphPOST(endpoint, accessToken, body) {
-  const url = endpoint.startsWith('http')
-    ? endpoint
-    : `${GRAPH_BASE_URL}${endpoint}`;
-
-  console.log('[GRAPH] POST', url);
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-
-  console.log('[GRAPH] status', response.status, response.statusText);
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Graph POST failed (${url}): ${response.status} ${errorBody}`);
-  }
-
-  //return await response.json();
-
-  //Graph sovint retorna 204 No Content en POST ($ref, assignacions, etc.)
-  if (response.status === 204) {
-    return true;
-  }
-
-  //Alguns endpoints retornen body buit tot i status 200/201
-  const text = await response.text();
-  if (!text) {
-    return true;
-  }
-
-  //Si hi ha contingut, intentem parsejar JSON
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    // Últim recurs: retornem el text per debugging
-    return { raw: text };
-  }
-  
-}
-
-
-
-// Cridar a Graph amb DELETE (per operacions com eliminar usuaris, grups)
-async function callGraphDELETE(endpoint, accessToken) {
-  const url = endpoint.startsWith('http')
-    ? endpoint
-    : `${GRAPH_BASE_URL}${endpoint}`;
-
-  console.log('[GRAPH] DELETE', url);
-
-  const response = await fetch(url, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  console.log('[GRAPH] status', response.status, response.statusText);
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Graph DELETE failed (${url}): ${response.status} ${text}`);
-  }
-
-  // Normalment Graph retorna 204 No Content
-  return true;
-}
 
 
 module.exports = {
+  // Wrappers genèrics Graph
   callGraph,
   callGraphDELETE,
   callGraphPOST,
