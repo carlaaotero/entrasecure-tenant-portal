@@ -82,3 +82,48 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.user-menu { position: relative; }
+
+.user-pill {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.10);
+  z-index: 9999;
+}
+
+.user-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.user-dropdown-item:hover {
+  background: rgba(0,0,0,.05);
+}
+
+.user-dropdown-danger {
+  color: #b91c1c;
+}

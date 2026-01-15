@@ -92,9 +92,15 @@ router.get('/redirect', async (req, res) => {
   }
 });
 
-// Logout: Elimina la sessió local de l'aplicació. No invalida la sessió global d'Entra ID
+// Logout complet d'Entra ID (global)
 router.get('/logout', (req, res) => {
-  req.session.destroy(() => res.redirect('/'));
+  req.session.destroy(() => {
+    const tenant = process.env.AZURE_TENANT_ID;
+    const postLogout = encodeURIComponent('http://localhost:3000/');
+    res.redirect(
+      `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/logout?post_logout_redirect_uri=${postLogout}`
+    );
+  });
 });
 
 module.exports = router;

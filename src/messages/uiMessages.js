@@ -1,4 +1,18 @@
-// src/messages/uiMessages.js
+/**
+ * src/messages/uiMessages.js
+ *
+ * Aquest fitxer centralitza tots els textos visibles de la interfície d’usuari (UI):
+ * - Títols de pàgina
+ * - Labels i textos comuns
+ * - Missatges flash (feedback d'accions)
+ * - Textos d’ajuda contextual
+ * - Missatges informatius i modals
+ *
+ * Objectius principals:
+ * 1) Evitar strings “hardcoded” repartits pel codi
+ * 2) Facilitar manteniment i coherència visual
+ * 3) Permetre canvis futurs (idioma, copy, UX) sense tocar la lògica
+ */
 
 const UI_MESSAGES = {
     TITLES: {
@@ -11,7 +25,7 @@ const UI_MESSAGES = {
         ROLES_LIST: "Roles",
         SECURITY_OVERVIEW: "Tenant Security Overview · EntraSecure",
 
-        // dinàmics
+        // Títols dinàmics per vistes de detall
         USER_DETAIL: (nameOrUpn) => `Usuari · ${nameOrUpn}`,
         GROUP_DETAIL: (name) => `Group · ${name || "Detall"}`,
         APP_DETAIL: (nameOrAppId) => `App · ${nameOrAppId}`,
@@ -55,7 +69,7 @@ const UI_MESSAGES = {
         ROLE_MEMBER_REMOVED: "Member eliminat del rol.",
         ROLE_ACTIVATED: "Rol activat correctament.",
 
-        // PORTAL ROLES
+        // PORTAL ROLES (RBAC intern)
         PORTAL_USERS_ASSIGNED: "Usuaris assignats correctament.",
         PORTAL_ASSIGNMENT_REMOVED: "Assignació eliminada.",
     },

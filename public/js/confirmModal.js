@@ -88,4 +88,38 @@
     },
     true
   );
+
+
+    // Intercepta clicks a links amb data-confirm-link="true"
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[data-confirm-link="true"]');
+    if (!a) return;
+
+    // si venim del OK del modal, deixem passar
+    if (bypassOnce) {
+      bypassOnce = false;
+      return;
+    }
+
+    e.preventDefault();
+
+    pendingForm = null; // no és form
+    const href = a.getAttribute('href');
+
+    openModal({
+      title: a.dataset.confirmTitle,
+      message: a.dataset.confirmMessage,
+      okText: a.dataset.confirmOk,
+      cancelText: a.dataset.confirmCancel,
+    });
+
+    // quan faci OK, redirigim
+    btnOk.onclick = (ev) => {
+      ev.preventDefault();
+      bypassOnce = true;
+      closeModal();
+      window.location.href = href;
+    };
+  }, true);
+
 })();
