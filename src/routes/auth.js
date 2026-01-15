@@ -30,16 +30,28 @@ const router = express.Router();
 const { cca } = require('../auth/AuthProvider');
 const { REDIRECT_URI, graphScopes } = require('../auth/msalConfig');
 
+const { handleRouteError } = require('../errors/graphErrorHandler');
+const { UI_MESSAGES } = require('../messages/uiMessages');
+
 // Inicia el flux d'autenticació OpenID Connect: demana a Entra ID una URL d'autenticació
-router.get('/login', (req, res) => {
+router.get('/login', async (req, res) => {
   const authUrlParams = {
     scopes: graphScopes, // Permisos que demanem
     redirectUri: REDIRECT_URI, // URI on Entra ID retornarà el control
   };
 
-  cca.getAuthCodeUrl(authUrlParams).then((response) => {
-    res.redirect(response);
-  }).catch((error) => res.status(500).send(error));
+  try {
+    const response = await cca.getAuthCodeUrl(authUrlParams);
+    return res.redirect(response);
+  } catch (err) {
+    return handleRouteError({
+      req,
+      res,
+      err,
+      actionKey: 'auth.login',
+      redirectTo: '/',
+    });
+  }
 });
 
 // Endpoint de retorn després del login. Entra ID redirigeix aquí amb un Authorization Code
@@ -62,15 +74,21 @@ router.get('/redirect', async (req, res) => {
     req.session.portalRoles = Array.isArray(portalRoles)
       ? portalRoles
       : [portalRoles];
-    
-      console.log('[RBAC] Portal roles:', req.session.portalRoles);
+
+    console.log('[RBAC] Portal roles:', req.session.portalRoles);
+    req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.LOGIN_SUCCESS };
 
 
     // Login correcte -> redirigim a la home del portal
     res.redirect('/');
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Error acquiring token');
+    return handleRouteError({
+      req,
+      res,
+      err,
+      actionKey: 'auth.redirect',
+      redirectTo: '/',
+    });
   }
 });
 

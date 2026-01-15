@@ -2,6 +2,7 @@
 
 const ERROR_MESSAGES = {
     AUTH_REQUIRED: "Has d'iniciar sessió per accedir a aquesta funcionalitat.",
+    AUTH_FORBIDDEN: "No tens permisos per completar l'autenticació.",
     FORBIDDEN_PORTAL_ROLE: "No tens permisos (portal role) per accedir a aquesta funcionalitat.",
 
     GRAPH_FORBIDDEN_IDENTITY_READ:
@@ -30,14 +31,13 @@ const ERROR_MESSAGES = {
         "S'ha produït un error intern al portal.",
 
 
-
-    // --- USERS ---
+    // --- USERS (validacions) ---
     USERS_CREATE_MISSING_FIELDS:
         "Has d'omplir tots els camps per crear l'usuari (nom, UPN i contrasenya).",
     USERS_DELETE_NO_SELECTION:
         "No has seleccionat cap usuari per eliminar.",
 
-    // --- GROUPS ---
+    // --- GROUPS (validacions) ---
     GROUPS_CREATE_MISSING_FIELDS:
         "Cal indicar el nom del grup, la descripció i el tipus de grup.",
     GROUPS_CREATE_NO_OWNERS:
@@ -49,17 +49,23 @@ const ERROR_MESSAGES = {
     GROUPS_ADD_MEMBERS_NO_SELECTION:
         "No has indicat cap member per afegir.",
 
-
-    // --- APPS ---
+    // --- APPS (validacions) ---
     APP_NO_OWNER_SELECTED: "No has indicat cap owner per afegir.",
     APP_NO_ASSIGNEE_SELECTED: "No has indicat cap member per assignar.",
 
-    // --- ROLES ---
+    // --- ROLES (validacions/accions) ---
     ROLES_ADD_MEMBERS_NO_SELECTION:
         "No has indicat cap member per afegir al rol.",
+    ROLES_ACTIVATE_FAILED:
+        "No s’ha pogut activar el rol.",
+
+    // --- PORTAL ROLES ---
     ROLES_PORTAL_ASSIGN_NO_SELECTION:
         "No has seleccionat cap usuari per assignar a aquest portal role.",
-
+    ROLES_PORTAL_NOT_FOUND:
+        "No s'ha trobat el portal role.",
+    PORTAL_SERVICE_PRINCIPAL_NOT_FOUND:
+        "No s'ha trobat el service principal del portal.",
 
 };
 

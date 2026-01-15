@@ -3,6 +3,8 @@
 const express = require('express');
 const router = express.Router();
 
+const { UI_MESSAGES } = require('../messages/uiMessages');
+
 const { getTokenForGraph } = require('../auth/AuthProvider');
 const { handleRouteError } = require('../errors/graphErrorHandler');
 const { requireAuth } = require('../middleware/rbac'); // Middleware per protegir rutes: si no hi ha sessió, envia a login
@@ -24,22 +26,15 @@ router.get('/me', requireAuth, async (req, res) => {
 
     // Si venim d'un error (p. ex. 403) evitem bucle: renderitzem amb dades buides però mantenim el missatge.
     if (req.query.blocked === '1') {
-      const helpfulInfo = `
-Aquest apartat mostra informació bàsica de la identitat a Microsoft Entra ID
-(per exemple, display name, UPN, tipus d'usuari i dates clau), així com la
-seva pertinença a grups, rols de directori, aplicacions assignades i
-dispositius registrats.
-`.trim();
-
-      return res.render('identity', {
-        title: 'My Identity · EntraSecure',
+        return res.render('identity', {
+        title: UI_MESSAGES.TITLES.MY_IDENTITY,
         user: account,
         userProfile: null,
         groups: [],
         roles: [],
         apps: [],
         devices: [],
-        helpfulInfo,
+        helpfulInfo: UI_MESSAGES.HELP.MY_IDENTITY,
         flash,
       });
     }
@@ -70,23 +65,15 @@ dispositius registrats.
     const apps = appRoleAssignments; // llista d'aplicacions on té rols
     const userDevices = devices; // dispositius registrats
 
-    const helpfulInfo = `
-Aquest apartat mostra informació bàsica de la identitat a Microsoft Entra ID 
-(per exemple, display name, UPN, tipus d'usuari i dates clau), així com la 
-seva pertinença a grups, rols de directori, aplicacions assignades i 
-dispositius registrats. És útil per entendre com es representen i relacionen 
-els objectes dins d'un tenant d'Entra ID.
-`.trim();
-
     res.render('identity', {
-      title: 'My Identity · EntraSecure',
+      title: UI_MESSAGES.TITLES.MY_IDENTITY,
       user: account,          // per a la navbar (nom, inicial, etc.)
       userProfile,
       groups,
       roles,
       apps,
       devices: userDevices,
-      helpfulInfo,
+      helpfulInfo: UI_MESSAGES.HELP.MY_IDENTITY,
       flash,
     });
   } catch (error) {

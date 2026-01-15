@@ -21,16 +21,21 @@ function isBadRequest(err) {
 }
 
 function mapForbiddenToMessage(actionKey) {
-  // actionKey = 'users.create', 'groups.modify', 'apps.modify', 'roles.modify'...
+  // auth
+  if (actionKey.startsWith('auth.')) return ERROR_MESSAGES.AUTH_FORBIDDEN;
+
+  // tenant home (si algun dia el protegeixes o falla per rol)
+  if (actionKey.startsWith('tenant.')) return ERROR_MESSAGES.GRAPH_GENERIC_FORBIDDEN;
+
+  // identity
   if (actionKey.startsWith('identity.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_IDENTITY_READ;
 
+  // tenant explorer per mòduls
   if (actionKey.startsWith('users.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_USER_ADMIN;
-
   if (actionKey.startsWith('groups.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_GROUP_ADMIN;
-
   if (actionKey.startsWith('apps.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_APP_ADMIN;
-  
   if (actionKey.startsWith('roles.')) return ERROR_MESSAGES.GRAPH_FORBIDDEN_PRIV_ROLE_ADMIN;
+
 
   return ERROR_MESSAGES.GRAPH_GENERIC_FORBIDDEN;
 }

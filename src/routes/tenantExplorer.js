@@ -8,6 +8,8 @@ const { requireRole, requireAuth } = require('../middleware/rbac'); // Middlewar
 const { PRIVILEGED_DIRECTORY_ROLE_KEYWORDS } = require('../controllers/securityController');
 const { handleRouteError } = require('../errors/graphErrorHandler');
 const { ERROR_MESSAGES } = require('../errors/errorCatalog');
+const { UI_MESSAGES } = require('../messages/uiMessages');
+
 
 const {
     //Users
@@ -76,7 +78,7 @@ router.get('/tenant', requireAuth, async (req, res) => {
 
         // 3. Renderitzar la vista passant les dades
         res.render('tenantExplorer/tenantExplorer', {
-            title: 'Tenant Explorer · EntraSecure',
+            title: UI_MESSAGES.TITLES.TENANT_HOME,
             user: account,
             usersPreview,
             groupsPreview,
@@ -107,7 +109,7 @@ router.get('/tenant/users', requireRole('Portal.UserAdmin'), async (req, res) =>
         const users = await getAllUsers(accessToken);
 
         res.render('tenantExplorer/users', {
-            title: 'Usuaris del tenant',
+            title: UI_MESSAGES.TITLES.USERS_LIST,
             user: account,
             users,
             flash,
@@ -152,14 +154,10 @@ router.get('/tenant/users/:id', requireRole('Portal.UserAdmin'), async (req, res
         const roles = directoryRoles;
         const apps = appRoleAssignments;
 
-        const helpfulInfo = `
-Aquesta vista mostra la identitat d'un usuari del tenant de Microsoft Entra ID,
-incloent les seves propietats bàsiques, grups, rols de directori i aplicacions
-on té rols assignats. És útil per analitzar el context d'accés d'un usuari concret.
-`.trim();
+        const helpfulInfo = UI_MESSAGES.HELP.USER_IDENTITY;
 
         res.render('tenantExplorer/userIdentity', {
-            title: `Usuari · ${userProfile.displayName || userProfile.userPrincipalName}`,
+            title: UI_MESSAGES.TITLES.USER_DETAIL(userProfile.displayName || userProfile.userPrincipalName),
             user: account,        // usuari logat (per la navbar)
             userProfile,          // usuari seleccionat
             groups,
@@ -208,7 +206,7 @@ router.post('/tenant/users/create', requireRole('Portal.UserAdmin'), async (req,
 
         await createUser(accessToken, newUser);
 
-        req.session.flash = { type: 'success', message: `Usuari creat: ${displayName}` };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.USERS_CREATED(displayName) };
         return res.redirect('/tenant/users');
     } catch (err) {
         return handleRouteError({
@@ -241,7 +239,7 @@ router.post('/tenant/users/delete', requireRole('Portal.UserAdmin'), async (req,
         // userIds pot ser un string (1 usuari) o un array (varis usuaris)
         await deleteUsers(accessToken, userIds);
 
-        req.session.flash = { type: 'success', message: `Usuaris eliminats: ${count}` };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.USERS_DELETED(count) };
         return res.redirect('/tenant/users');
     } catch (err) {
         return handleRouteError({
@@ -272,7 +270,7 @@ router.get('/tenant/groups', requireRole('Portal.GroupAdmin'), async (req, res) 
         ]);
 
         res.render('tenantExplorer/groups', {
-            title: 'Tenant groups',
+            title: UI_MESSAGES.TITLES.GROUPS_LIST,
             user: account,  // per la navbar
             groups,
             users,
@@ -305,13 +303,10 @@ router.get('/tenant/groups/:id', requireRole('Portal.GroupAdmin'), async (req, r
         const appAssignments = await getTenantGroupAppRoleAssignments(accessToken, groupId);
         const users = await getAllUsers(accessToken);
 
-        const helpfulInfo =
-            'Aquesta vista mostra informació bàsica del grup, els seus membres, ' +
-            'owners, rols de directori on el grup actua com a administrador i les aplicacions ' +
-            'on té app roles assignats.';
+        const helpfulInfo = UI_MESSAGES.HELP.GROUP_IDENTITY;
 
         res.render('tenantExplorer/groupIdentity', {
-            title: `Group · ${groupProfile.displayName || 'Detall'}`,
+            title: UI_MESSAGES.TITLES.GROUP_DETAIL(groupProfile.displayName),
             user: account,          // usuari logat (navbar)
             groupProfile,
             members,
@@ -403,7 +398,7 @@ router.post('/tenant/groups/create', requireRole('Portal.GroupAdmin'), async (re
             await addOwnersToGroup(accessToken, groupId, ownerList);
         }
 
-        req.session.flash = { type: 'success', message: `Grup creat: ${displayName}` };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.GROUP_CREATED(displayName) };
         return res.redirect('/tenant/groups');
     } catch (err) {
         return handleRouteError({
@@ -436,7 +431,7 @@ router.post('/tenant/groups/delete', requireRole('Portal.GroupAdmin'), async (re
         // groupIds pot ser un string (1 grup) o un array (varis grups)
         await deleteGroups(accessToken, groupIds);
 
-        req.session.flash = { type: 'success', message: `Grups eliminats: ${count}` };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.GROUPS_DELETED(count) };
         return res.redirect('/tenant/groups');
     } catch (err) {
         return handleRouteError({
@@ -471,7 +466,7 @@ router.post('/tenant/groups/:id/owners/add', requireRole('Portal.GroupAdmin'), a
 
         await addOwnersToGroup(accessToken, groupId, keys);
 
-        req.session.flash = { type: 'success', message: 'Owners afegits correctament.' };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.GROUP_OWNERS_ADDED };
         return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
     } catch (err) {
         return handleRouteError({
@@ -506,7 +501,7 @@ router.post('/tenant/groups/:id/members/add', requireRole('Portal.GroupAdmin'), 
 
         await addMembersToGroup(accessToken, groupId, keys);
 
-        req.session.flash = { type: 'success', message: 'Members afegits correctament.' };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.GROUP_MEMBERS_ADDED };
         return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
     } catch (err) {
         return handleRouteError({
@@ -531,7 +526,7 @@ router.post('/tenant/groups/:groupId/members/:memberId/remove', requireRole('Por
             `/groups/${groupId}/members/${memberId}/$ref`,
             accessToken
         );
-        req.session.flash = { type: 'success', message: 'Member eliminat del grup.' };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.GROUP_MEMBER_REMOVED };
         return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
     } catch (err) {
         return handleRouteError({
@@ -557,7 +552,7 @@ router.post('/tenant/groups/:groupId/owners/:ownerId/remove', requireRole('Porta
             accessToken
         );
 
-        req.session.flash = { type: 'success', message: 'Owner eliminat del grup.' };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.GROUP_OWNER_REMOVED };
         return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
     } catch (err) {
         return handleRouteError({
@@ -590,7 +585,7 @@ router.get('/tenant/apps', requireRole('Portal.AppAdmin'), async (req, res) => {
         const myAppIds = (appRegistrations || []).map(a => a.appId);
 
         res.render('tenantExplorer/apps', {
-            title: 'Aplicacions del tenant',
+            title: UI_MESSAGES.TITLES.APPS_LIST,
             user: account,
             apps,
             myAppIds,
@@ -646,23 +641,19 @@ router.get('/tenant/apps/:id', requireRole('Portal.AppAdmin'), async (req, res) 
             );
         }
 
-        let authProtocolLabel = 'Altres';
+        let authProtocolLabel = UI_MESSAGES.LABELS.AUTH_PROTOCOL.OTHER;
 
-        if (ssoMode === 'saml') {
-            authProtocolLabel = 'SAML';
-        } else if (appRegistration) {
-            authProtocolLabel = 'OIDC / OAuth2';
-        }
+if (ssoMode === 'saml') {
+  authProtocolLabel = UI_MESSAGES.LABELS.AUTH_PROTOCOL.SAML;
+} else if (appRegistration) {
+  authProtocolLabel = UI_MESSAGES.LABELS.AUTH_PROTOCOL.OIDC;
+}
 
-        const helpfulInfo = `
-Aquesta vista mostra la identitat d'una aplicació dins del tenant de Microsoft Entra ID,
-incloent-hi informació bàsica del service principal (Enterprise app), els seus owners, 
-els usuaris i grups amb app roles assignats i els tipus de credencial que utilitza 
-(secrets, certificats o federated credentials).
-`.trim();
+
+        const helpfulInfo = UI_MESSAGES.HELP.APP_IDENTITY;
 
         res.render('tenantExplorer/appIdentity', {
-            title: `App · ${sp.displayName || sp.appId}`,
+            title:UI_MESSAGES.TITLES.APP_DETAIL(sp.displayName || sp.appId ),
             user: account,
             servicePrincipal: sp,
             owners,
@@ -708,7 +699,7 @@ router.post('/tenant/apps/:id/owners/add', requireRole('Portal.AppAdmin'), async
 
         await addOwnersToApp(accessToken, spId, keys);
 
-        req.session.flash = { type: 'success', message: "Owners afegits a l'aplicació." };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.APP_OWNERS_ADDED };
         return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
         return handleRouteError({
@@ -734,7 +725,7 @@ router.post('/tenant/apps/:spId/owners/:ownerId/remove', requireRole('Portal.App
             accessToken
         );
 
-        req.session.flash = { type: 'success', message: "Owner eliminat de l'aplicació." };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.APP_OWNER_REMOVED };
         return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
         return handleRouteError({
@@ -768,7 +759,7 @@ router.post('/tenant/apps/:id/assignments/add', requireRole('Portal.AppAdmin'), 
 
         await addUsersToApp(accessToken, spId, keys);
 
-        req.session.flash = { type: 'success', message: "Assignacions afegides a l'aplicació." };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.APP_ASSIGNMENTS_ADDED };
         return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
         return handleRouteError({
@@ -794,7 +785,7 @@ router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireRole('
             accessToken
         );
 
-        req.session.flash = { type: 'success', message: "Assignació eliminada de l'aplicació." };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.APP_ASSIGNMENT_REMOVED };
         return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
         return handleRouteError({
@@ -834,7 +825,7 @@ router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) =>
             .filter(r => (r.allowedMemberTypes || []).includes('User')) // important: assignació a usuaris
             .map(r => ({
                 id: r.id, // això evita "undefined"
-                key: r.value || r.displayName || '(Unnamed)',
+                key: r.value || r.displayName || UI_MESSAGES.LABELS.UNNAMED,
                 description: r.description || '',
                 displayName: r.displayName || r.value || ''
             }));
@@ -850,8 +841,6 @@ router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) =>
             isPrivileged: portalPrivilegedValues.has(r.key) || portalPrivilegedValues.has(r.displayName),
         }));
 
-
-
         const directoryRolesRaw = await getDirectoryRoles(accessToken);
 
         const directoryRoles = (directoryRolesRaw || []).map(r => {
@@ -864,7 +853,7 @@ router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) =>
         const roleTemplates = await getDirectoryRoleTemplates(accessToken);
 
         res.render('tenantExplorer/roles', {
-            title: 'Roles',
+            title: UI_MESSAGES.TITLES.ROLES_LIST,
             user: account,
             directoryRoles,
             roleTemplates,
@@ -894,7 +883,7 @@ router.get('/tenant/roles/:id', requireRole('Portal.RoleAdmin'), async (req, res
         const users = await getAllUsers(accessToken);
 
         res.render('tenantExplorer/roleIdentity', {
-            title: `Role · ${(role && role.displayName) ? role.displayName : roleId}`,
+            title: UI_MESSAGES.TITLES.ROLE_DETAIL((role && role.displayName) ? role.displayName : roleId),
             user: account,
             role,
             members,
@@ -938,7 +927,7 @@ router.post('/tenant/roles/:roleId/members/add', requireRole('Portal.RoleAdmin')
             await addUserToDirectoryRole(accessToken, roleId, userId);
         }
 
-        req.session.flash = { type: 'success', message: 'Membres afegits correctament.' };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.ROLE_MEMBERS_ADDED };
         return res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
     } catch (err) {
         return handleRouteError({
@@ -963,7 +952,7 @@ router.post('/tenant/roles/:roleId/members/:memberId/remove', requireRole('Porta
             accessToken
         );
 
-        req.session.flash = { type: 'success', message: 'Member eliminat del rol.' };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.ROLE_MEMBER_REMOVED };
         return res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
     } catch (err) {
         return handleRouteError({
@@ -982,22 +971,18 @@ router.post('/tenant/roles/activate', requireRole('Portal.RoleAdmin'), async (re
 
         await activateDirectoryRole(accessToken, templateId);
 
-        req.session.flash = { type: 'success', message: 'Rol activat correctament.' };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.ROLE_ACTIVATED };
         return res.redirect('/tenant/roles');
     } catch (err) {
         const msg = (err.message || '').toLowerCase();
 
         // cas “no activable”
         if (msg.includes('implicit user role')) {
-            req.session.flash = {
-                type: 'info',
-                message:
-                    'Aquest rol és un rol intern del sistema (implicit user role). Microsoft Entra ID no permet activar-lo ni gestionar-lo manualment perquè s’assigna automàticament segons l’estat/tipus d’usuari.'
-            };
+            req.session.flash = { type: 'info', message: UI_MESSAGES.INFO.ROLE_IMPLICIT_USER_ROLE };
             return res.redirect('/tenant/roles');
         }
 
-        req.session.flash = { type: 'error', message: 'No s’ha pogut activar el rol.' };
+        req.session.flash = { type: 'error', message: ERROR_MESSAGES.ROLES_ACTIVATE_FAILED };
         return res.redirect('/tenant/roles');
     }
 });
@@ -1020,12 +1005,12 @@ router.get('/tenant/roles/portal/:appRoleId', requireRole('Portal.RoleAdmin'), a
             accessToken
         );
         const portalSp = spJson.value?.[0];
-        if (!portalSp) throw new Error('Portal service principal not found');
+        if (!portalSp) throw new Error(ERROR_MESSAGES.PORTAL_SERVICE_PRINCIPAL_NOT_FOUND);
 
         // 2) Role seleccionat
         const appRoleId = req.params.appRoleId;
         const role = (portalSp.appRoles || []).find(r => r.id === appRoleId);
-        if (!role) return res.status(404).send('Portal role not found');
+        if (!role) return res.status(404).send(ERROR_MESSAGES.ROLES_PORTAL_NOT_FOUND);
 
         // 3) Assignacions (només Users)
         const asgJson = await callGraph(
@@ -1040,13 +1025,10 @@ router.get('/tenant/roles/portal/:appRoleId', requireRole('Portal.RoleAdmin'), a
         // 4) Llista d'usuaris per dropdown
         const users = await getAllUsers(accessToken);
 
-        const helpfulInfo =
-            "RBAC intern del portal basat en App Roles. Amb Entra ID Free, " +
-            "les assignacions es realitzen directament a usuaris. " +
-            "Quan un usuari té un App Role assignat, apareix al claim 'roles' del token.";
+        const helpfulInfo = UI_MESSAGES.HELP.PORTAL_ROLE_IDENTITY;
 
         res.render('tenantExplorer/portalRoleIdentity', {
-            title: `Portal role · ${role.displayName || role.value}`,
+            title: UI_MESSAGES.TITLES.PORTAL_ROLE_DETAIL(role.displayName || role.value),
             user: account,
             portalSp,
             role,
@@ -1080,7 +1062,7 @@ router.post('/tenant/roles/portal/:appRoleId/assignments/add', requireRole('Port
             accessToken
         );
         const portalSp = spJson.value?.[0];
-        if (!portalSp) throw new Error('Portal service principal not found');
+        if (!portalSp) throw new Error(ERROR_MESSAGES.PORTAL_SERVICE_PRINCIPAL_NOT_FOUND);
 
         // Hidden field: "id1,id2,id3"
         const raw = req.body.userIds || '';
@@ -1101,7 +1083,7 @@ router.post('/tenant/roles/portal/:appRoleId/assignments/add', requireRole('Port
 
 
 
-        req.session.flash = { type: 'success', message: 'Usuaris assignats correctament.' };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.PORTAL_USERS_ASSIGNED };
         return res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
     } catch (err) {
         return handleRouteError({
@@ -1128,11 +1110,11 @@ router.post('/tenant/roles/portal/:appRoleId/assignments/:assignmentId/remove', 
             accessToken
         );
         const portalSp = spJson.value?.[0];
-        if (!portalSp) throw new Error('Portal service principal not found');
+        if (!portalSp) throw new Error(ERROR_MESSAGES.PORTAL_SERVICE_PRINCIPAL_NOT_FOUND);
 
         await callGraphDELETE(`/servicePrincipals/${portalSp.id}/appRoleAssignedTo/${assignmentId}`, accessToken);
 
-        req.session.flash = { type: 'success', message: 'Assignació eliminada.' };
+        req.session.flash = { type: 'success', message: UI_MESSAGES.FLASH.PORTAL_ASSIGNMENT_REMOVED };
         return res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
     } catch (err) {
         return handleRouteError({
