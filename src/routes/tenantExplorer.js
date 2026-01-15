@@ -578,6 +578,8 @@ router.get('/tenant/apps', requireRole('Portal.AppAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
+        const flash = req.session.flash;
+        req.session.flash = null;
 
         const [apps, appRegistrations] = await Promise.all([
             getAllApps(accessToken),
@@ -592,6 +594,7 @@ router.get('/tenant/apps', requireRole('Portal.AppAdmin'), async (req, res) => {
             user: account,
             apps,
             myAppIds,
+            flash,
         });
     } catch (err) {
         console.error('Error carregant /tenant/apps:', err);
@@ -606,6 +609,9 @@ router.get('/tenant/apps/:id', requireRole('Portal.AppAdmin'), async (req, res) 
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
         const spId = req.params.id;
+
+        const flash = req.session.flash;
+        req.session.flash = null;
 
         const sp = await getTenantAppById(accessToken, spId);
         const owners = await getTenantAppOwners(accessToken, spId);
@@ -664,6 +670,7 @@ els usuaris i grups amb app roles assignats i els tipus de credencial que utilit
             helpfulInfo,
             authProtocolLabel,
             users,
+            flash,
         });
     } catch (err) {
         console.error('Error carregant /tenant/apps/:id:', err);
@@ -674,97 +681,136 @@ els usuaris i grups amb app roles assignats i els tipus de credencial que utilit
 
 // Afegir owners a una app (des del detall)
 router.post('/tenant/apps/:id/owners/add', requireRole('Portal.AppAdmin'), async (req, res) => {
-    console.log('BODY1 owners/add:', req.body);
+    const spId = req.params.id;
+
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
-        const spId = req.params.id;
 
-        const { ownerKeys } = req.body; // string "upn1,upn2" o un sol valor
+        const { ownerKeys } = req.body; // "upn1,upn2"
         const keys = (ownerKeys || '')
             .split(',')
             .map(s => s.trim())
             .filter(Boolean);
 
-        if (keys.length > 0) {
-            await addOwnersToApp(accessToken, spId, keys);
+        if (keys.length === 0) {
+            req.session.flash = {
+                type: 'info',
+                message: ERROR_MESSAGES.APP_NO_OWNER_SELECTED || "No has indicat cap owner per afegir."
+            };
+            return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
         }
-        console.log('BODY owners/add:', req.body);
 
-        res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+        await addOwnersToApp(accessToken, spId, keys);
+
+        req.session.flash = { type: 'success', message: "Owners afegits a l'aplicació." };
+        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
-        console.error('Error afegint owners a l’app:', err);
-        res.status(500).send("No s'ha pogut afegir owners a l'aplicació");
+        console.error("Error afegint owners a l'app:", err);
+
+        const friendly = graphErrorHandler ? graphErrorHandler(err) : null;
+
+        req.session.flash = {
+            type: 'error',
+            message: friendly?.message || "No s'ha pogut afegir owners a l'aplicació."
+        };
+
+        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     }
 });
 
 
 
+
 // Treure un owner d'una app
 router.post('/tenant/apps/:spId/owners/:ownerId/remove', requireRole('Portal.AppAdmin'), async (req, res) => {
+    const { spId, ownerId } = req.params;
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
 
-        const { spId, ownerId } = req.params;
-
-        // DELETE /servicePrincipals/{id}/owners/{id}/$ref
         await callGraphDELETE(
             `/servicePrincipals/${spId}/owners/${ownerId}/$ref`,
             accessToken
         );
 
-        res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+        req.session.flash = { type: 'success', message: "Owner eliminat de l'aplicació." };
+        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
-        console.error("Error eliminant owner de l'app:", err);
-        res.status(500).send("No s'ha pogut eliminar l'owner de l'aplicació");
+        const friendly = graphErrorHandler ? graphErrorHandler(err) : null;
+
+        req.session.flash = {
+            type: 'error',
+            message: friendly?.message || "No s'ha pogut eliminar l'owner de l'aplicació."
+        };
+
+        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     }
 });
 
 
 // Afegir usuaris assignats a una app (appRoleAssignedTo)
 router.post('/tenant/apps/:id/assignments/add', requireRole('Portal.AppAdmin'), async (req, res) => {
+    const spId = req.params.id;
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
-        const spId = req.params.id;
 
-        const { assignmentKeys } = req.body; // string "upn1,upn2" o un sol valor
+
+        const { assignmentKeys } = req.body;
         const keys = (assignmentKeys || '')
             .split(',')
             .map(s => s.trim())
             .filter(Boolean);
 
-        if (keys.length > 0) {
-            await addUsersToApp(accessToken, spId, keys);
+        if (keys.length === 0) {
+            req.session.flash = {
+                type: 'info',
+                message: ERROR_MESSAGES.APP_NO_ASSIGNEE_SELECTED || "No has indicat cap member/grup per assignar."
+            };
+            return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
         }
 
-        res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+        await addUsersToApp(accessToken, spId, keys);
+
+        req.session.flash = { type: 'success', message: "Assignacions afegides a l'aplicació." };
+        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
-        console.error('Error afegint assignacions a l’app:', err);
-        res.status(500).send("No s'ha pogut assignar usuaris a l'aplicació");
+        const friendly = graphErrorHandler ? graphErrorHandler(err) : null;
+
+        req.session.flash = {
+            type: 'error',
+            message: friendly?.message || "No s'ha pogut assignar usuaris a l'aplicació."
+        };
+
+        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`)
     }
 });
 
 
 // Treure un o més usuaris d'una app (id de appRoleAssignedTo)
 router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireRole('Portal.AppAdmin'), async (req, res) => {
+    const { spId, assignmentId } = req.params;
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
 
-        const { spId, assignmentId } = req.params;
-
-        // DELETE /servicePrincipals/{id}/appRoleAssignedTo/{assignmentId}
         await callGraphDELETE(
             `/servicePrincipals/${spId}/appRoleAssignedTo/${assignmentId}`,
             accessToken
         );
 
-        res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+        req.session.flash = { type: 'success', message: "Assignació eliminada de l'aplicació." };
+        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
-        console.error("Error eliminant assignació:", err);
-        res.status(500).send("No s'ha pogut eliminar l'assignació de l'aplicació");
+        const friendly = graphErrorHandler ? graphErrorHandler(err) : null;
+
+        req.session.flash = {
+            type: 'error',
+            message: friendly?.message || "No s'ha pogut eliminar l'assignació de l'aplicació."
+        };
+
+        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     }
 });
 
