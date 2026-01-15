@@ -2,250 +2,262 @@
 <html lang="ca">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>
-        <%= title %> · EntraSecure
-    </title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>
+    <%= title %> · EntraSecure
+  </title>
 
-    <link rel="stylesheet" href="/css/foundation.css" />
-    <link rel="stylesheet" href="/css/utilities.css" />
-    <link rel="stylesheet" href="/css/components/navbar.css" />
-    <link rel="stylesheet" href="/css/components/button.css" />
-    <link rel="stylesheet" href="/css/components/card.css" />
-    <link rel="stylesheet" href="/css/components/avatar.css" />
-    <link rel="stylesheet" href="/css/pages/identity.css" />
-    <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
-    <link rel="stylesheet" href="/css/pages/tenantRoles.css" />
+  <link rel="stylesheet" href="/css/foundation.css" />
+  <link rel="stylesheet" href="/css/utilities.css" />
+  <link rel="stylesheet" href="/css/components/navbar.css" />
+  <link rel="stylesheet" href="/css/components/button.css" />
+  <link rel="stylesheet" href="/css/components/card.css" />
+  <link rel="stylesheet" href="/css/components/avatar.css" />
+  <link rel="stylesheet" href="/css/pages/identity.css" />
+  <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
+  <link rel="stylesheet" href="/css/pages/tenantRoles.css" />
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="navbar-left">
-            <div class="brand">EntraSecure Tenant Portal</div>
-            <ul class="nav-links">
-                <li><a href="/" class="nav-link">Home</a></li>
-                <% if (user) { %>
-                    <li><a href="/me" class="nav-link">My Identity</a></li>
-                    <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
-                    <li><a href="/security" class="nav-link">Security</a></li>
-                    <% } %>
-            </ul>
-        </div>
-
-        <div class="navbar-right">
-            <% if (user) { %>
-                <div class="user-pill">
-                    <span class="user-initial">
-                        <%= (user.name || user.username || 'U' ).charAt(0).toUpperCase() %>
-                    </span>
-                    <span class="user-name">
-                        <%= user.name || user.username || 'Usuari' %>
-                    </span>
-                </div>
-                <% } else { %>
-                    <a href="/auth/login" class="btn btn-outline-light">Login</a>
-                    <% } %>
-        </div>
-    </nav>
-
-    <main class="identity-main roles-page">
-
-      <% if (flash && flash.message) { %>
-    <div class="identity-flash-wrapper">
-      <div class="card flash-card">
-        <strong>
-          <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info') %>:
-        </strong>
-        <span><%= flash.message %></span>
-      </div>
+  <nav class="navbar">
+    <div class="navbar-left">
+      <div class="brand">EntraSecure Tenant Portal</div>
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <% if (user) { %>
+          <li><a href="/me" class="nav-link">My Identity</a></li>
+          <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
+          <li><a href="/security" class="nav-link">Security</a></li>
+          <% } %>
+      </ul>
     </div>
-  <% } %>
-  
+
+    <div class="navbar-right">
+      <% if (user) { %>
+        <div class="user-pill">
+          <span class="user-initial">
+            <%= (user.name || user.username || 'U' ).charAt(0).toUpperCase() %>
+          </span>
+          <span class="user-name">
+            <%= user.name || user.username || 'Usuari' %>
+          </span>
+        </div>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-outline-light">Login</a>
+          <% } %>
+    </div>
+  </nav>
+
+  <main class="identity-main roles-page">
+
+    <% if (flash && flash.message) { %>
+      <div class="identity-flash-wrapper">
+        <div class="card flash-card">
+          <strong>
+            <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+          </strong>
+          <span>
+            <%= flash.message %>
+          </span>
+        </div>
+      </div>
+      <% } %>
+
         <section class="identity-layout">
 
-            <% if (flash && flash.type==='error' ) { %>
-                <div class="card" style="margin: 12px 0; padding: 12px;">
-                    <strong>Error:</strong>
-                    <span>
-                        <%= flash.message %>
-                    </span>
+          <% if (flash && flash.type==='error' ) { %>
+            <div class="card" style="margin: 12px 0; padding: 12px;">
+              <strong>Error:</strong>
+              <span>
+                <%= flash.message %>
+              </span>
+            </div>
+            <% } %>
+
+              <!-- Perfil (esquerra) -->
+              <article class="card identity-profile-card">
+                <div class="identity-profile-info">
+                  <h2 class="identity-title">
+                    <%= role.displayName || role.value %>
+                  </h2>
+                  <p class="identity-upn">Portal App Role (RBAC intern)</p>
                 </div>
-                <% } %>
 
-                    <!-- Perfil (esquerra) -->
-                    <article class="card identity-profile-card">
-                        <div class="identity-profile-info">
-                            <h2 class="identity-title">
-                                <%= role.displayName || role.value %>
-                            </h2>
-                            <p class="identity-upn">Portal App Role (RBAC intern)</p>
+                <dl class="identity-details">
+                  <div class="identity-detail-row">
+                    <dt>Role ID</dt>
+                    <dd>
+                      <%= role.id %>
+                    </dd>
+                  </div>
+
+                  <div class="identity-detail-row">
+                    <dt>Value</dt>
+                    <dd>
+                      <%= role.value || '—' %>
+                    </dd>
+                  </div>
+
+                  <div class="identity-detail-row">
+                    <dt>Description</dt>
+                    <dd>
+                      <%= role.description || '—' %>
+                    </dd>
+                  </div>
+                </dl>
+              </article>
+
+              <!-- Assignacions (dreta) -->
+              <article class="card identity-card identity-groups-card">
+                <h3>Users assigned</h3>
+                <div class="identity-card-content">
+
+                  <!-- ✅ FORM amb el patró "Directory Roles": input + dropdown amb checkboxes + chips -->
+                  <form id="addPortalRoleUsersForm" method="POST"
+                    action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/add"
+                    class="identity-inline-form">
+
+                    <label for="portalRoleUsersInput" class="identity-inline-label">Assignar usuaris al
+                      rol</label>
+
+                    <div class="identity-inline-input">
+                      <input id="portalRoleUsersInput" type="text" class="users-input"
+                        placeholder="Cerca per nom o UPN (o fes Enter per afegir manualment)" autocomplete="off" />
+
+                    </div>
+                </div>
+
+                <small class="field-hint">
+                  <%= helpfulInfo %>
+                </small>
+
+                <div id="portalRoleUsersChips" class="owners-chip-list"></div>
+                <input type="hidden" name="userIds" id="portalRoleUsersHidden" />
+
+                <div class="identity-inline-actions">
+                  <button type="submit" class="btn btn-primary btn-sm">Assignar seleccionats</button>
+                </div>
+                </form>
+
+                <div class="assignments-scroll">
+                  <% if (assignments && assignments.length> 0) { %>
+                    <div class="identity-item-list">
+                      <% assignments.forEach(function(a) { %>
+                        <div class="identity-item-card identity-removable">
+
+                          <form method="POST"
+                            action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/<%= encodeURIComponent(a.id) %>/remove"
+                            class="remove-form" data-confirm="true"
+                            data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
+                            data-confirm-message="Vols eliminar l'assignació de «<%= (a.principalDisplayName || a.principalId || 'aquest usuari') %>» del rol «<%= (role.displayName || role.value || 'rol') %>»?"
+                            data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
+                            data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
+                            <button type="submit" class="remove-btn">×</button>
+                          </form>
+
+
+                          <div class="identity-item-title">
+                            <%= a.principalDisplayName || a.principalId %>
+                          </div>
+                          <div class="identity-item-meta">User · <%= a.principalId %>
+                          </div>
                         </div>
-
-                        <dl class="identity-details">
-                            <div class="identity-detail-row">
-                                <dt>Role ID</dt>
-                                <dd>
-                                    <%= role.id %>
-                                </dd>
-                            </div>
-
-                            <div class="identity-detail-row">
-                                <dt>Value</dt>
-                                <dd>
-                                    <%= role.value || '—' %>
-                                </dd>
-                            </div>
-
-                            <div class="identity-detail-row">
-                                <dt>Description</dt>
-                                <dd>
-                                    <%= role.description || '—' %>
-                                </dd>
-                            </div>
-                        </dl>
-                    </article>
-
-                    <!-- Assignacions (dreta) -->
-                    <article class="card identity-card identity-groups-card">
-                        <h3>Users assigned</h3>
-                        <div class="identity-card-content">
-
-                            <!-- ✅ FORM amb el patró "Directory Roles": input + dropdown amb checkboxes + chips -->
-                            <form id="addPortalRoleUsersForm" method="POST"
-                                action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/add"
-                                class="identity-inline-form">
-
-                                <label for="portalRoleUsersInput" class="identity-inline-label">Assignar usuaris al
-                                    rol</label>
-
-                                <div class="identity-inline-input">
-                                    <input id="portalRoleUsersInput" type="text" class="users-input"
-                                        placeholder="Cerca per nom o UPN (o fes Enter per afegir manualment)"
-                                        autocomplete="off" />
-                                    
-                                    </div>
-                                </div>
-
-                                <small class="field-hint">
-                                    <%= helpfulInfo %>
-                                </small>
-
-                                <div id="portalRoleUsersChips" class="owners-chip-list"></div>
-                                <input type="hidden" name="userIds" id="portalRoleUsersHidden" />
-
-                                <div class="identity-inline-actions">
-                                    <button type="submit" class="btn btn-primary btn-sm">Assignar seleccionats</button>
-                                </div>
-                            </form>
-
-                            <div class="assignments-scroll">
-                                <% if (assignments && assignments.length> 0) { %>
-                                    <div class="identity-item-list">
-                                        <% assignments.forEach(function(a) { %>
-                                            <div class="identity-item-card identity-removable">
-
-                                                <form method="POST"
-                                                    action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/<%= encodeURIComponent(a.id) %>/remove"
-                                                    onsubmit="return confirm('Vols eliminar aquesta assignació?');"
-                                                    class="remove-form">
-                                                    <button type="submit" class="remove-btn">×</button>
-                                                </form>
-
-                                                <div class="identity-item-title">
-                                                    <%= a.principalDisplayName || a.principalId %>
-                                                </div>
-                                                <div class="identity-item-meta">User · <%= a.principalId %>
-                                                </div>
-                                            </div>
-                                            <% }); %>
-                                    </div>
-                                    <% } else { %>
-                                        <p class="identity-empty">No hi ha usuaris assignats a aquest rol.</p>
-                                        <% } %>
-                            </div>
+                        <% }); %>
+                    </div>
+                    <% } else { %>
+                      <p class="identity-empty">No hi ha usuaris assignats a aquest rol.</p>
+                      <% } %>
+                </div>
 
 
-                        </div>
-                    </article>
+                </div>
+              </article>
 
         </section>
-    </main>
+  </main>
+
+  <!-- Modal -->
+  <%- include('../components/confirmModal', { title: UI_MESSAGES.MODAL.CONFIRM_TITLE, message:
+    UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE, okText: UI_MESSAGES.MODAL.OK, cancelText: UI_MESSAGES.MODAL.CANCEL }) %>
+
+    <script src="/js/confirmModal.js"></script>
+
 
     <script>
-  (function () {
-    const ALL_USERS = <%- JSON.stringify(users || []) %>;
+      (function () {
+        const ALL_USERS = <%- JSON.stringify(users || []) %>;
 
-    const input = document.getElementById('portalRoleUsersInput');
-    const chips = document.getElementById('portalRoleUsersChips');
-    const hidden = document.getElementById('portalRoleUsersHidden');
-    const form = document.getElementById('addPortalRoleUsersForm');
+        const input = document.getElementById('portalRoleUsersInput');
+        const chips = document.getElementById('portalRoleUsersChips');
+        const hidden = document.getElementById('portalRoleUsersHidden');
+        const form = document.getElementById('addPortalRoleUsersForm');
 
-    if (!input || !chips || !hidden || !form) return;
+        if (!input || !chips || !hidden || !form) return;
 
-    const selectedIds = [];
+        const selectedIds = [];
 
-    // --- UI helpers ---
-    function updateHidden() {
-      hidden.value = selectedIds.join(',');
-    }
+        // --- UI helpers ---
+        function updateHidden() {
+          hidden.value = selectedIds.join(',');
+        }
 
-    function renderChips() {
-      chips.innerHTML = '';
-      selectedIds.forEach((id, index) => {
-        const u = ALL_USERS.find(x => x.id === id);
-        const label = u
-          ? `${u.displayName || '(Sense nom)'}${u.userPrincipalName ? ' · ' + u.userPrincipalName : ''}`
-          : id;
+        function renderChips() {
+          chips.innerHTML = '';
+          selectedIds.forEach((id, index) => {
+            const u = ALL_USERS.find(x => x.id === id);
+            const label = u
+              ? `${u.displayName || '(Sense nom)'}${u.userPrincipalName ? ' · ' + u.userPrincipalName : ''}`
+              : id;
 
-        const chip = document.createElement('span');
-        chip.className = 'owner-chip';
-        chip.textContent = label + ' ';
+            const chip = document.createElement('span');
+            chip.className = 'owner-chip';
+            chip.textContent = label + ' ';
 
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'owner-chip-remove';
-        btn.textContent = '×';
-        btn.addEventListener('click', () => {
-          selectedIds.splice(index, 1);
-          updateHidden();
-          renderChips();
-        });
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'owner-chip-remove';
+            btn.textContent = '×';
+            btn.addEventListener('click', () => {
+              selectedIds.splice(index, 1);
+              updateHidden();
+              renderChips();
+            });
 
-        chip.appendChild(btn);
-        chips.appendChild(chip);
-      });
-    }
+            chip.appendChild(btn);
+            chips.appendChild(chip);
+          });
+        }
 
-    // --- Floating dropdown attached to <body> ---
-    const panel = document.createElement('div');
-    panel.className = 'owners-dropdown';
-    panel.style.display = 'none';
-    panel.style.position = 'fixed';
-    panel.style.zIndex = '99999';
-    panel.style.maxHeight = '320px';
-    panel.style.overflow = 'auto';
-    document.body.appendChild(panel);
+        // --- Floating dropdown attached to <body> ---
+        const panel = document.createElement('div');
+        panel.className = 'owners-dropdown';
+        panel.style.display = 'none';
+        panel.style.position = 'fixed';
+        panel.style.zIndex = '99999';
+        panel.style.maxHeight = '320px';
+        panel.style.overflow = 'auto';
+        document.body.appendChild(panel);
 
-    function positionPanel() {
-      const r = input.getBoundingClientRect();
-      panel.style.left = r.left + 'px';
-      panel.style.top = (r.bottom + 6) + 'px';
-      panel.style.width = r.width + 'px';
-    }
+        function positionPanel() {
+          const r = input.getBoundingClientRect();
+          panel.style.left = r.left + 'px';
+          panel.style.top = (r.bottom + 6) + 'px';
+          panel.style.width = r.width + 'px';
+        }
 
-    function buildPanel(term) {
-      const t = (term || '').trim().toLowerCase();
-      const filtered = ALL_USERS
-        .filter(u => {
-          const dn = (u.displayName || '').toLowerCase();
-          const upn = (u.userPrincipalName || '').toLowerCase();
-          if (!t) return true;
-          return dn.includes(t) || upn.includes(t);
-        })
-        .slice(0, 40);
+        function buildPanel(term) {
+          const t = (term || '').trim().toLowerCase();
+          const filtered = ALL_USERS
+            .filter(u => {
+              const dn = (u.displayName || '').toLowerCase();
+              const upn = (u.userPrincipalName || '').toLowerCase();
+              if (!t) return true;
+              return dn.includes(t) || upn.includes(t);
+            })
+            .slice(0, 40);
 
-      panel.innerHTML = `
+          panel.innerHTML = `
         <div class="owners-dropdown-header" style="position: sticky; top: 0; background: #fff;">
           <div style="font-size:12px; color:#666; padding:6px 10px;">
             Selecciona usuaris (marcar múltiples) i prem "Afegir"
@@ -258,11 +270,11 @@
         <div class="owners-dropdown-list" id="list"></div>
       `;
 
-      const list = panel.querySelector('#list');
-      filtered.forEach(u => {
-        const row = document.createElement('label');
-        row.className = 'owner-option';
-        row.innerHTML = `
+          const list = panel.querySelector('#list');
+          filtered.forEach(u => {
+            const row = document.createElement('label');
+            row.className = 'owner-option';
+            row.innerHTML = `
           <input type="checkbox" class="owner-option-checkbox" value="${u.id}">
           <div class="owner-option-info">
             <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
@@ -270,77 +282,77 @@
             <span class="owner-option-type">${u.userType || ''}</span>
           </div>
         `;
-        list.appendChild(row);
-      });
+            list.appendChild(row);
+          });
 
-      panel.querySelector('#addSelectedBtn').onclick = () => {
-        const checked = panel.querySelectorAll('.owner-option-checkbox:checked');
-        checked.forEach(cb => {
-          const id = cb.value;
-          if (id && !selectedIds.includes(id)) selectedIds.push(id);
+          panel.querySelector('#addSelectedBtn').onclick = () => {
+            const checked = panel.querySelectorAll('.owner-option-checkbox:checked');
+            checked.forEach(cb => {
+              const id = cb.value;
+              if (id && !selectedIds.includes(id)) selectedIds.push(id);
+            });
+            updateHidden();
+            renderChips();
+            closePanel();
+          };
+
+          panel.querySelector('#closeBtn').onclick = closePanel;
+        }
+
+        function openPanel() {
+          positionPanel();
+          buildPanel(input.value || '');
+          panel.style.display = 'block';
+        }
+
+        function closePanel() {
+          panel.style.display = 'none';
+        }
+
+        // Events
+        input.addEventListener('focus', openPanel);
+        input.addEventListener('input', openPanel);
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+
+          // Enter només afegeix si el que escrius és un GUID (fallback)
+          const v = (input.value || '').trim();
+          if (!v) return;
+
+          const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+          if (isGuid && !selectedIds.includes(v)) {
+            selectedIds.push(v);
+            updateHidden();
+            renderChips();
+          }
+          input.value = '';
+          closePanel();
         });
+
+        window.addEventListener('resize', () => {
+          if (panel.style.display === 'block') positionPanel();
+        });
+
+        window.addEventListener('scroll', () => {
+          if (panel.style.display === 'block') positionPanel();
+        }, true);
+
+        document.addEventListener('mousedown', (e) => {
+          if (panel.contains(e.target) || input.contains(e.target)) return;
+          closePanel();
+        });
+
+        form.addEventListener('submit', () => {
+          updateHidden();
+        });
+
+        // init
         updateHidden();
         renderChips();
-        closePanel();
-      };
-
-      panel.querySelector('#closeBtn').onclick = closePanel;
-    }
-
-    function openPanel() {
-      positionPanel();
-      buildPanel(input.value || '');
-      panel.style.display = 'block';
-    }
-
-    function closePanel() {
-      panel.style.display = 'none';
-    }
-
-    // Events
-    input.addEventListener('focus', openPanel);
-    input.addEventListener('input', openPanel);
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-
-      // Enter només afegeix si el que escrius és un GUID (fallback)
-      const v = (input.value || '').trim();
-      if (!v) return;
-
-      const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
-      if (isGuid && !selectedIds.includes(v)) {
-        selectedIds.push(v);
-        updateHidden();
-        renderChips();
-      }
-      input.value = '';
-      closePanel();
-    });
-
-    window.addEventListener('resize', () => {
-      if (panel.style.display === 'block') positionPanel();
-    });
-
-    window.addEventListener('scroll', () => {
-      if (panel.style.display === 'block') positionPanel();
-    }, true);
-
-    document.addEventListener('mousedown', (e) => {
-      if (panel.contains(e.target) || input.contains(e.target)) return;
-      closePanel();
-    });
-
-    form.addEventListener('submit', () => {
-      updateHidden();
-    });
-
-    // init
-    updateHidden();
-    renderChips();
-  })();
-</script>
+      })();
+    </script>
 
 </body>
 

@@ -276,6 +276,7 @@ router.get('/tenant/groups', requireRole('Portal.GroupAdmin'), async (req, res) 
             groups,
             users,
             flash,
+            UI_MESSAGES,
         });
     } catch (err) {
         return handleRouteError({
@@ -317,6 +318,7 @@ router.get('/tenant/groups/:id', requireRole('Portal.GroupAdmin'), async (req, r
             helpfulInfo,
             users,
             flash,
+            UI_MESSAGES,
         });
     } catch (err) {
         return handleRouteError({
@@ -666,6 +668,7 @@ if (ssoMode === 'saml') {
             authProtocolLabel,
             users,
             flash,
+            UI_MESSAGES,
         });
     } catch (err) {
         return handleRouteError({
@@ -890,6 +893,7 @@ router.get('/tenant/roles/:id', requireRole('Portal.RoleAdmin'), async (req, res
             members,
             users,
             flash,
+            UI_MESSAGES,
         });
     } catch (err) {
         return handleRouteError({
@@ -1037,6 +1041,7 @@ router.get('/tenant/roles/portal/:appRoleId', requireRole('Portal.RoleAdmin'), a
             users,
             helpfulInfo,
             flash,
+            UI_MESSAGES,
         });
     } catch (err) {
         return handleRouteError({

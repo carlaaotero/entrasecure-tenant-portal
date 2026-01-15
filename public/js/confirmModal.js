@@ -46,7 +46,7 @@
     e.preventDefault();
     if (!pendingForm) return;
 
-    bypassOnce = true;        
+    bypassOnce = true;
     const form = pendingForm;
     closeModal();
     form.submit();            // submit real
@@ -67,12 +67,13 @@
 
       if (form.dataset.confirm !== 'true') return;
 
-      const checked = form.querySelectorAll(
-        'input[type="checkbox"]:checked'
-      ).length;
+      // Si el form té checkboxes, obliguem que n'hi hagi alguna marcada.
+      // Si NO en té (com els forms petits de "remove member/owner"), mostrem el modal igual.
+      const totalCheckboxes = form.querySelectorAll('input[type="checkbox"]').length;
+      const checked = form.querySelectorAll('input[type="checkbox"]:checked').length;
 
-      // si no hi ha res seleccionat → deixa que el backend decideixi
-      if (checked === 0) return;
+      if (totalCheckboxes > 0 && checked === 0) return;
+
 
       e.preventDefault();
 
