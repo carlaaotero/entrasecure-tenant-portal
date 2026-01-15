@@ -113,6 +113,7 @@ router.get('/tenant/users', requireRole('Portal.UserAdmin'), async (req, res) =>
             user: account,
             users,
             flash,
+            UI_MESSAGES,
         });
     } catch (err) {
         return handleRouteError({

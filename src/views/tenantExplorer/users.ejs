@@ -153,8 +153,12 @@
                     </article>
 
                     <!-- Un ÚNIC formulari que engloba les dues cards (llista + inactius) -->
-                    <form method="POST" action="/tenant/users/delete"
-                        onsubmit="return confirm('Vols eliminar els usuaris seleccionats del tenant? Aquesta acció és irreversible.');">
+                    <form method="POST" action="/tenant/users/delete" data-confirm="true"
+                        data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
+                        data-confirm-message="<%= UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE %>"
+                        data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
+                        data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
+
 
                         <!-- CARD 1: Llista completa d'usuaris -->
                         <article class="card users-card">
@@ -331,10 +335,17 @@
 
         </section>
     </main>
-
     <footer class="footer">
         <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
     </footer>
+
+    <!-- Modal (ha d'estar dins el body, al final) -->
+    <%- include('../components/confirmModal', { title: UI_MESSAGES.MODAL.CONFIRM_TITLE, message:
+        UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE, okText: UI_MESSAGES.MODAL.OK, cancelText: UI_MESSAGES.MODAL.CANCEL })
+        %>
+
+        <!-- JS del modal -->
+        <script src="/js/confirmModal.js"></script>
 
     <!-- JS: filtres + inactivitat + creació d'usuari -->
     <script>
@@ -356,16 +367,11 @@
                     const upn = (row.dataset.upn || '').toLowerCase();
                     const userType = (row.dataset.type || '').toLowerCase();
 
-                    const matchesText =
-                        !term || dn.includes(term) || upn.includes(term);
-
-                    const matchesType =
-                        type === 'all' || userType === type;
+                    const matchesText = !term || dn.includes(term) || upn.includes(term);
+                    const matchesType = type === 'all' || userType === type;
 
                     const visible = matchesText && matchesType;
-
                     row.style.display = visible ? '' : 'none';
-
                     if (visible) visibleCount++;
                 });
 
@@ -377,16 +383,14 @@
 
             // --- Card d'usuaris inactius ---
             const inactiveInput = document.getElementById('inactiveDays');
-            const inactiveRows = Array.from(
-                document.querySelectorAll('.inactive-users-table tbody tr')
-            );
+            const inactiveRows = Array.from(document.querySelectorAll('.inactive-users-table tbody tr'));
 
             function applyInactiveFilter() {
                 if (!inactiveInput) return;
 
                 const raw = inactiveInput.value;
                 let days = parseInt(raw, 10);
-                if (isNaN(days) || days < 0) days = 1; // per defecte, 1 dia
+                if (isNaN(days) || days < 0) days = 1;
 
                 const now = new Date();
 
@@ -395,37 +399,20 @@
                     const cell = row.querySelector('.inactive-days-value');
 
                     let diffDays;
-
                     if (!last) {
-                        // Sense dades de sign-in → considerem molt inactiu
                         diffDays = Infinity;
                     } else {
                         const d = new Date(last);
-                        if (isNaN(d.getTime())) {
-                            diffDays = Infinity;
-                        } else {
-                            const ms = now - d;
-                            diffDays = ms / (1000 * 60 * 60 * 24);
-                        }
+                        diffDays = isNaN(d.getTime()) ? Infinity : (now - d) / (1000 * 60 * 60 * 24);
                     }
 
-                    // Actualitzem el text "X dies" si tenim valor finite
-                    if (cell) {
-                        if (diffDays === Infinity) {
-                            cell.textContent = 'N/A';
-                        } else {
-                            cell.textContent = Math.floor(diffDays);
-                        }
-                    }
-
-                    const show = diffDays >= days;
-                    row.style.display = show ? '' : 'none';
+                    if (cell) cell.textContent = (diffDays === Infinity) ? 'N/A' : Math.floor(diffDays);
+                    row.style.display = diffDays >= days ? '' : 'none';
                 });
             }
 
             if (inactiveInput) inactiveInput.addEventListener('input', applyInactiveFilter);
 
-            // Aplicar filtres inicials
             applyUserFilters();
             applyInactiveFilter();
 
@@ -440,13 +427,10 @@
             const displayNameError = document.getElementById('displayNameError');
             const upnError = document.getElementById('upnError');
 
-            // ✅ Evita missatges natius del navegador ("Rellene este campo")
             if (createUserForm) createUserForm.setAttribute('novalidate', 'novalidate');
 
             const UPN_DOMAIN = 'carlaaoterooutlook.onmicrosoft.com';
             let upnTouched = false;
-
-            // Estat intern: true només quan la password és "forta"
             let passwordStrong = false;
 
             function clearCreateUserErrors() {
@@ -458,39 +442,29 @@
                     upnError.textContent = '';
                     upnError.classList.remove('error');
                 }
-                // Per la contrasenya NO esborrem el text de força,
-                // només traiem la marca d'error (si n'hi havia)
-                if (strengthText) {
-                    strengthText.classList.remove('error');
-                }
+                if (strengthText) strengthText.classList.remove('error');
             }
 
             function showDisplayNameError(msg) {
-                if (displayNameError) {
-                    displayNameError.textContent = msg;
-                    displayNameError.classList.add('error');
-                }
+                if (!displayNameError) return;
+                displayNameError.textContent = msg;
+                displayNameError.classList.add('error');
             }
 
             function showUpnError(msg) {
-                if (upnError) {
-                    upnError.textContent = msg;
-                    upnError.classList.add('error');
-                }
+                if (!upnError) return;
+                upnError.textContent = msg;
+                upnError.classList.add('error');
             }
 
             function showPasswordError(msg) {
-                if (strengthText) {
-                    strengthText.textContent = msg;
-                    strengthText.classList.add('error');
-                }
+                if (!strengthText) return;
+                strengthText.textContent = msg;
+                strengthText.classList.add('error');
             }
-
 
             function setCreateButtonEnabled(enabled) {
                 if (!createBtn) return;
-
-                // ⚠️ No usem disabled real, només visual + aria
                 createBtn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
                 createBtn.style.opacity = enabled ? '1' : '0.6';
                 createBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
@@ -507,7 +481,6 @@
                 setCreateButtonEnabled(isCreateFormValid());
             }
 
-            // --- Auto-UPN des del displayName ---
             function slugifyName(name) {
                 return (name || '')
                     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -540,7 +513,6 @@
                 displayNameInput.addEventListener('blur', updateUPNFromDisplayName);
             }
 
-            // --- Barra de força de contrasenya ---
             function evaluatePasswordStrength(pwd) {
                 if (!strengthBar || !strengthText) return;
 
@@ -554,9 +526,8 @@
 
                 passwordStrong = false;
 
-                if (!pwd || pwd.length === 0) {
-                    strengthText.textContent =
-                        'La contrasenya ha de tenir majúscules, minúscules, números i mínim 8 caràcters.';
+                if (!pwd) {
+                    strengthText.textContent = 'La contrasenya ha de tenir majúscules, minúscules, números i mínim 8 caràcters.';
                     updateCreateButtonState();
                     return;
                 }
@@ -566,7 +537,6 @@
                 const hasUpper = /[A-Z]/.test(pwd);
                 const hasDigit = /\d/.test(pwd);
                 const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
-
                 const categories = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
 
                 if (!lengthOK || categories <= 1) {
@@ -574,7 +544,7 @@
                     strengthBar.style.backgroundColor = '#ef4444';
                     strengthText.textContent = 'Massa dèbil. Afegeix més longitud i combinació.';
                     passwordStrong = false;
-                } else if (lengthOK && categories === 2) {
+                } else if (categories === 2) {
                     strengthBar.style.width = '66%';
                     strengthBar.style.backgroundColor = themeGrey;
                     strengthText.textContent = 'Acceptable, però recomanable afegir més categories.';
@@ -594,7 +564,6 @@
                     clearCreateUserErrors();
                     evaluatePasswordStrength(e.target.value || '');
                 });
-
                 evaluatePasswordStrength('');
             }
 
@@ -610,36 +579,15 @@
                     const upn = (upnInput && upnInput.value || '').trim();
                     const pw = (passwordInput && passwordInput.value || '').trim();
 
-                    if (!dn) {
-                        showDisplayNameError("Has d'omplir el Display Name.");
-                        displayNameInput && displayNameInput.focus();
-                        return;
-                    }
-
-                    if (!upn) {
-                        showUpnError("Has d'omplir el UPN.");
-                        upnInput && upnInput.focus();
-                        return;
-                    }
-
-                    if (!pw) {
-                        showPasswordError("Has d'omplir la contrasenya inicial.");
-                        passwordInput && passwordInput.focus();
-                        return;
-                    }
-
-                    if (!passwordStrong) {
-                        showPasswordError("La contrasenya no compleix els requisits mínims.");
-                        passwordInput && passwordInput.focus();
-                        return;
-                    }
+                    if (!dn) { showDisplayNameError("Has d'omplir el Display Name."); displayNameInput && displayNameInput.focus(); return; }
+                    if (!upn) { showUpnError("Has d'omplir el UPN."); upnInput && upnInput.focus(); return; }
+                    if (!pw) { showPasswordError("Has d'omplir la contrasenya inicial."); passwordInput && passwordInput.focus(); return; }
+                    if (!passwordStrong) { showPasswordError("La contrasenya no compleix els requisits mínims."); passwordInput && passwordInput.focus(); return; }
 
                     showPasswordError("Has d'omplir tots els camps i posar una contrasenya forta.");
                 });
             }
 
-
-            // Seguretat: si algú envia el form igualment, bloquegem si no és vàlid
             if (createUserForm) {
                 createUserForm.addEventListener('submit', (e) => {
                     if (!isCreateFormValid()) {
@@ -650,13 +598,11 @@
                 });
             }
 
-            // Estat inicial del botó
             updateCreateButtonState();
-
-
         })();
     </script>
 
+    
 </body>
 
 </html>

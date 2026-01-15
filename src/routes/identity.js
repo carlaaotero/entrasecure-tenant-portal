@@ -1,4 +1,26 @@
-// La ruta pel mòdul "My Identity" ---- mostra el perfil de l'usuari que s'ha autenticat
+/**
+ * src/routes/identity.js
+ * ---------------------
+ * Mòdul "My Identity" (ruta /me).
+ *
+ * Objectiu:
+ *  - Mostrar la identitat de l’usuari autenticat (objecte /me)
+ *  - Mostrar el seu context IAM:
+ *      - Grup(s) als quals pertany
+ *      - Directory roles (rols del tenant)
+ *      - App role assignments (rols a aplicacions)
+ *      - Dispositius registrats
+ *
+ * Arquitectura:
+ *  - Autenticació: req.session.user (MSAL AccountInfo)
+ *  - Accés a dades: Microsoft Graph (tokens delegats)
+ *  - Errors: centralitzats amb handleRouteError (graphErrorHandler)
+ *
+ * Nota important (bucle 403):
+ *  - Si Graph retorna un 403/401 i redirigim a /me, podríem crear un bucle infinit.
+ *  - Per evitar-ho, usem un flag "blocked=1" que renderitza la vista amb dades buides
+ *    però mostrant el missatge d’error (flash).
+ */
 
 const express = require('express');
 const router = express.Router();
@@ -8,6 +30,7 @@ const { UI_MESSAGES } = require('../messages/uiMessages');
 const { getTokenForGraph } = require('../auth/AuthProvider');
 const { handleRouteError } = require('../errors/graphErrorHandler');
 const { requireAuth } = require('../middleware/rbac'); // Middleware per protegir rutes: si no hi ha sessió, envia a login
+
 const {
   getUserIdentity,
   getUserMemberOf,
@@ -16,11 +39,12 @@ const {
 } = require('../controllers/graphController');
 
 
-// GET /me -> pàgina "My Identity"
+// GET /me - Renderitza la pàgina "My Identity" per l’usuari autenticat
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const account = req.session.user;
 
+    // Flash messages (UX consistent: informació, errors, etc.)
     const flash = req.session.flash || null;
     req.session.flash = null;
 
@@ -42,7 +66,7 @@ router.get('/me', requireAuth, async (req, res) => {
     // 1) Access token per Graph
     const accessToken = await getTokenForGraph(account);
 
-    // 2) Crides en paral·lel a Graph
+    // 2) Crides principals en paral·lel a Graph
     const [userProfile, memberOfRaw, appRoleAssignments, devices] =
       await Promise.all([
         getUserIdentity(accessToken),
@@ -61,13 +85,13 @@ router.get('/me', requireAuth, async (req, res) => {
     );
 
     // 4) Preparar dades per la vista
-    const roles = directoryRoles; // per ara, mostrem ROLES de directori tal qual
-    const apps = appRoleAssignments; // llista d'aplicacions on té rols
-    const userDevices = devices; // dispositius registrats
+    const roles = directoryRoles; 
+    const apps = appRoleAssignments; 
+    const userDevices = devices; 
 
     res.render('identity', {
       title: UI_MESSAGES.TITLES.MY_IDENTITY,
-      user: account,          // per a la navbar (nom, inicial, etc.)
+      user: account,
       userProfile,
       groups,
       roles,

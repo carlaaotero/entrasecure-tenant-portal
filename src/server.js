@@ -58,10 +58,11 @@ app.get('/health', (_req, res) => {
 
 // 404
 app.use((req, res) => {
-    res.status(404).render('index', {
-        title: 'Pàgina no trobada',
-        user: null,
-    });
+     res.status(404).render('index', {
+    title: 'Pàgina no trobada',
+    user: req.session?.user || null,
+    flash: req.session?.flash || null,
+  });
 });
 
 // Start server

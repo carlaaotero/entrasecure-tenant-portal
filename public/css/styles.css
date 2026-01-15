@@ -324,3 +324,31 @@ a:hover {
 
 
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal {
+  background: #fff;
+  width: min(520px, 92vw);
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+
+.modal-title { margin: 0 0 10px; }
+.modal-message { margin: 0 0 18px; }
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.is-hidden { display: none; }
