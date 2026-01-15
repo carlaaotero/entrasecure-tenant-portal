@@ -31,7 +31,7 @@ const ERROR_MESSAGES = {
 
 
 
-    // --- USERSS ---
+    // --- USERS ---
     USERS_CREATE_MISSING_FIELDS:
         "Has d'omplir tots els camps per crear l'usuari (nom, UPN i contrasenya).",
     USERS_DELETE_NO_SELECTION:
@@ -53,6 +53,14 @@ const ERROR_MESSAGES = {
     // --- APPS ---
     APP_NO_OWNER_SELECTED: "No has indicat cap owner per afegir.",
     APP_NO_ASSIGNEE_SELECTED: "No has indicat cap member/grup per assignar.",
+
+    // --- ROLES ---
+    ROLES_ADD_MEMBERS_NO_SELECTION:
+        "No has indicat cap member per afegir al rol.",
+    ROLES_PORTAL_ASSIGN_NO_SELECTION:
+        "No has seleccionat cap usuari per assignar a aquest portal role.",
+
+
 };
 
 module.exports = { ERROR_MESSAGES };

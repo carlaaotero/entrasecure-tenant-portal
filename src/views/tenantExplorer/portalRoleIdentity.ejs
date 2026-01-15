@@ -50,6 +50,18 @@
     </nav>
 
     <main class="identity-main roles-page">
+
+      <% if (flash && flash.message) { %>
+    <div class="identity-flash-wrapper">
+      <div class="card flash-card">
+        <strong>
+          <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info') %>:
+        </strong>
+        <span><%= flash.message %></span>
+      </div>
+    </div>
+  <% } %>
+  
         <section class="identity-layout">
 
             <% if (flash && flash.type==='error' ) { %>

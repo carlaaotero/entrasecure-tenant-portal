@@ -4,11 +4,10 @@ const router = express.Router();
 
 const { getTokenForGraph } = require('../auth/AuthProvider');
 const { callGraphDELETE, callGraph, callGraphPOST } = require('../controllers/graphController');
-const { requireRole } = require('../middleware/rbac');
+const { requireRole, requireAuth } = require('../middleware/rbac'); // Middleware per protegir rutes: si no hi ha sessió, envia a login
 const { PRIVILEGED_DIRECTORY_ROLE_KEYWORDS } = require('../controllers/securityController');
 const { handleRouteError } = require('../errors/graphErrorHandler');
 const { ERROR_MESSAGES } = require('../errors/errorCatalog');
-const { requireAuth } = require('../middleware/rbac'); // Middleware per protegir rutes: si no hi ha sessió, envia a login
 
 const {
     //Users
@@ -53,7 +52,6 @@ const {
     getDirectoryRoleMembers,
     //addGroupToDirectoryRole,
     addUserToDirectoryRole,
-    resolveUserIdByUPN,
     findActivatedDirectoryRoleByTemplateId,
     activateDirectoryRole,
 
@@ -819,6 +817,7 @@ router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireRole('
 
 // GET /tenant/roles
 router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) => {
+    const flash = consumeFlash(req);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -839,7 +838,7 @@ router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) =>
             .filter(r => r.isEnabled)
             .filter(r => (r.allowedMemberTypes || []).includes('User')) // important: assignació a usuaris
             .map(r => ({
-                id: r.id, // ✅ això evita "undefined"
+                id: r.id, // això evita "undefined"
                 key: r.value || r.displayName || '(Unnamed)',
                 description: r.description || '',
                 displayName: r.displayName || r.value || ''
@@ -869,10 +868,6 @@ router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) =>
 
         const roleTemplates = await getDirectoryRoleTemplates(accessToken);
 
-
-        const flash = req.session.flash;
-        req.session.flash = null;
-
         res.render('tenantExplorer/roles', {
             title: 'Roles',
             user: account,
@@ -883,13 +878,17 @@ router.get('/tenant/roles', requireRole('Portal.RoleAdmin'), async (req, res) =>
             flash,
         });
     } catch (err) {
-        console.error('Error carregant /tenant/roles:', err);
-        res.status(500).send("No s'ha pogut carregar el mòdul de Roles");
+        return handleRouteError({
+            req, res, err,
+            actionKey: 'roles.list',
+            redirectTo: '/tenant/roles',
+        });
     }
 });
 
 
 router.get('/tenant/roles/:id', requireRole('Portal.RoleAdmin'), async (req, res) => {
+    const flash = consumeFlash(req);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -905,19 +904,23 @@ router.get('/tenant/roles/:id', requireRole('Portal.RoleAdmin'), async (req, res
             role,
             members,
             users,
+            flash,
         });
     } catch (err) {
-        console.error('Error carregant /tenant/roles/:id:', err.message || err);
-        res.status(500).send("No s'ha pogut carregar el detall del rol");
+        return handleRouteError({
+            req, res, err,
+            actionKey: 'roles.read',
+            redirectTo: '/tenant/roles',
+        });
     }
 });
 
 
 router.post('/tenant/roles/:roleId/members/add', requireRole('Portal.RoleAdmin'), async (req, res) => {
+    const roleId = req.params.roleId;
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
-        const roleId = req.params.roleId;
 
         const { memberKeys } = req.body;
 
@@ -925,6 +928,11 @@ router.post('/tenant/roles/:roleId/members/add', requireRole('Portal.RoleAdmin')
             .split(',')
             .map(s => s.trim())
             .filter(Boolean);
+
+        if (keys.length === 0) {
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.ROLES_ADD_MEMBERS_NO_SELECTION };
+            return res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
+        }
 
         for (const key of keys) {
             // Resol UPN o ID -> objectId
@@ -935,30 +943,39 @@ router.post('/tenant/roles/:roleId/members/add', requireRole('Portal.RoleAdmin')
             await addUserToDirectoryRole(accessToken, roleId, userId);
         }
 
-        res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
+        req.session.flash = { type: 'success', message: 'Membres afegits correctament.' };
+        return res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
     } catch (err) {
-        console.error('Error afegint usuaris al rol:', err.message || err);
-        res.status(500).send("No s'ha pogut afegir l'usuari al rol");
+        return handleRouteError({
+            req, res, err,
+            actionKey: 'roles.members.add',
+            redirectTo: `/tenant/roles/${encodeURIComponent(roleId)}`,
+        });
     }
 });
 
 
 router.post('/tenant/roles/:roleId/members/:memberId/remove', requireRole('Portal.RoleAdmin'), async (req, res) => {
+    const { roleId, memberId } = req.params;
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
 
-        const { roleId, memberId } = req.params;
+
 
         await callGraphDELETE(
             `/directoryRoles/${roleId}/members/${memberId}/$ref`,
             accessToken
         );
 
-        res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
+        req.session.flash = { type: 'success', message: 'Member eliminat del rol.' };
+        return res.redirect(`/tenant/roles/${encodeURIComponent(roleId)}`);
     } catch (err) {
-        console.error("Error eliminant member del rol:", err);
-        res.status(500).send("No s'ha pogut eliminar el member del rol");
+        return handleRouteError({
+            req, res, err,
+            actionKey: 'roles.members.remove',
+            redirectTo: `/tenant/roles/${encodeURIComponent(roleId)}`,
+        });
     }
 });
 
@@ -995,6 +1012,7 @@ router.post('/tenant/roles/activate', requireAuth, async (req, res) => {
 
 // GET /tenant/roles/portal/:appRoleId
 router.get('/tenant/roles/portal/:appRoleId', requireRole('Portal.RoleAdmin'), async (req, res) => {
+    const flash = consumeFlash(req);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -1027,9 +1045,6 @@ router.get('/tenant/roles/portal/:appRoleId', requireRole('Portal.RoleAdmin'), a
         // 4) Llista d'usuaris per dropdown
         const users = await getAllUsers(accessToken);
 
-        const flash = req.session.flash || null;
-        req.session.flash = null;
-
         const helpfulInfo =
             "RBAC intern del portal basat en App Roles. Amb Entra ID Free, " +
             "les assignacions es realitzen directament a usuaris. " +
@@ -1046,8 +1061,11 @@ router.get('/tenant/roles/portal/:appRoleId', requireRole('Portal.RoleAdmin'), a
             flash,
         });
     } catch (err) {
-        console.error('PortalRoleIdentity error:', err);
-        res.status(500).send("No s'ha pogut carregar el portal role");
+        return handleRouteError({
+            req, res, err,
+            actionKey: 'roles.portal.read',
+            redirectTo: '/tenant/roles',
+        });
     }
 });
 
@@ -1073,6 +1091,11 @@ router.post('/tenant/roles/portal/:appRoleId/assignments/add', requireRole('Port
         const raw = req.body.userIds || '';
         const userIds = raw.split(',').map(s => s.trim()).filter(Boolean);
 
+        if (userIds.length === 0) {
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.ROLES_PORTAL_ASSIGN_NO_SELECTION };
+            return res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
+        }
+
         for (const uid of userIds) {
             await callGraphPOST(`/servicePrincipals/${portalSp.id}/appRoleAssignedTo`, accessToken, {
                 principalId: uid,         // USER objectId
@@ -1081,12 +1104,16 @@ router.post('/tenant/roles/portal/:appRoleId/assignments/add', requireRole('Port
             });
         }
 
+        
+
         req.session.flash = { type: 'success', message: 'Usuaris assignats correctament.' };
-        res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
+        return res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
     } catch (err) {
-        console.error('Assign portal role error:', err);
-        req.session.flash = { type: 'error', message: 'No s’ha pogut assignar el rol.' };
-        res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
+        return handleRouteError({
+            req, res, err,
+            actionKey: 'roles.portal.assign.add',
+            redirectTo: `/tenant/roles/portal/${encodeURIComponent(appRoleId)}`,
+        });
     }
 });
 
@@ -1111,11 +1138,13 @@ router.post('/tenant/roles/portal/:appRoleId/assignments/:assignmentId/remove', 
         await callGraphDELETE(`/servicePrincipals/${portalSp.id}/appRoleAssignedTo/${assignmentId}`, accessToken);
 
         req.session.flash = { type: 'success', message: 'Assignació eliminada.' };
-        res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
+        return res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
     } catch (err) {
-        console.error('Remove portal role assignment error:', err);
-        req.session.flash = { type: 'error', message: 'No s’ha pogut eliminar l’assignació.' };
-        res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
+        return handleRouteError({
+            req, res, err,
+            actionKey: 'roles.portal.assign.remove',
+            redirectTo: `/tenant/roles/portal/${encodeURIComponent(appRoleId)}`,
+        });
     }
 });
 
