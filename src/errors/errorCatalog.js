@@ -48,6 +48,11 @@ const ERROR_MESSAGES = {
         "No has indicat cap owner per afegir.",
     GROUPS_ADD_MEMBERS_NO_SELECTION:
         "No has indicat cap member per afegir.",
+
+
+    // --- APPS ---
+    APP_NO_OWNER_SELECTED: "No has indicat cap owner per afegir.",
+    APP_NO_ASSIGNEE_SELECTED: "No has indicat cap member/grup per assignar.",
 };
 
 module.exports = { ERROR_MESSAGES };
