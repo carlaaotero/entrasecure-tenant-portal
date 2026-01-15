@@ -31,11 +31,23 @@ const ERROR_MESSAGES = {
 
 
 
-    // USERS //
+    // --- USERSS ---
     USERS_CREATE_MISSING_FIELDS:
         "Has d'omplir tots els camps per crear l'usuari (nom, UPN i contrasenya).",
     USERS_DELETE_NO_SELECTION:
         "No has seleccionat cap usuari per eliminar.",
+
+    // --- GROUPS ---
+    GROUPS_CREATE_MISSING_FIELDS:
+        "Cal indicar el nom del grup, la descripció i el tipus de grup.",
+    GROUPS_CREATE_NO_OWNERS:
+        "Cal indicar com a mínim un owner del grup.",
+    GROUPS_DELETE_NO_SELECTION:
+        "No has seleccionat cap grup per eliminar.",
+    GROUPS_ADD_OWNERS_NO_SELECTION:
+        "No has indicat cap owner per afegir.",
+    GROUPS_ADD_MEMBERS_NO_SELECTION:
+        "No has indicat cap member per afegir.",
 };
 
 module.exports = { ERROR_MESSAGES };

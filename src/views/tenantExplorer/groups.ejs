@@ -69,169 +69,182 @@
         </p>
       </header>
 
-      <!-- CARD / CREAR NOU GRUP -->
-      <article class="card users-card create-user-card">
-        <div class="users-card-header">
-          <div class="users-header-left">
-            <h2>Crear un grup nou</h2>
-            <p class="users-meta">
-              Dona d'alta un grup de seguretat o Microsoft 365 al tenant.
-            </p>
-          </div>
+      <% if (flash && flash.message) { %>
+        <div class="card" style="margin: 12px 0; padding: 12px;">
+          <strong>
+            <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+          </strong>
+          <span>
+            <%= flash.message %>
+          </span>
         </div>
+        <% } %>
 
-        <form id="createGroupForm" method="POST" action="/tenant/groups/create" class="create-user-form">
-          <div class="users-card-body create-user-body">
 
-            <div class="create-user-grid">
-              <!-- Columna esquerra -->
-              <div class="create-user-col">
-                <div class="form-group">
-                  <label for="newGroupDisplayName">Group name</label>
-                  <input id="newGroupDisplayName" type="text" name="displayName" class="users-input"
-                    autocomplete="off" />
-                </div>
-
-                <div class="form-group">
-                  <label for="newGroupDescription">Group description</label>
-                  <textarea id="newGroupDescription" name="description" rows="3" class="users-input"></textarea>
-                </div>
-
-                <div class="form-group">
-                  <label for="newGroupOwnersInput">Owners del grup</label>
-                  <input id="newGroupOwnersInput" type="text" class="users-input"
-                    placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
-                  <small class="field-hint">
-                    Cerca i selecciona usuaris del tenant, o escriu el seu UPN manualment i prem Enter.
-                  </small>
-
-                  <!-- Dropdown amb usuaris -->
-                  <div id="ownersDropdown" class="owners-dropdown" style="display:none;"></div>
-
-                  <!-- Llista visual d'owners seleccionats -->
-                  <div id="ownersChips" class="owners-chip-list"></div>
-
-                  <!-- Valor real que s'enviarà al servidor: upn1,upn2,... -->
-                  <input type="hidden" name="ownerUpns" id="ownersHidden" />
-                </div>
-              </div>
-
-              <!-- Columna dreta -->
-              <div class="create-user-col">
-                <div class="form-group">
-                  <label for="newGroupType">Group type</label>
-                  <select id="newGroupType" name="groupType" class="users-input">
-                    <option value="security">Security</option>
-                    <option value="m365">Microsoft 365</option>
-                  </select>
-                  <small class="field-hint">
-                    Security: grup per permisos. Microsoft 365: correu, Teams, etc.
-                  </small>
-                </div>
-
-                <p class="field-hint">
-                  El grup es crearà com a <strong>Cloud</strong>. Els grups sincronitzats
-                  des d'Active Directory no es poden crear des del portal.
+          <!-- CARD / CREAR NOU GRUP -->
+          <article class="card users-card create-user-card">
+            <div class="users-card-header">
+              <div class="users-header-left">
+                <h2>Crear un grup nou</h2>
+                <p class="users-meta">
+                  Dona d'alta un grup de seguretat o Microsoft 365 al tenant.
                 </p>
               </div>
             </div>
 
-            <div class="create-user-actions">
-              <button id="createGroupBtn" type="submit" class="btn btn-primary">
-                Crear grup
-              </button>
-              <p id="createGroupError" class="field-hint" style="color:#dc2626; margin-top:0.5rem; display:none;">
-                Per crear un grup cal indicar <strong>Group name</strong>,
-                <strong>Group description</strong> i com a mínim <strong>un owner</strong>.
-              </p>
-            </div>
-          </div>
-        </form>
-      </article>
+            <form id="createGroupForm" method="POST" action="/tenant/groups/create" class="create-user-form">
+              <div class="users-card-body create-user-body">
 
-      <!-- Formulari per eliminar grups seleccionats -->
-      <form method="POST" action="/tenant/groups/delete"
-        onsubmit="return confirm('Vols eliminar els grups seleccionats del tenant? Aquesta acció és irreversible.');">
+                <div class="create-user-grid">
+                  <!-- Columna esquerra -->
+                  <div class="create-user-col">
+                    <div class="form-group">
+                      <label for="newGroupDisplayName">Group name</label>
+                      <input id="newGroupDisplayName" type="text" name="displayName" class="users-input"
+                        autocomplete="off" />
+                      <small id="groupNameError" class="field-hint"></small>
+                    </div>
 
-        <article class="card users-card">
-          <div class="users-card-header">
-            <div class="users-header-left">
-              <h2>Llista de grups</h2>
-              <p class="users-meta">
-                <span class="users-meta-count">
-                  <%= groups && groups.length ? groups.length : 0 %>
-                </span> grups trobats
-              </p>
-            </div>
+                    <div class="form-group">
+                      <label for="newGroupDescription">Group description</label>
+                      <textarea id="newGroupDescription" name="description" rows="3" class="users-input"></textarea>
+                      <small id="groupDescError" class="field-hint"></small>
+                    </div>
 
-            <div class="users-header-right">
-              <div class="users-filters">
-                <input id="groupSearch" type="text" class="users-search-input" placeholder="Cerca per nom"
-                  onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
+                    <div class="form-group">
+                      <label for="newGroupOwnersInput">Owners del grup</label>
+                      <input id="newGroupOwnersInput" type="text" class="users-input"
+                        placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
+                      <small class="field-hint">
+                        Cerca i selecciona usuaris del tenant, o escriu el seu UPN manualment i prem Enter.
+                      </small>
 
-                <select id="groupTypeFilter" class="users-type-filter">
-                  <option value="all">Tots els tipus</option>
-                  <option value="security">Security</option>
-                  <option value="m365">Microsoft 365</option>
-                </select>
+                      <!-- Dropdown amb usuaris -->
+                      <div id="ownersDropdown" class="owners-dropdown" style="display:none;"></div>
 
-                <select id="groupSourceFilter" class="users-type-filter">
-                  <option value="all">Tots els orígens</option>
-                  <option value="cloud">Cloud</option>
-                  <option value="synced">Synced (AD)</option>
-                </select>
+                      <!-- Llista visual d'owners seleccionats -->
+                      <div id="ownersChips" class="owners-chip-list"></div>
+
+                      <!-- Valor real que s'enviarà al servidor: upn1,upn2,... -->
+                      <input type="hidden" name="ownerUpns" id="ownersHidden" />
+
+                      <small id="groupOwnersError" class="field-hint"></small>
+
+                    </div>
+                  </div>
+
+                  <!-- Columna dreta -->
+                  <div class="create-user-col">
+                    <div class="form-group">
+                      <label for="newGroupType">Group type</label>
+                      <select id="newGroupType" name="groupType" class="users-input">
+                        <option value="security">Security</option>
+                        <option value="m365">Microsoft 365</option>
+                      </select>
+                      <small class="field-hint">
+                        Security: grup per permisos. Microsoft 365: correu, Teams, etc.
+                      </small>
+                    </div>
+
+                    <p class="field-hint">
+                      El grup es crearà com a <strong>Cloud</strong>. Els grups sincronitzats
+                      des d'Active Directory no es poden crear des del portal.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="create-user-actions">
+                  <button id="createGroupBtn" type="submit" class="btn btn-primary">
+                    Crear grup
+                  </button>
+                </div>
+              </div>
+            </form>
+          </article>
+
+          <!-- Formulari per eliminar grups seleccionats -->
+          <form method="POST" action="/tenant/groups/delete"
+            onsubmit="return confirm('Vols eliminar els grups seleccionats del tenant? Aquesta acció és irreversible.');">
+
+            <article class="card users-card">
+              <div class="users-card-header">
+                <div class="users-header-left">
+                  <h2>Llista de grups</h2>
+                  <p class="users-meta">
+                    <span class="users-meta-count">
+                      <%= groups && groups.length ? groups.length : 0 %>
+                    </span> grups trobats
+                  </p>
+                </div>
+
+                <div class="users-header-right">
+                  <div class="users-filters">
+                    <input id="groupSearch" type="text" class="users-search-input" placeholder="Cerca per nom"
+                      onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
+
+                    <select id="groupTypeFilter" class="users-type-filter">
+                      <option value="all">Tots els tipus</option>
+                      <option value="security">Security</option>
+                      <option value="m365">Microsoft 365</option>
+                    </select>
+
+                    <select id="groupSourceFilter" class="users-type-filter">
+                      <option value="all">Tots els orígens</option>
+                      <option value="cloud">Cloud</option>
+                      <option value="synced">Synced (AD)</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary">
+                    Eliminar seleccionats
+                  </button>
+                </div>
               </div>
 
-              <button type="submit" class="btn btn-primary">
-                Eliminar seleccionats
-              </button>
-            </div>
-          </div>
-
-          <div class="users-card-body">
-            <% if (groups && groups.length> 0) { %>
-              <table class="users-table">
-                <thead>
-                  <tr>
-                    <th>Group name</th>
-                    <th>Group type</th>
-                    <th>Source</th>
-                    <th>Seleccionar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% groups.forEach(function (g) { const types=g.groupTypes || []; const
-                    isM365=types.includes('Unified'); const typeLabel=isM365 ? 'Microsoft 365' : 'Security' ; const
-                    typeValue=isM365 ? 'm365' : 'security' ; const sourceLabel=g.onPremisesSyncEnabled ? 'Synced (AD)'
-                    : 'Cloud' ; %>
-                    <tr data-display-name="<%= g.displayName || '' %>" data-type="<%= typeValue %>"
-                      data-source="<%= sourceLabel.toLowerCase().includes('synced') ? 'synced' : 'cloud' %>">
-                      <td>
-                        <a href="/tenant/groups/<%= encodeURIComponent(g.id) %>" class="users-link">
-                          <%= g.displayName || '(Sense nom)' %>
-                        </a>
-                      </td>
-                      <td>
-                        <%= typeLabel %>
-                      </td>
-                      <td>
-                        <%= sourceLabel %>
-                      </td>
-                      <td class="users-select-cell">
-                        <input type="checkbox" name="groupIds" value="<%= g.id %>" />
-                      </td>
-                    </tr>
-                    <% }); %>
-                </tbody>
-              </table>
-              <% } else { %>
-                <p class="users-empty">
-                  No s'ha trobat cap grup o no es pot llegir la informació.
-                </p>
-                <% } %>
-          </div>
-        </article>
-      </form>
+              <div class="users-card-body">
+                <% if (groups && groups.length> 0) { %>
+                  <table class="users-table">
+                    <thead>
+                      <tr>
+                        <th>Group name</th>
+                        <th>Group type</th>
+                        <th>Source</th>
+                        <th>Seleccionar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% groups.forEach(function (g) { const types=g.groupTypes || []; const
+                        isM365=types.includes('Unified'); const typeLabel=isM365 ? 'Microsoft 365' : 'Security' ; const
+                        typeValue=isM365 ? 'm365' : 'security' ; const sourceLabel=g.onPremisesSyncEnabled
+                        ? 'Synced (AD)' : 'Cloud' ; %>
+                        <tr data-display-name="<%= g.displayName || '' %>" data-type="<%= typeValue %>"
+                          data-source="<%= sourceLabel.toLowerCase().includes('synced') ? 'synced' : 'cloud' %>">
+                          <td>
+                            <a href="/tenant/groups/<%= encodeURIComponent(g.id) %>" class="users-link">
+                              <%= g.displayName || '(Sense nom)' %>
+                            </a>
+                          </td>
+                          <td>
+                            <%= typeLabel %>
+                          </td>
+                          <td>
+                            <%= sourceLabel %>
+                          </td>
+                          <td class="users-select-cell">
+                            <input type="checkbox" name="groupIds" value="<%= g.id %>" />
+                          </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                  </table>
+                  <% } else { %>
+                    <p class="users-empty">
+                      No s'ha trobat cap grup o no es pot llegir la informació.
+                    </p>
+                    <% } %>
+              </div>
+            </article>
+          </form>
     </section>
   </main>
 
@@ -239,7 +252,7 @@
     <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
   </footer>
 
-    <!-- JS: filtres + creació de grup (owners + dropdown + validació) -->
+  <!-- JS: filtres + creació de grup (owners + dropdown + validació) -->
   <script>
     (function () {
       // --- Filtres de la taula de grups ---
@@ -286,11 +299,35 @@
       const groupDescInput = document.getElementById('newGroupDescription');
       const createGroupForm = document.getElementById('createGroupForm');
       const createGroupError = document.getElementById('createGroupError');
+      const groupNameError = document.getElementById('groupNameError');
+      const groupDescError = document.getElementById('groupDescError');
+      const groupOwnersError = document.getElementById('groupOwnersError');
+
 
       // Usuaris del tenant injectats des del servidor
       const allUsers = <%- JSON.stringify(users || []) %>;
 
       const owners = [];
+
+      function themeHintColor() {
+        const rootStyles = getComputedStyle(document.documentElement);
+        return (rootStyles.getPropertyValue('--color2') || '#504845').trim();
+      }
+
+      function clearGroupErrors() {
+        [groupNameError, groupDescError, groupOwnersError].forEach(el => {
+          if (!el) return;
+          el.textContent = '';
+          el.style.color = '';
+        });
+      }
+
+      function setGroupError(el, msg) {
+        if (!el) return;
+        el.textContent = msg;
+        el.style.color = themeHintColor();
+      }
+
 
       function updateOwnersHidden() {
         if (ownersHidden) {
@@ -363,7 +400,7 @@
         ownersDropdown.appendChild(header);
         ownersDropdown.appendChild(list);
 
-                function renderList(filterTerm = '') {
+        function renderList(filterTerm = '') {
           const term = (filterTerm || '').trim().toLowerCase();
           list.innerHTML = '';
 
@@ -469,6 +506,7 @@
 
       if (createGroupForm) {
         createGroupForm.addEventListener('submit', (e) => {
+          clearGroupErrors();
           if (createGroupError) {
             createGroupError.style.display = 'none';
           }
@@ -490,6 +528,10 @@
 
           if (!hasName || !hasDescription || !hasAtLeastOneOwner) {
             e.preventDefault();
+
+            if (!hasName) setGroupError(groupNameError, "Has d'omplir el Group name.");
+            if (!hasDescription) setGroupError(groupDescError, "Has d'omplir la descripció.");
+            if (!hasAtLeastOneOwner) setGroupError(groupOwnersError, "Has d'afegir com a mínim un owner (UPN o seleccionat).");
 
             if (createGroupError) {
               createGroupError.style.display = 'block';

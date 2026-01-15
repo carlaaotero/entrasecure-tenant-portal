@@ -189,7 +189,7 @@ router.post('/tenant/users/create', requireRole('Portal.UserAdmin'), async (req,
     }
 
     try {
-        
+
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
 
@@ -259,6 +259,7 @@ router.post('/tenant/users/delete', requireRole('Portal.UserAdmin'), async (req,
 
 // GET /tenant/groups -> vista completa de tots els groups del tenant
 router.get('/tenant/groups', requireRole('Portal.GroupAdmin'), async (req, res) => {
+    const flash = consumeFlash(req);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -274,16 +275,23 @@ router.get('/tenant/groups', requireRole('Portal.GroupAdmin'), async (req, res) 
             user: account,  // per la navbar
             groups,
             users,
+            flash,
         });
     } catch (err) {
-        console.error('Error carregant /tenant/groups:', err);
-        res.status(500).send('Error carregant els grups del tenant');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'groups.list',
+            redirectTo: '/tenant/groups',
+        });
     }
 });
 
 
 // Detall d'un grup concret del tenant
 router.get('/tenant/groups/:id', requireRole('Portal.GroupAdmin'), async (req, res) => {
+    const flash = consumeFlash(req);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -311,10 +319,16 @@ router.get('/tenant/groups/:id', requireRole('Portal.GroupAdmin'), async (req, r
             appAssignments,
             helpfulInfo,
             users,
+            flash,
         });
     } catch (err) {
-        console.error('Error carregant /tenant/groups/:id:', err);
-        res.status(500).send('Error carregant el detall del grup');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'groups.read',
+            redirectTo: '/tenant/groups',
+        });
     }
 });
 
@@ -329,9 +343,8 @@ router.post('/tenant/groups/create', requireRole('Portal.GroupAdmin'), async (re
 
         // 1) Validacions bàsiques de camps obligatoris
         if (!displayName || !groupType || !description) {
-            return res
-                .status(400)
-                .send('Cal indicar el nom del grup, la justificació i el tipus de grup.');
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.GROUPS_CREATE_MISSING_FIELDS };
+            return res.redirect('/tenant/groups');
         }
 
         // 2) Processar la llista d’owners del formulari
@@ -342,9 +355,8 @@ router.post('/tenant/groups/create', requireRole('Portal.GroupAdmin'), async (re
 
         if (ownerList.length === 0) {
             // No han afegit cap owner manualment
-            return res
-                .status(400)
-                .send('Cal indicar com a mínim un owner del grup.');
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.GROUPS_CREATE_NO_OWNERS };
+            return res.redirect('/tenant/groups');
         }
 
         // 3) Calcular mailNickname a partir del nom
@@ -390,10 +402,16 @@ router.post('/tenant/groups/create', requireRole('Portal.GroupAdmin'), async (re
             await addOwnersToGroup(accessToken, groupId, ownerList);
         }
 
-        res.redirect('/tenant/groups');
+        req.session.flash = { type: 'success', message: `Grup creat: ${displayName}` };
+        return res.redirect('/tenant/groups');
     } catch (err) {
-        console.error('Error a /tenant/groups/create:', err);
-        res.status(500).send('Error creant el grup');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'groups.create',
+            redirectTo: '/tenant/groups',
+        });
     }
 });
 
@@ -408,27 +426,35 @@ router.post('/tenant/groups/delete', requireRole('Portal.GroupAdmin'), async (re
 
         // Si no s'ha seleccionat cap grup, simplement tornem a la llista
         if (!groupIds) {
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.GROUPS_DELETE_NO_SELECTION };
             return res.redirect('/tenant/groups');
         }
+
+        const count = Array.isArray(groupIds) ? groupIds.length : 1;
 
         // groupIds pot ser un string (1 grup) o un array (varis grups)
         await deleteGroups(accessToken, groupIds);
 
-        // Més endavant afegir missatge de "X grups eliminats"
+        req.session.flash = { type: 'success', message: `Grups eliminats: ${count}` };
         res.redirect('/tenant/groups');
     } catch (err) {
-        console.error('Error a /tenant/groups/delete:', err);
-        res.status(500).send('Error eliminant grups del tenant');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'groups.delete',
+            redirectTo: '/tenant/groups',
+        });
     }
 });
 
 
 // Afegir owners a un grup existent (des del detall del grup)
 router.post('/tenant/groups/:id/owners/add', requireRole('Portal.GroupAdmin'), async (req, res) => {
+    const groupId = req.params.id;
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
-        const groupId = req.params.id;
 
         const { ownerKeys } = req.body; // un string "upn1,upn2" o un sol valor
 
@@ -437,24 +463,33 @@ router.post('/tenant/groups/:id/owners/add', requireRole('Portal.GroupAdmin'), a
             .map(s => s.trim())
             .filter(Boolean);
 
-        if (keys.length > 0) {
-            await addOwnersToGroup(accessToken, groupId, keys);
+        if (keys.length === 0) {
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.GROUPS_ADD_OWNERS_NO_SELECTION };
+            return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
         }
 
-        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
+        await addOwnersToGroup(accessToken, groupId, keys);
+
+        req.session.flash = { type: 'success', message: 'Owners afegits correctament.' };
+        return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
     } catch (err) {
-        console.error('Error afegint owners al grup:', err);
-        res.status(500).send('No s\'ha pogut afegir owners al grup');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'groups.owners.add',
+            redirectTo: `/tenant/groups/${encodeURIComponent(groupId)}`,
+        });
     }
 });
 
 
 // Afegir members a un grup existent (des del detall del grup)
 router.post('/tenant/groups/:id/members/add', requireRole('Portal.GroupAdmin'), async (req, res) => {
+    const groupId = req.params.id;
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
-        const groupId = req.params.id;
 
         const { memberKeys } = req.body; // string "upn1,upn2" o un sol valor
 
@@ -463,58 +498,74 @@ router.post('/tenant/groups/:id/members/add', requireRole('Portal.GroupAdmin'), 
             .map(s => s.trim())
             .filter(Boolean);
 
-        if (keys.length > 0) {
-            await addMembersToGroup(accessToken, groupId, keys);
+        if (keys.length === 0) {
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.GROUPS_ADD_MEMBERS_NO_SELECTION };
+            return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
         }
 
-        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
+        await addMembersToGroup(accessToken, groupId, keys);
+
+        req.session.flash = { type: 'success', message: 'Members afegits correctament.' };
+        return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
     } catch (err) {
-        console.error('Error afegint members al grup:', err);
-        res.status(500).send('No s\'ha pogut afegir members al grup');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'groups.members.add',
+            redirectTo: `/tenant/groups/${encodeURIComponent(groupId)}`,
+        });
     }
 });
 
 
 // Treure un member d'un grup
 router.post('/tenant/groups/:groupId/members/:memberId/remove', requireRole('Portal.GroupAdmin'), async (req, res) => {
+    const { groupId, memberId } = req.params;
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
 
-        const { groupId, memberId } = req.params;
-
-        // DELETE /groups/{id}/members/{id}/$ref
         await callGraphDELETE(
             `/groups/${groupId}/members/${memberId}/$ref`,
             accessToken
         );
-
-        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
+        req.session.flash = { type: 'success', message: 'Member eliminat del grup.' };
+        return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
     } catch (err) {
-        console.error("Error eliminant member:", err);
-        res.status(500).send("No s'ha pogut eliminar el member del grup");
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'groups.members.remove',
+            redirectTo: `/tenant/groups/${encodeURIComponent(groupId)}`,
+        });
     }
 });
 
 
 // Treure un owner d'un grup
 router.post('/tenant/groups/:groupId/owners/:ownerId/remove', requireRole('Portal.GroupAdmin'), async (req, res) => {
+    const { groupId, ownerId } = req.params;
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
 
-        const { groupId, ownerId } = req.params;
-
-        // DELETE /groups/{id}/owners/{id}/$ref
         await callGraphDELETE(
             `/groups/${groupId}/owners/${ownerId}/$ref`,
             accessToken
         );
 
-        res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
+        req.session.flash = { type: 'success', message: 'Owner eliminat del grup.' };
+        return res.redirect(`/tenant/groups/${encodeURIComponent(groupId)}`);
     } catch (err) {
-        console.error("Error eliminant owner:", err);
-        res.status(500).send("No s'ha pogut eliminar l'owner del grup");
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'groups.owners.remove',
+            redirectTo: `/tenant/groups/${encodeURIComponent(groupId)}`,
+        });
     }
 });
 

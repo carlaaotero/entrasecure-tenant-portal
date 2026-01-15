@@ -1,4 +1,23 @@
-// controllers/securityController.js
+/**
+ * controllers/securityController.js
+ * ---------------------------------
+ * Aquest controlador construeix el "Security Overview" del tenant: un dashboard
+ * didàctic de governança i higiene IAM (Identity & Access Management).
+ *
+ * Objectiu:
+ *  - Mostrar mètriques i indicadors de seguretat reals utilitzant Microsoft Graph
+ *  - Ajudar a identificar problemes típics d'un tenant:
+ *      - grups sense owners
+ *      - enterprise apps pròpies sense owners
+ *      - credencials expirades o a punt d’expirar
+ *      - concentració d’assignacions a rols privilegiats
+ *      - distribució d’App Roles interns del portal (RBAC intern)
+ *
+ * Consideracions:
+ *  - Moltes dades requereixen múltiples crides a Graph (una per grup/app/rol).
+ *  - Per evitar saturar Graph, s'utilitza concurrència limitada.
+ *  - Aquest mòdul treballa amb Entra ID Free (sense PIM, sense CA logs, etc.).
+ */
 
 const { callGraph } = require('./graphController');
 const {
@@ -15,13 +34,18 @@ const {
 const DAY = 1000 * 60 * 60 * 24;
 
 
+/* -------------------------------------------------------------------------- */
+/*                        Helpers de concurrència / utilitats                  */
+/* -------------------------------------------------------------------------- */
 
+// Divideix un array en blocs (chunks) per poder processar lots. S'utilitza juntament amb mapWithConcurrency per limitar concurrència
 function chunk(arr, size) {
     const out = [];
     for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
     return out;
 }
 
+// Executa un mapper amb concurrència limitada. Útil per fer moltes crides a Graph (p.ex. owners per grup)
 async function mapWithConcurrency(items, limit, mapper) {
     const batches = chunk(items, limit);
     const results = [];
@@ -32,11 +56,13 @@ async function mapWithConcurrency(items, limit, mapper) {
     return results;
 }
 
+// Parseja dates de manera segura (Graph pot retornar null o valors inesperats)
 function safeDate(d) {
     const x = d ? new Date(d) : null;
     return x && !isNaN(x) ? x : null;
 }
 
+// Comptabilitza credencials expirades i a punt d'expirar dins d'un marge
 function countExpiringCreds(appRegs, withinDays = 30) {
     const now = new Date();
     const threshold = new Date(now.getTime() + withinDays * DAY);
@@ -44,7 +70,6 @@ function countExpiringCreds(appRegs, withinDays = 30) {
     let expired = 0;
     let expiringSoon = 0;
 
-    // comptem creds a nivell global (i després també podem marcar apps)
     for (const a of appRegs) {
         const pw = a.passwordCredentials || [];
         const keys = a.keyCredentials || [];
@@ -62,7 +87,12 @@ function countExpiringCreds(appRegs, withinDays = 30) {
     return { expired, expiringSoon };
 }
 
-// Service principal del portal via appId
+
+/* -------------------------------------------------------------------------- */
+/*                         Portal RBAC (App Roles interns)                     */
+/* -------------------------------------------------------------------------- */
+
+// Obté el Service Principal del portal (Enterprise App) a partir del seu appId. És necessari per llegir appRoles i appRoleAssignedTo.
 async function getPortalServicePrincipal(accessToken, portalAppId) {
     const endpoint =
         `/servicePrincipals?$filter=appId eq '${portalAppId}'&$select=id,appId,displayName,appRoles`;
@@ -70,15 +100,14 @@ async function getPortalServicePrincipal(accessToken, portalAppId) {
     return (json.value && json.value[0]) ? json.value[0] : null;
 }
 
+// Calcula la distribució d'assignacions d'App Roles del portal: quants usuaris (o principals) tenen assignacions per appRoleId.
 async function getPortalRbacDistribution(accessToken, portalSpId) {
-    // App role assignments de la teva Enterprise App
-    // Nota: l'API retorna l'assignació al resource (servicePrincipal)
     const endpoint =
         `/servicePrincipals/${portalSpId}/appRoleAssignedTo?$select=principalId,principalType,appRoleId`;
     const json = await callGraph(endpoint, accessToken);
     const items = json.value || [];
 
-    // appRoleId == 0000... és "Default Access"
+    // appRoleId == 0000... representa el "Default Access"
     const counts = {};
     for (const a of items) {
         const k = a.appRoleId || 'unknown';
@@ -87,30 +116,40 @@ async function getPortalRbacDistribution(accessToken, portalSpId) {
     return { totalAssignments: items.length, byAppRoleId: counts };
 }
 
+
+/* -------------------------------------------------------------------------- */
+/*                              Tenant info (organization)                    */
+/* -------------------------------------------------------------------------- */
+
+// Retorna informació bàsica del tenant (organization): tenantId / displayName / domini principal (isDefault)
 async function getTenantInfo(accessToken) {
-  // organization: id + verifiedDomains
-  const org = await callGraph(
-    `/organization?$select=id,displayName,verifiedDomains`,
-    accessToken
-  );
+    const org = await callGraph(
+        `/organization?$select=id,displayName,verifiedDomains`,
+        accessToken
+    );
 
-  const o = org.value?.[0];
-  const domains = o?.verifiedDomains || [];
+    const o = org.value?.[0];
+    const domains = o?.verifiedDomains || [];
 
-  // Primary domain: preferim isDefault; si no, el primer
-  const primary =
-    domains.find(d => d.isDefault)?.name ||
-    domains[0]?.name ||
-    null;
+    // Primary domain: preferim isDefault; si no, el primer
+    const primary =
+        domains.find(d => d.isDefault)?.name ||
+        domains[0]?.name ||
+        null;
 
-  return {
-    tenantId: o?.id || null,
-    displayName: o?.displayName || null,
-    primaryDomain: primary,
-  };
+    return {
+        tenantId: o?.id || null,
+        displayName: o?.displayName || null,
+        primaryDomain: primary,
+    };
 }
 
 
+/* -------------------------------------------------------------------------- */
+/*                            Builder principal del dashboard                  */
+/* -------------------------------------------------------------------------- */
+
+// Construeix l'objecte final per renderitzar el Security Overview. Fa múltiples crides a Graph i retorna mètriques agregades i llistats per la UI
 async function buildSecurityOverview(accessToken, options = {}) {
     const portalAppId = process.env.AZURE_CLIENT_ID || null;
 
@@ -123,39 +162,32 @@ async function buildSecurityOverview(accessToken, options = {}) {
         getAllAppRegistrations(accessToken),   // applications list (app registrations)
     ]);
 
+    const tenantInfo = await getTenantInfo(accessToken);
+
+    // 2) Breakdown de grups
     const m365Groups = groups.filter(g => (g.groupTypes || []).includes('Unified')).length;
     const securityGroups = groups.filter(g => !(g.groupTypes || []).includes('Unified') && g.securityEnabled === true).length;
 
-    const tenantInfo = await getTenantInfo(accessToken);
-
-
-    // --- FILTER: només Enterprise Apps pròpies ---
+    // 3) Filtre: només Enterprise Apps pròpies
     const ownAppIds = new Set(
         (appRegs || []).map(a => a.appId).filter(Boolean)
     );
-
     const ownEnterpriseApps = (apps || []).filter(sp =>
         sp.appId && ownAppIds.has(sp.appId)
     );
 
-
-    // 2) Users breakdown
+    // 4) Users breakdown (members/guests/disabled)
     const totalUsers = users.length;
     const guests = users.filter(u => (u.userType || '').toLowerCase() === 'guest').length;
     const members = totalUsers - guests;
     const disabled = users.filter(u => u.accountEnabled === false).length;
 
-    // 3) Groups without owners (1 crida per grup)
+    // 5) Governance: Groups without owners (1 crida per grup amb concurrència limitada)
     const groupOwnersResults = await mapWithConcurrency(groups, 6, async (g) => {
         try {
             const json = await callGraph(`/groups/${g.id}/owners/microsoft.graph.user?$select=id`, accessToken);
-
-
-
             const owners = (json.value || []);
             return { group: g, ownersCount: owners.length, status: 'ok' };
-
-
         } catch (err) {
             // si no podem comprovar owners, ho marquem com "unknown"
             return { group: g, ownersCount: null, status: 'error' };
@@ -166,28 +198,22 @@ async function buildSecurityOverview(accessToken, options = {}) {
         x => x.status === 'ok' && x.ownersCount === 0
     );
 
-    console.log('DEBUG owners check:');
     groupOwnersResults.forEach(x => {
         console.log(x.group.displayName, 'status=', x.status, 'ownersCount=', x.ownersCount);
     });
 
-    console.log('groupsWithoutOwners:', groupsWithoutOwners.map(x => x.group.displayName));
-
-    // 4) Apps without owners (1 crida per app / service principal)
+    // 6) Governance: Apps without owners (service principals propis)
     const appOwnersResults = await mapWithConcurrency(ownEnterpriseApps, 6, async (sp) => {
         const owners = await getTenantAppOwners(accessToken, sp.id);
         return { sp, ownersCount: owners.length };
     });
     const appsWithoutOwners = appOwnersResults.filter(x => x.ownersCount === 0);
 
-    // 5) Credential hygiene (a nivell App Registration)
-    // Per tenir-ho “visual” i simple: comptem creds expirades i expiring soon
-    // També podem calcular quantes apps tenen algún secret que expira.
+    // 7) Credential hygiene: secrets/certs expirats o a punt d'expirar (App Registrations)
     const { expired: credsExpired, expiringSoon: credsExpiringSoon } =
         countExpiringCreds(appRegs, 30);
 
-    // 6) Privileged directory role assignments
-    // Llista curta “didàctica” (sense top 5)
+    // 8) Privileged directory roles: mètrica d’assignacions d’alt impacte
     const PRIVILEGED_DIRECTORY_ROLE_KEYWORDS = new Set([
         'Global Administrator',
         'Privileged Role Administrator',
@@ -211,6 +237,7 @@ async function buildSecurityOverview(accessToken, options = {}) {
         .filter(x => x.highImpact)
         .reduce((sum, x) => sum + x.count, 0);
 
+    // Llistat de rols privilegiats realment “en ús” (per UI)
     const privilegedRolesInUse = await mapWithConcurrency(
         membersPerRole.filter(x => x.highImpact && x.count > 0),
         4,
@@ -220,7 +247,7 @@ async function buildSecurityOverview(accessToken, options = {}) {
 
             // Ens quedem només amb usuaris (ignorem service principals si surten)
             const users = (members || [])
-                .filter(m => !m.appId) // si té appId normalment és SP
+                .filter(m => !m.appId) // Ignorem service principals
                 .map(m => ({
                     id: m.id,
                     displayName: m.displayName,
@@ -236,18 +263,14 @@ async function buildSecurityOverview(accessToken, options = {}) {
         }
     );
 
-
-
-    // 7) Portal RBAC distribution (optional)
+    // 9) Portal RBAC distribution (App Roles interns del portal)
     let portalRbac = null;
     if (portalAppId) {
         const portalSp = await getPortalServicePrincipal(accessToken, portalAppId);
         if (portalSp && portalSp.id) {
             const dist = await getPortalRbacDistribution(accessToken, portalSp.id);
 
-            // Mapa d’IDs → labels (tu ho adaptes als teus App Roles)
-            // IMPORTANT: aquí posa els appRoleId reals dels teus Portal roles (del App Registration)
-            // Construïm el mapping automàtic: appRoleId -> nom del rol
+            // Mapping automàtic appRoleId -> etiqueta (displayName/value)
             const roleIdToLabel = {
                 '00000000-0000-0000-0000-000000000000': 'Default access',
             };
@@ -280,10 +303,7 @@ async function buildSecurityOverview(accessToken, options = {}) {
         portalRbac = { error: 'AZURE_CLIENT_ID not configured' };
     }
 
-
-
-
-    // 8) Capacity indicators (qualitatius)
+    // 10) Indicadors qualitatius (per fer el dashboard més “didàctic”)
     function levelByThreshold(n, t1, t2) {
         if (n < t1) return { label: 'Low', pct: 25 };
         if (n < t2) return { label: 'Moderate', pct: 55 };
@@ -299,7 +319,7 @@ async function buildSecurityOverview(accessToken, options = {}) {
             privilegedRatio < 0.06 ? { label: 'Moderate', pct: 55 } :
                 { label: 'High', pct: 85 };
 
-
+    // Apps pròpies amb credencials que expiren aviat (per llistar-les)
     function appHasExpiringCred(app, withinDays = 30) {
         const now = new Date();
         const threshold = new Date(now.getTime() + withinDays * DAY);
@@ -315,6 +335,8 @@ async function buildSecurityOverview(accessToken, options = {}) {
         .map(a => ({ id: a.id, displayName: a.displayName, appId: a.appId }))
 
 
+
+    
     return {
         // Overview
         totals: {
@@ -329,7 +351,6 @@ async function buildSecurityOverview(accessToken, options = {}) {
         tenantInfo,
 
         groupsBreakdown: { security: securityGroups, m365: m365Groups },
-
 
         // Identity
         identity: { members, guests, disabled },
@@ -378,13 +399,7 @@ async function buildSecurityOverview(accessToken, options = {}) {
             items: myAppsExpiringSoon
         },
 
-
-
         PRIVILEGED_DIRECTORY_ROLE_KEYWORDS,
-
-
-
-
     };
 }
 
