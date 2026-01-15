@@ -52,7 +52,7 @@ const ERROR_MESSAGES = {
 
     // --- APPS ---
     APP_NO_OWNER_SELECTED: "No has indicat cap owner per afegir.",
-    APP_NO_ASSIGNEE_SELECTED: "No has indicat cap member/grup per assignar.",
+    APP_NO_ASSIGNEE_SELECTED: "No has indicat cap member per assignar.",
 
     // --- ROLES ---
     ROLES_ADD_MEMBERS_NO_SELECTION:

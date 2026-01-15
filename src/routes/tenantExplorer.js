@@ -50,9 +50,7 @@ const {
     getDirectoryRoleTemplates,
     getDirectoryRoleById,
     getDirectoryRoleMembers,
-    //addGroupToDirectoryRole,
     addUserToDirectoryRole,
-    findActivatedDirectoryRoleByTemplateId,
     activateDirectoryRole,
 
 } = require('../controllers/tenantController');
@@ -86,10 +84,15 @@ router.get('/tenant', requireAuth, async (req, res) => {
         });
 
     } catch (err) {
-        console.error('Error carregant /tenant:', err);
-        res.status(500).send('Error carregant el Tenant Explorer');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'tenant.home',
+            redirectTo: '/tenant',
+        });
     }
-});;
+});
 
 
 /* -- USERS -- */
@@ -122,7 +125,7 @@ router.get('/tenant/users', requireRole('Portal.UserAdmin'), async (req, res) =>
 
 
 // Detall d'un user concret del tenant
-router.get('/tenant/users/:id', requireAuth, async (req, res) => {
+router.get('/tenant/users/:id', requireRole('Portal.UserAdmin'), async (req, res) => {
     const flash = consumeFlash(req);
     try {
         const account = req.session.user;
@@ -434,7 +437,7 @@ router.post('/tenant/groups/delete', requireRole('Portal.GroupAdmin'), async (re
         await deleteGroups(accessToken, groupIds);
 
         req.session.flash = { type: 'success', message: `Grups eliminats: ${count}` };
-        res.redirect('/tenant/groups');
+        return res.redirect('/tenant/groups');
     } catch (err) {
         return handleRouteError({
             req,
@@ -573,11 +576,10 @@ router.post('/tenant/groups/:groupId/owners/:ownerId/remove', requireRole('Porta
 
 // GET /tenant/apps -> llista de totes les apps (service principals) del tenant
 router.get('/tenant/apps', requireRole('Portal.AppAdmin'), async (req, res) => {
+    const flash = consumeFlash(req);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
-        const flash = req.session.flash;
-        req.session.flash = null;
 
         const [apps, appRegistrations] = await Promise.all([
             getAllApps(accessToken),
@@ -595,21 +597,24 @@ router.get('/tenant/apps', requireRole('Portal.AppAdmin'), async (req, res) => {
             flash,
         });
     } catch (err) {
-        console.error('Error carregant /tenant/apps:', err);
-        res.status(500).send('Error carregant les aplicacions del tenant');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'apps.list',
+            redirectTo: '/tenant/apps',
+        });
     }
 });
 
 
 // GET /tenant/apps/:id -> detall d'una app (service principal + application)
 router.get('/tenant/apps/:id', requireRole('Portal.AppAdmin'), async (req, res) => {
+    const flash = consumeFlash(req);
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
         const spId = req.params.id;
-
-        const flash = req.session.flash;
-        req.session.flash = null;
 
         const sp = await getTenantAppById(accessToken, spId);
         const owners = await getTenantAppOwners(accessToken, spId);
@@ -671,8 +676,13 @@ els usuaris i grups amb app roles assignats i els tipus de credencial que utilit
             flash,
         });
     } catch (err) {
-        console.error('Error carregant /tenant/apps/:id:', err);
-        res.status(500).send('Error carregant el detall de l\'aplicació');
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'apps.read',
+            redirectTo: '/tenant/apps',
+        });
     }
 });
 
@@ -692,10 +702,7 @@ router.post('/tenant/apps/:id/owners/add', requireRole('Portal.AppAdmin'), async
             .filter(Boolean);
 
         if (keys.length === 0) {
-            req.session.flash = {
-                type: 'info',
-                message: ERROR_MESSAGES.APP_NO_OWNER_SELECTED || "No has indicat cap owner per afegir."
-            };
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.APP_NO_OWNER_SELECTED }
             return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
         }
 
@@ -704,20 +711,15 @@ router.post('/tenant/apps/:id/owners/add', requireRole('Portal.AppAdmin'), async
         req.session.flash = { type: 'success', message: "Owners afegits a l'aplicació." };
         return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
-        console.error("Error afegint owners a l'app:", err);
-
-        const friendly = graphErrorHandler ? graphErrorHandler(err) : null;
-
-        req.session.flash = {
-            type: 'error',
-            message: friendly?.message || "No s'ha pogut afegir owners a l'aplicació."
-        };
-
-        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'apps.owners.add',
+            redirectTo: `/tenant/apps/${encodeURIComponent(spId)}`,
+        });
     }
 });
-
-
 
 
 // Treure un owner d'una app
@@ -735,14 +737,13 @@ router.post('/tenant/apps/:spId/owners/:ownerId/remove', requireRole('Portal.App
         req.session.flash = { type: 'success', message: "Owner eliminat de l'aplicació." };
         return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
-        const friendly = graphErrorHandler ? graphErrorHandler(err) : null;
-
-        req.session.flash = {
-            type: 'error',
-            message: friendly?.message || "No s'ha pogut eliminar l'owner de l'aplicació."
-        };
-
-        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'apps.owners.remove',
+            redirectTo: `/tenant/apps/${encodeURIComponent(spId)}`,
+        });
     }
 });
 
@@ -754,7 +755,6 @@ router.post('/tenant/apps/:id/assignments/add', requireRole('Portal.AppAdmin'), 
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
 
-
         const { assignmentKeys } = req.body;
         const keys = (assignmentKeys || '')
             .split(',')
@@ -762,10 +762,7 @@ router.post('/tenant/apps/:id/assignments/add', requireRole('Portal.AppAdmin'), 
             .filter(Boolean);
 
         if (keys.length === 0) {
-            req.session.flash = {
-                type: 'info',
-                message: ERROR_MESSAGES.APP_NO_ASSIGNEE_SELECTED || "No has indicat cap member/grup per assignar."
-            };
+            req.session.flash = { type: 'info', message: ERROR_MESSAGES.APP_NO_ASSIGNEE_SELECTED };
             return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
         }
 
@@ -774,14 +771,13 @@ router.post('/tenant/apps/:id/assignments/add', requireRole('Portal.AppAdmin'), 
         req.session.flash = { type: 'success', message: "Assignacions afegides a l'aplicació." };
         return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
-        const friendly = graphErrorHandler ? graphErrorHandler(err) : null;
-
-        req.session.flash = {
-            type: 'error',
-            message: friendly?.message || "No s'ha pogut assignar usuaris a l'aplicació."
-        };
-
-        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`)
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'apps.assignments.add',
+            redirectTo: `/tenant/apps/${encodeURIComponent(spId)}`,
+        });
     }
 });
 
@@ -801,14 +797,13 @@ router.post('/tenant/apps/:spId/assignments/:assignmentId/remove', requireRole('
         req.session.flash = { type: 'success', message: "Assignació eliminada de l'aplicació." };
         return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
     } catch (err) {
-        const friendly = graphErrorHandler ? graphErrorHandler(err) : null;
-
-        req.session.flash = {
-            type: 'error',
-            message: friendly?.message || "No s'ha pogut eliminar l'assignació de l'aplicació."
-        };
-
-        return res.redirect(`/tenant/apps/${encodeURIComponent(spId)}`);
+        return handleRouteError({
+            req,
+            res,
+            err,
+            actionKey: 'apps.assignments.remove',
+            redirectTo: `/tenant/apps/${encodeURIComponent(spId)}`,
+        });
     }
 });
 
@@ -979,7 +974,7 @@ router.post('/tenant/roles/:roleId/members/:memberId/remove', requireRole('Porta
     }
 });
 
-router.post('/tenant/roles/activate', requireAuth, async (req, res) => {
+router.post('/tenant/roles/activate', requireRole('Portal.RoleAdmin'), async (req, res) => {
     try {
         const account = req.session.user;
         const accessToken = await getTokenForGraph(account);
@@ -1104,7 +1099,7 @@ router.post('/tenant/roles/portal/:appRoleId/assignments/add', requireRole('Port
             });
         }
 
-        
+
 
         req.session.flash = { type: 'success', message: 'Usuaris assignats correctament.' };
         return res.redirect(`/tenant/roles/portal/${encodeURIComponent(appRoleId)}`);
