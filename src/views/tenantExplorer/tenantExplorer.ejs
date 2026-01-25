@@ -28,65 +28,65 @@
   <!-- Navbar -->
   <%- include('../components/navbar', { active: 'tenant' }) %>
 
-  <main class="tenant-main">
-    <section class="tenant-section">
+    <main class="tenant-main">
+      <section class="tenant-section">
 
-      <div class="info-grid">
-        <!-- Users -->
-        <article class="card tenant-card">
-          <header class="tenant-card-header">
-            <h3>Users</h3>
-            <button class="btn btn-primary" onclick="location.href='/tenant/users'">
-              View
-            </button>
-          </header>
-          <div class="tenant-card-body tenant-card-scroll">
-            <% if (usersPreview && usersPreview.length> 0) { %>
+        <div class="info-grid">
+          <!-- Users -->
+          <article class="card tenant-card">
+            <header class="tenant-card-header">
+              <h3>Users</h3>
+              <button class="btn btn-primary" onclick="location.href='/tenant/users'">
+                View
+              </button>
+            </header>
+            <div class="tenant-card-body tenant-card-scroll">
+              <% if (usersPreview && usersPreview.length> 0) { %>
 
-              <div class="preview-list">
-                <% usersPreview.forEach(function (u) { %>
-                  <div class="preview-item">
-                    <div class="preview-title">
-                      <%= u.displayName || '(Sense nom)' %>
+                <div class="preview-list">
+                  <% usersPreview.forEach(function (u) { %>
+                    <div class="preview-item">
+                      <div class="preview-title">
+                        <%= u.displayName || '(Sense nom)' %>
+                      </div>
+                      <div class="preview-meta">
+                        <%= u.userPrincipalName %>
+                      </div>
+                      <div class="preview-type">
+                        <%= u.userType %>
+                      </div>
                     </div>
-                    <div class="preview-meta">
-                      <%= u.userPrincipalName %>
-                    </div>
-                    <div class="preview-type">
-                      <%= u.userType %>
-                    </div>
-                  </div>
-                  <% }); %>
-              </div>
+                    <% }); %>
+                </div>
 
-              <% } else { %>
-                <p class="preview-empty">No s'han pogut carregar usuaris del tenant.</p>
-                <% } %>
-          </div>
-        </article>
+                <% } else { %>
+                  <p class="preview-empty">Tenant users could not be loaded.</p>
+                  <% } %>
+            </div>
+          </article>
 
-        <!-- Groups -->
-        <article class="card tenant-card">
-          <header class="tenant-card-header">
-            <h3>Groups</h3>
-            <button class="btn btn-primary" onclick="location.href='/tenant/groups'">
-              View
-            </button>
-          </header>
-          <div class="tenant-card-body tenant-card-scroll">
-            <% if (groupsPreview && groupsPreview.length> 0) { %>
-              <div class="preview-list">
-                <% groupsPreview.forEach(function (g) { %>
-                  <div class="preview-item">
-                    <div class="preview-title">
-                      <%= g.displayName || '(Sense nom)' %>
-                    </div>
-                    <div class="preview-meta">
-                      ID: <%= g.id %>
-                    </div>
-                    <div class="preview-type">
-                      <% if (g.groupTypes && g.groupTypes.length> 0) { %>
-                        <%= g.groupTypes.join(', ') %>
+          <!-- Groups -->
+          <article class="card tenant-card">
+            <header class="tenant-card-header">
+              <h3>Groups</h3>
+              <button class="btn btn-primary" onclick="location.href='/tenant/groups'">
+                View
+              </button>
+            </header>
+            <div class="tenant-card-body tenant-card-scroll">
+              <% if (groupsPreview && groupsPreview.length> 0) { %>
+                <div class="preview-list">
+                  <% groupsPreview.forEach(function (g) { %>
+                    <div class="preview-item">
+                      <div class="preview-title">
+                        <%= g.displayName || '(Unnamed)' %>
+                      </div>
+                      <div class="preview-meta">
+                        ID: <%= g.id %>
+                      </div>
+                      <div class="preview-type">
+                        <% if (g.groupTypes && g.groupTypes.length> 0) { %>
+                          <%= g.groupTypes.join(', ') %>
             <% } else { %>
               Security group
             <% } %>
@@ -96,87 +96,83 @@
     </div>
   <% } else { %>
     <p class="preview-empty">
-      No s' han pogut carregar grups del tenant. </p>
-                          <% } %>
+      Tenant groups could not be loaded. </p>
+                            <% } %>
+                      </div>
+
+          </article>
+
+          <!-- Roles -->
+          <article class="card tenant-card">
+            <header class="tenant-card-header">
+              <h3>Roles</h3>
+              <button class="btn btn-primary" onclick="location.href=' /tenant/roles'">
+                            View
+                            </button>
+                            </header>
+                            <div class="tenant-card-body">
+                              <div class="preview-list">
+                                <div class="preview-item">
+                                  <div class="preview-title">Directory Roles</div>
+                                  <div class="preview-meta">Group-based role assignments</div>
+                                </div>
+                                <div class="preview-item">
+                                  <div class="preview-title">Portal RBAC</div>
+                                  <div class="preview-meta">Internal portal roles</div>
+                                </div>
+                              </div>
+                            </div>
+
+          </article>
+
+          <!-- Apps -->
+          <article class="card tenant-card">
+            <header class="tenant-card-header">
+              <h3>Applications</h3>
+              <button class="btn btn-primary" onclick="location.href='/tenant/apps'">
+                View
+              </button>
+            </header>
+
+            <div class="tenant-card-body tenant-card-scroll">
+              <% if (appsPreview && appsPreview.length> 0) { %>
+                <div class="preview-list">
+                  <% appsPreview.forEach(function (a) { %>
+                    <div class="preview-item">
+                      <div class="preview-title">
+                        <%= a.displayName || '(Sense nom)' %>
+                      </div>
+                      <div class="preview-meta">
+                        App ID: <%= a.appId || '—' %>
+                      </div>
                     </div>
+                    <% }); %>
+                </div>
+                <% } else { %>
+                  <p class="preview-empty">
+                    Tenant applications could not be loaded.
+                  </p>
+                  <% } %>
 
-        </article>
-
-        <!-- Roles -->
-        <article class="card tenant-card">
-          <header class="tenant-card-header">
-            <h3>Roles</h3>
-            <button class="btn btn-primary" onclick="location.href='/tenant/roles'">
-              View
-            </button>
-          </header>
-          <div class="tenant-card-body">
-            <div class="preview-list">
-              <div class="preview-item">
-                <div class="preview-title">Directory Roles</div>
-                <div class="preview-meta">Group-based role assignments</div>
-              </div>
-              <div class="preview-item">
-                <div class="preview-title">Portal RBAC</div>
-                <div class="preview-meta">Internal portal roles</div>
-              </div>
             </div>
-          </div>
+          </article>
 
-        </article>
+        </div>
 
-        <!-- Apps -->
-        <article class="card tenant-card">
-          <header class="tenant-card-header">
-            <h3>Applications</h3>
-            <button class="btn btn-primary" onclick="location.href='/tenant/apps'">
-              View
-            </button>
-          </header>
+      </section>
+    </main>
 
-          <div class="tenant-card-body tenant-card-scroll">
-            <% if (appsPreview && appsPreview.length> 0) { %>
-              <div class="preview-list">
-                <% appsPreview.forEach(function (a) { %>
-                  <div class="preview-item">
-                    <div class="preview-title">
-                      <%= a.displayName || '(Sense nom)' %>
-                    </div>
-                    <div class="preview-meta">
-                      App ID: <%= a.appId || '—' %>
-                    </div>
-                  </div>
-                  <% }); %>
-              </div>
-              <% } else { %>
-                <p class="preview-empty">
-                  No s'han pogut carregar aplicacions del tenant.
-                </p>
-                <% } %>
+    <!-- Modal global -->
+    <%- include('../components/confirmModal', { title: 'Confirmation' , message: 'Are you sure you want to continue?' ,
+      okText: 'Confirm' , cancelText: 'Cancel' }) %>
 
-          </div>
-        </article>
-
-      </div>
-
-    </section>
-  </main>
-
-  <!-- Modal global -->
-<%- include('../components/confirmModal', {
-  title: 'Confirmació',
-  message: 'Segur que vols continuar?',
-  okText: 'Acceptar',
-  cancelText: 'Cancel·lar'
-}) %>
-
-<script src="/js/confirmModal.js"></script>
-<script src="/js/navbar.js"></script>
+      <script src="/js/confirmModal.js"></script>
+      <script src="/js/navbar.js"></script>
 
 
-  <footer class="footer">
-    <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
-  </footer>
+      <footer class="footer">
+        <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+      </footer>
 </body>
 
 </html>

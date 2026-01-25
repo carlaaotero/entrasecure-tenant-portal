@@ -19,15 +19,15 @@ const UI_MESSAGES = {
         HOME: "EntraSecure Tenant Portal",
         MY_IDENTITY: "My Identity · EntraSecure",
         TENANT_HOME: "Tenant Explorer · EntraSecure",
-        USERS_LIST: "Usuaris del tenant",
+        USERS_LIST: "Tenant users",
         GROUPS_LIST: "Tenant groups",
-        APPS_LIST: "Aplicacions del tenant",
+        APPS_LIST: "Tenant applications",
         ROLES_LIST: "Roles",
         SECURITY_OVERVIEW: "Tenant Security Overview · EntraSecure",
 
-        // Títols dinàmics per vistes de detall
-        USER_DETAIL: (nameOrUpn) => `Usuari · ${nameOrUpn}`,
-        GROUP_DETAIL: (name) => `Group · ${name || "Detall"}`,
+        // Dynamic titles for detail views
+        USER_DETAIL: (nameOrUpn) => `User · ${nameOrUpn}`,
+        GROUP_DETAIL: (name) => `Group · ${name || "Details"}`,
         APP_DETAIL: (nameOrAppId) => `App · ${nameOrAppId}`,
         ROLE_DETAIL: (nameOrId) => `Role · ${nameOrId}`,
         PORTAL_ROLE_DETAIL: (nameOrValue) => `Portal role · ${nameOrValue}`,
@@ -35,7 +35,7 @@ const UI_MESSAGES = {
 
     LABELS: {
         AUTH_PROTOCOL: {
-            OTHER: "Altres",
+            OTHER: "Other",
             SAML: "SAML",
             OIDC: "OIDC / OAuth2",
         },
@@ -44,78 +44,96 @@ const UI_MESSAGES = {
     },
 
     FLASH: {
-        LOGIN_SUCCESS: "Sessió iniciada correctament.",
+        LOGIN_SUCCESS: "Successfully signed in.",
 
         // USERS
-        USERS_CREATED: (displayName) => `Usuari creat: ${displayName}`,
-        USERS_DELETED: (count) => `Usuaris eliminats: ${count}`,
+        USERS_CREATED: (displayName) => `User created: ${displayName}`,
+        USERS_DELETED: (count) => `Users deleted: ${count}`,
 
         // GROUPS
-        GROUP_CREATED: (displayName) => `Grup creat: ${displayName}`,
-        GROUPS_DELETED: (count) => `Grups eliminats: ${count}`,
-        GROUP_OWNERS_ADDED: "Owners afegits correctament.",
-        GROUP_MEMBERS_ADDED: "Members afegits correctament.",
-        GROUP_MEMBER_REMOVED: "Member eliminat del grup.",
-        GROUP_OWNER_REMOVED: "Owner eliminat del grup.",
+        GROUP_CREATED: (displayName) => `Group created: ${displayName}`,
+        GROUPS_DELETED: (count) => `Groups deleted: ${count}`,
+        GROUP_OWNERS_ADDED: "Owners added successfully.",
+        GROUP_MEMBERS_ADDED: "Members added successfully.",
+        GROUP_MEMBER_REMOVED: "Member removed from the group.",
+        GROUP_OWNER_REMOVED: "Owner removed from the group.",
 
         // APPS
-        APP_OWNERS_ADDED: "Owners afegits a l'aplicació.",
-        APP_OWNER_REMOVED: "Owner eliminat de l'aplicació.",
-        APP_ASSIGNMENTS_ADDED: "Assignacions afegides a l'aplicació.",
-        APP_ASSIGNMENT_REMOVED: "Assignació eliminada de l'aplicació.",
+        APP_OWNERS_ADDED: "Owners added to the application.",
+        APP_OWNER_REMOVED: "Owner removed from the application.",
+        APP_ASSIGNMENTS_ADDED: "Assignments added to the application.",
+        APP_ASSIGNMENT_REMOVED: "Assignment removed from the application.",
 
         // ROLES
-        ROLE_MEMBERS_ADDED: "Membres afegits correctament.",
-        ROLE_MEMBER_REMOVED: "Member eliminat del rol.",
-        ROLE_ACTIVATED: "Rol activat correctament.",
+        ROLE_MEMBERS_ADDED: "Members added successfully.",
+        ROLE_MEMBER_REMOVED: "Member removed from the role.",
+        ROLE_ACTIVATED: "Role activated successfully.",
 
-        // PORTAL ROLES (RBAC intern)
-        PORTAL_USERS_ASSIGNED: "Usuaris assignats correctament.",
-        PORTAL_ASSIGNMENT_REMOVED: "Assignació eliminada.",
+        // PORTAL ROLES (internal RBAC)
+        PORTAL_USERS_ASSIGNED: "Users assigned successfully.",
+        PORTAL_ASSIGNMENT_REMOVED: "Assignment removed.",
     },
+
 
     HELP: {
         MY_IDENTITY: `
-Aquest apartat mostra informació bàsica de la identitat a Microsoft Entra ID
-(per exemple, display name, UPN, tipus d'usuari i dates clau), així com la
-seva pertinença a grups, rols de directori, aplicacions assignades i
-dispositius registrats. És útil per entendre com es representen i relacionen
-els objectes dins d'un tenant d'Entra ID.
+This view shows how your identity is represented in Microsoft Entra ID.
+It includes basic user attributes, group memberships, directory roles and
+application role assignments.
+
+It helps to understand how access is defined at both tenant and application level.
+
 `.trim(),
 
         USER_IDENTITY: `
-Aquesta vista mostra la identitat d'un usuari del tenant de Microsoft Entra ID,
-incloent les seves propietats bàsiques, grups, rols de directori i aplicacions
-on té rols assignats. És útil per analitzar el context d'accés d'un usuari concret.
+This view displays the identity of a tenant user, including basic properties,
+group memberships, directory roles and application role assignments.
+
+It is useful to analyze the access context and privileges of a specific user.
+
 `.trim(),
 
-        GROUP_IDENTITY:
-            "Aquesta vista mostra informació bàsica del grup, els seus membres, owners, rols de directori on el grup actua com a administrador i les aplicacions on té app roles assignats.",
+        GROUP_IDENTITY: `
+        This view shows the main information of a group, including its members and owners.
+It also displays the roles and application assignments associated with the group.
+
+It helps to understand how access can be managed indirectly through groups. 
+`.trim(),
 
         APP_IDENTITY: `
-Aquesta vista mostra la identitat d'una aplicació dins del tenant de Microsoft Entra ID,
-incloent-hi informació bàsica del service principal (Enterprise app), els seus owners, 
-els usuaris i grups amb app roles assignats i els tipus de credencial que utilitza 
-(secrets, certificats o federated credentials).
+This view shows the identity of an application within the tenant.
+It includes owners, assigned users, application roles and credential information.
+
+It is useful to analyze application access and governance configuration.
 `.trim(),
 
-        PORTAL_ROLE_IDENTITY:
-            "RBAC intern del portal basat en App Roles. Amb Entra ID Free, les assignacions es realitzen directament a usuaris. Quan un usuari té un App Role assignat, apareix al claim 'roles' del token.",
+        PORTAL_ROLE_IDENTITY: `
+            This view shows a Directory Role defined by Microsoft Entra ID.
+Directory Roles control what actions an identity can perform at tenant level.
+
+They are enforced by Microsoft Graph during authorization.
+`.trim(),
+
+        INTERN_ROLE_IDENTITY: `
+            This view represents an internal role of the portal based on App Roles.
+These roles control access to portal functionalities.
+
+App Roles are included in the authentication token and evaluated by the portal.
+`.trim(),
+
     },
 
     INFO: {
         ROLE_IMPLICIT_USER_ROLE:
-            "Aquest rol és un rol intern del sistema (implicit user role). Microsoft Entra ID no permet activar-lo ni gestionar-lo manualment perquè s’assigna automàticament segons l’estat/tipus d’usuari.",
+            "This role is an internal system role (implicit user role). Microsoft Entra ID does not allow it to be enabled or managed manually because it is automatically assigned based on the user's state or type.",
     },
 
     MODAL: {
-        CONFIRM_TITLE: "Confirmació",
-        CONFIRM_DELETE_MESSAGE: "Vols eliminar aquest element?",
-        OK: "Acceptar",
-        CANCEL: "Cancel·lar",
+        CONFIRM_TITLE: "Confirmation",
+        CONFIRM_DELETE_MESSAGE: "Do you want to delete this item?",
+        OK: "Confirm",
+        CANCEL: "Cancel",
     },
-
-
 };
 
-module.exports = { UI_MESSAGES };
+    module.exports = { UI_MESSAGES };

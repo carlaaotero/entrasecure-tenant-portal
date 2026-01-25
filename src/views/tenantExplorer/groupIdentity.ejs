@@ -54,7 +54,7 @@
               <div class="identity-avatar-wrapper">
                 <div class="profile-avatar">
                   <span>
-                    <% const gName=groupProfile && groupProfile.displayName ? groupProfile.displayName : 'Grup' ; const
+                    <% const gName=groupProfile && groupProfile.displayName ? groupProfile.displayName : 'Group' ; const
                       gInitial=gName.charAt(0).toUpperCase(); %>
                       <%= gInitial %>
                   </span>
@@ -63,7 +63,7 @@
 
               <div class="identity-profile-info">
                 <h2 class="identity-title">
-                  <%= groupProfile && groupProfile.displayName ? groupProfile.displayName : 'Grup del tenant' %>
+                  <%= groupProfile && groupProfile.displayName ? groupProfile.displayName : 'Tenant group' %>
                 </h2>
               </div>
 
@@ -124,19 +124,19 @@
                   action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/members/add"
                   class="identity-inline-form">
                   <label for="groupMembersInput" class="identity-inline-label">
-                    Afegir membres al grup
+                    Add members to the group
                   </label>
 
                   <div class="identity-inline-input">
                     <input id="groupMembersInput" type="text" class="users-input"
-                      placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
+                      placeholder="Search by name or UPN, or enter a UPN and press Enter" autocomplete="off" />
 
                     <!-- Dropdown amb usuaris (com a la creació de grups) -->
                     <div id="membersDropdown" class="owners-dropdown" style="display:none;"></div>
                   </div>
 
                   <small class="field-hint">
-                    Pots seleccionar usuaris amb el desplegable o escriure UPNs manualment (separats per comes o Enter).
+                    You can select users from the dropdown or enter UPNs manually (separated by commas or Enter).
                   </small>
 
 
@@ -148,7 +148,7 @@
 
                   <div class="identity-inline-actions">
                     <button type="submit" class="btn btn-primary btn-sm">
-                      Afegir membres seleccionats
+                      Add selected members
                     </button>
                   </div>
                 </form>
@@ -163,10 +163,10 @@
                           action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/members/<%= encodeURIComponent(m.id) %>/remove"
                           class="remove-form" data-confirm="true"
                           data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
-                          data-confirm-message="Vols eliminar «<%= (m.displayName || m.userPrincipalName || 'aquest usuari') %>» del grup?"
+                          data-confirm-message="Do you want to remove «<%= (m.displayName || m.userPrincipalName || 'aquest usuari') %>» fromt the group?"
                           data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
                           data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
-                          <button type="submit" class="remove-btn" aria-label="Eliminar member">×</button>
+                          <button type="submit" class="remove-btn" aria-label="Remove member">×</button>
                         </form>
 
 
@@ -189,7 +189,7 @@
                   <% } else { %>
 
                     <p class="identity-empty">
-                      Aquest grup no té membres o no es pot llegir la informació.
+                      This group has no members, or the information could not be retrieved.
                     </p>
                     <% } %>
               </div>
@@ -207,18 +207,18 @@
                   action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/owners/add"
                   class="identity-inline-form">
                   <label for="groupOwnersInput" class="identity-inline-label">
-                    Afegir owners al grup
+                    Add owners to the group
                   </label>
                   <div class="identity-inline-input">
                     <input id="groupOwnersInput" type="text" class="users-input"
-                      placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
+                      placeholder="Search by name or UPN, or enter a UPN and press Enter" autocomplete="off" />
 
                     <!-- Dropdown amb usuaris -->
                     <div id="ownersDropdown" class="owners-dropdown" style="display:none;"></div>
                   </div>
 
                   <small class="field-hint">
-                    Selecciona usuaris amb el desplegable o escriu UPNs manualment.
+                    Select users from the dropdown or enter UPNs manually.
                   </small>
 
 
@@ -230,7 +230,7 @@
 
                   <div class="identity-inline-actions">
                     <button type="submit" class="btn btn-primary btn-sm">
-                      Afegir owners seleccionats
+                      Add selected owners
                     </button>
                   </div>
                 </form>
@@ -245,17 +245,17 @@
                           action="/tenant/groups/<%= encodeURIComponent(groupProfile.id) %>/owners/<%= encodeURIComponent(o.id) %>/remove"
                           class="remove-form" data-confirm="true"
                           data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
-                          data-confirm-message="Vols eliminar «<%= (o.displayName || o.userPrincipalName || 'aquest usuari') %>» com a owner del grup?"
+                          data-confirm-message="Do you want to remove «<%= (o.displayName || o.userPrincipalName || 'aquest usuari') %>» as an owner of the group?"
                           data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
                           data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
-                          <button type="submit" class="remove-btn" aria-label="Eliminar owner">×</button>
+                          <button type="submit" class="remove-btn" aria-label="Remove owner">×</button>
                         </form>
 
 
                         <!-- INFO DE L'OWNER -->
                         <div class="identity-item-title">
                           <a href="/tenant/users/<%= encodeURIComponent(o.id) %>" class="identity-link">
-                            <%= o.displayName || o.userPrincipalName || '(Sense nom)' %>
+                            <%= o.displayName || o.userPrincipalName || '(Unnamed)' %>
                           </a>
                         </div>
                         <div class="identity-item-meta">
@@ -268,7 +268,7 @@
                   <% } else { %>
 
                     <p class="identity-empty">
-                      Aquest grup no té owners o no es pot llegir la informació.
+                      This group has no owners, or the information could not be retrieved.
                     </p>
                     <% } %>
               </div>
@@ -295,7 +295,8 @@
                   </div>
                   <% } else { %>
                     <p class="identity-empty">
-                      Aquest grup no forma part de cap directory role assignable o no es pot llegir la informació.
+                      This group is not assigned to any assignable directory role, or the information could not be
+                      retrieved.
                     </p>
                     <% } %>
               </div>
@@ -310,7 +311,7 @@
                     <% appAssignments.forEach(function (a) { %>
                       <div class="identity-item-card">
                         <div class="identity-item-title">
-                          <%= a.resourceDisplayName || '(Aplicació sense nom)' %>
+                          <%= a.resourceDisplayName || '(Unnamed application)' %>
                         </div>
                         <div class="identity-item-meta">
                           App Role ID: <%= a.appRoleId || '—' %>
@@ -320,7 +321,7 @@
                   </div>
                   <% } else { %>
                     <p class="identity-empty">
-                      No hi ha app role assignments per aquest grup o no es pot llegir la informació.
+                      There are no app role assignments for this group, or the information could not be retrieved.
                     </p>
                     <% } %>
               </div>
@@ -328,7 +329,7 @@
 
             <!-- Targeta explicativa -->
             <article class="card identity-edu-card">
-              <h3 class="identity-edu-title">Com llegir aquesta informació</h3>
+              <h3 class="identity-edu-title">How to read this information</h3>
               <p class="identity-edu">
                 <%= helpfulInfo %>
               </p>
@@ -400,12 +401,12 @@
 
             const searchBox = document.createElement('input');
             searchBox.type = 'text';
-            searchBox.placeholder = 'Cerca per nom o UPN';
+            searchBox.placeholder = 'Search by name or UPN';
             searchBox.className = 'users-input owners-search-input';
 
             const addBtn = document.createElement('button');
             addBtn.type = 'button';
-            addBtn.textContent = 'Afegir seleccionats';
+            addBtn.textContent = 'Add selected';
             addBtn.className = 'btn btn-primary owners-add-btn';
 
             header.appendChild(searchBox);
@@ -581,9 +582,9 @@
       })();
     </script>
 
-    <!-- Modal global (únic, reutilitzable per logout i deletes) -->
-    <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
-      okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+    <!-- Modal global -->
+    <%- include('../components/confirmModal', { title: 'Confirmation' , message: 'Are you sure you want to continue?' ,
+      okText: 'Confirm' , cancelText: 'Cancel' }) %>
 
       <script src="/js/confirmModal.js"></script>
       <script src="/js/navbar.js"></script>

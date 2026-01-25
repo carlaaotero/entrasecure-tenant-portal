@@ -36,10 +36,10 @@
             <section class="tenant-users-layout">
 
                 <header class="users-header">
-                    <h1>Usuaris del tenant</h1>
+                    <h1>Tenant users</h1>
                     <p>
-                        Llista d'usuaris de Microsoft Entra ID amb informació bàsica:
-                        Display Name, UPN, tipus d'usuari i estat del compte.
+                        List of Microsoft Entra ID users with basic information: Display Name, UPN, user type, and
+                        account status.
                     </p>
                 </header>
 
@@ -59,9 +59,9 @@
                         <article class="card users-card create-user-card">
                             <div class="users-card-header">
                                 <div class="users-header-left">
-                                    <h2>Crear un usuari nou</h2>
+                                    <h2>Create a new user</h2>
                                     <p class="users-meta">
-                                        Dona d'alta un usuari Member amb una contrasenya inicial segura.
+                                        Create a new Member user with a secure initial password.
                                     </p>
                                 </div>
                             </div>
@@ -75,7 +75,7 @@
                                         <!-- Columna esquerra -->
                                         <div class="create-user-col">
                                             <div class="form-group">
-                                                <label for="newDisplayName">Nom complet (Display Name)</label>
+                                                <label for="newDisplayName">Full name (Display Name)</label>
                                                 <input id="newDisplayName" type="text" name="displayName" required
                                                     class="users-input" autocomplete="off" />
                                                 <small id="displayNameError" class="field-hint"></small>
@@ -87,7 +87,7 @@
                                                     required class="users-input"
                                                     placeholder="nom@carlaaoterooutlook.onmicrosoft.com" />
                                                 <small class="field-hint">
-                                                    Es genera automàticament a partir del nom, però el pots ajustar.
+                                                    It is automatically generated from the name, but you can modify it.
                                                 </small>
                                                 <small id="upnError" class="field-hint"></small>
 
@@ -97,7 +97,7 @@
                                         <!-- Columna dreta -->
                                         <div class="create-user-col">
                                             <div class="form-group">
-                                                <label for="newUserPassword">Contrasenya inicial</label>
+                                                <label for="newUserPassword">Initial password</label>
                                                 <div class="password-input-wrapper">
                                                     <input id="newUserPassword" type="password" name="password" required
                                                         minlength="8" class="users-input" autocomplete="new-password" />
@@ -108,8 +108,8 @@
                                                 </div>
 
                                                 <small id="passwordStrengthText" class="password-hint">
-                                                    La contrasenya ha de tenir majúscules, minúscules, números
-                                                    i mínim 8 caràcters.
+                                                    The password must include uppercase letters, lowercase letters,
+                                                    numbers, and be at least 8 characters long.
                                                 </small>
                                             </div>
                                         </div>
@@ -118,7 +118,7 @@
                                     <div class="create-user-actions">
                                         <button id="createUserBtn" type="submit" class="btn btn-primary"
                                             aria-disabled="true">
-                                            Crear usuari
+                                            Create user
                                         </button>
 
                                     </div>
@@ -136,29 +136,29 @@
                             <article class="card users-card">
                                 <div class="users-card-header">
                                     <div class="users-header-left">
-                                        <h2>Llista d'usuaris</h2>
+                                        <h2>User list</h2>
                                         <p class="users-meta">
                                             <span class="users-meta-count">
                                                 <%= users && users.length ? users.length : 0 %>
-                                            </span> usuaris trobats
+                                            </span> users found
                                         </p>
                                     </div>
 
                                     <div class="users-header-right">
                                         <div class="users-filters">
                                             <input id="userSearch" type="text" class="users-search-input"
-                                                placeholder="Cerca per nom o UPN"
+                                                placeholder="Search by name or UPN"
                                                 onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
 
                                             <select id="userTypeFilter" class="users-type-filter">
-                                                <option value="all">Tots els tipus</option>
+                                                <option value="all">All types</option>
                                                 <option value="member">Members</option>
                                                 <option value="guest">Guests</option>
                                             </select>
                                         </div>
 
                                         <button type="submit" class="btn btn-primary">
-                                            Eliminar seleccionats
+                                            Delete selected
                                         </button>
                                     </div>
                                 </div>
@@ -171,8 +171,8 @@
                                                     <th>Display Name</th>
                                                     <th>User Principal Name</th>
                                                     <th>User Type</th>
-                                                    <th>Estat</th>
-                                                    <th>Seleccionar</th>
+                                                    <th>Status</th>
+                                                    <th>Select</th>
                                                 </tr>
                                             </thead>
 
@@ -184,7 +184,7 @@
                                                         <td>
                                                             <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
                                                                 class="users-link">
-                                                                <%= u.displayName || '(Sense nom)' %>
+                                                                <%= u.displayName || '(Unnamed)' %>
                                                             </a>
                                                         </td>
 
@@ -211,7 +211,7 @@
                                         </table>
                                         <% } else { %>
                                             <p class="users-empty">
-                                                No s'ha trobat cap usuari o no es pot llegir la informació.
+                                                No users were found or the information could not be retrieved.
                                             </p>
                                             <% } %>
                                 </div>
@@ -369,7 +369,7 @@
                     passwordStrong = false;
 
                     if (!pwd) {
-                        strengthText.textContent = 'La contrasenya ha de tenir majúscules, minúscules, números i mínim 8 caràcters.';
+                        strengthText.textContent = 'The password must include uppercase letters, lowercase letters, numbers, and be at least 8 characters long.';
                         updateCreateButtonState();
                         return;
                     }
@@ -384,17 +384,17 @@
                     if (!lengthOK || categories <= 1) {
                         strengthBar.style.width = '33%';
                         strengthBar.style.backgroundColor = '#ef4444';
-                        strengthText.textContent = 'Massa dèbil. Afegeix més longitud i combinació.';
+                        strengthText.textContent = 'Too weak. Add more length and character variety.';
                         passwordStrong = false;
                     } else if (categories === 2) {
                         strengthBar.style.width = '66%';
                         strengthBar.style.backgroundColor = themeGrey;
-                        strengthText.textContent = 'Acceptable, però recomanable afegir més categories.';
+                        strengthText.textContent = 'Acceptable, but it is recommended to add more character categories.';
                         passwordStrong = false;
                     } else {
                         strengthBar.style.width = '100%';
                         strengthBar.style.backgroundColor = themeBlue;
-                        strengthText.textContent = 'Contrasenya forta i vàlida per a les polítiques de complexitat.';
+                        strengthText.textContent = 'Strong password, compliant with complexity policies.';
                         passwordStrong = true;
                     }
 
@@ -421,12 +421,12 @@
                         const upn = (upnInput && upnInput.value || '').trim();
                         const pw = (passwordInput && passwordInput.value || '').trim();
 
-                        if (!dn) { showDisplayNameError("Has d'omplir el Display Name."); displayNameInput && displayNameInput.focus(); return; }
-                        if (!upn) { showUpnError("Has d'omplir el UPN."); upnInput && upnInput.focus(); return; }
-                        if (!pw) { showPasswordError("Has d'omplir la contrasenya inicial."); passwordInput && passwordInput.focus(); return; }
-                        if (!passwordStrong) { showPasswordError("La contrasenya no compleix els requisits mínims."); passwordInput && passwordInput.focus(); return; }
+                        if (!dn) { showDisplayNameError("You must fill in the Display Name."); displayNameInput && displayNameInput.focus(); return; }
+                        if (!upn) { showUpnError("You must fill in the UPN."); upnInput && upnInput.focus(); return; }
+                        if (!pw) { showPasswordError("You must fill in the initial password."); passwordInput && passwordInput.focus(); return; }
+                        if (!passwordStrong) { showPasswordError("The password does not meet the minimum requirements."); passwordInput && passwordInput.focus(); return; }
 
-                        showPasswordError("Has d'omplir tots els camps i posar una contrasenya forta.");
+                        showPasswordError("You must fill in all fields and provide a strong password.");
                     });
                 }
 
@@ -435,7 +435,7 @@
                         if (!isCreateFormValid()) {
                             e.preventDefault();
                             clearCreateUserErrors();
-                            showPasswordError("Has d'omplir tots els camps i posar una contrasenya forta.");
+                            showPasswordError("You must fill in all fields and provide a strong password.");
                         }
                     });
                 }
@@ -445,8 +445,8 @@
         </script>
 
         <!-- Modal global -->
-        <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
-            okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+        <%- include('../components/confirmModal', { title: 'Confirmation' ,
+            message: 'Are you sure you want to continue?' , okText: 'Confirm' , cancelText: 'Cancel' }) %>
 
 
             <script src="/js/confirmModal.js"></script>

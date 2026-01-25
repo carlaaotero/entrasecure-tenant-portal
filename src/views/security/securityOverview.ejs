@@ -28,493 +28,500 @@
     <!-- Navbar -->
     <%- include('../components/navbar', { active: 'security' }) %>
 
-    <main class="security-main">
-        <section class="security-section">
+        <main class="security-main">
+            <section class="security-section">
 
-            <header class="security-header">
-                <div>
-                    <h1>Tenant Security Overview</h1>
+                <header class="security-header">
+                    <div>
+                        <h1>Tenant Security Overview</h1>
 
-                    <div class="muted small" style="margin-top:6px; display:flex; gap:14px; flex-wrap:wrap;">
-                        <span>
-                            <strong>Tenant ID:</strong>
-                            <%= (model.tenantInfo && model.tenantInfo.tenantId) ? model.tenantInfo.tenantId : '—' %>
-                        </span>
+                        <div class="muted small" style="margin-top:6px; display:flex; gap:14px; flex-wrap:wrap;">
+                            <span>
+                                <strong>Tenant ID:</strong>
+                                <%= (model.tenantInfo && model.tenantInfo.tenantId) ? model.tenantInfo.tenantId : '—' %>
+                            </span>
 
-                        <span>
-                            <strong>Primary domain:</strong>
-                            <%= (model.tenantInfo && model.tenantInfo.primaryDomain) ? model.tenantInfo.primaryDomain
-                                : '—' %>
-                        </span>
+                            <span>
+                                <strong>Primary domain:</strong>
+                                <%= (model.tenantInfo && model.tenantInfo.primaryDomain) ?
+                                    model.tenantInfo.primaryDomain : '—' %>
+                            </span>
+                        </div>
+
+
                     </div>
 
+                    <div class="security-header-badges">
+                        <span class="badge badge-info">
+                            <%= model.totals.plan %>
+                        </span>
+                        <span class="badge <%= (model.privileged.assignments > 0) ? 'badge-warn' : 'badge-ok' %>">
+                            Privileged assignments: <%= model.privileged.assignments %>
+                        </span>
+                    </div>
+                </header>
 
+                <!-- Row: Stat cards -->
+                <div class="security-stats-grid">
+                    <article class="card stat-card accent-blue">
+                        <div class="stat-top">
+                            <div class="stat-label">Users</div>
+                            <span class="badge badge-ok">IAM</span>
+                        </div>
+                        <div class="stat-value">
+                            <%= model.totals.users %>
+                        </div>
+                        <div class="stat-meta muted">
+                            Members <%= model.identity.members %> · Guests <%= model.identity.guests %>
+                        </div>
+                    </article>
+
+                    <article class="card stat-card accent-purple">
+                        <div class="stat-top">
+                            <div class="stat-label">Groups</div>
+
+
+                            <span class="badge <%= model.groupsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
+                                <%= model.groupsWithoutOwners.count %> without owners
+                            </span>
+                        </div>
+                        <div class="stat-value">
+                            <%= model.totals.groups %>
+                        </div>
+                        <div class="stat-meta muted">
+                            Security <%= model.groupsBreakdown.security %> · M365 <%= model.groupsBreakdown.m365 %>
+                        </div>
+                    </article>
+
+                    <article class="card stat-card accent-amber">
+                        <div class="stat-top">
+                            <div class="stat-label">Apps</div>
+                            <span class="badge <%= model.appsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
+                                <%= model.appsWithoutOwners.count %> without owners
+                            </span>
+                        </div>
+                        <div class="stat-value">
+                            <%= model.totals.apps %>
+                        </div>
+                        <div class="stat-meta muted">
+                            Enterprise applications
+                        </div>
+                    </article>
+
+                    <article class="card stat-card accent-red">
+                        <div class="stat-top">
+                            <div class="stat-label">Directory roles</div>
+                            <span class="badge <%= model.privileged.assignments > 0 ? 'badge-warn' : 'badge-ok' %>">
+                                High impact: <%= model.privileged.highImpactRolesCount %>
+                            </span>
+                        </div>
+                        <div class="stat-value">
+                            <%= model.totals.directoryRoles %>
+                        </div>
+                        <div class="stat-meta muted">
+                            Tenant governance surface
+                        </div>
+                    </article>
+
+                    <article class="card stat-card accent-gray">
+                        <div class="stat-top">
+                            <div class="stat-label">Credentials</div>
+                            <span class="badge <%= model.credentials.expiringSoon > 0 ? 'badge-crit' : 'badge-ok' %>">
+                                <%= model.credentials.expiringSoon %> expiring
+                            </span>
+                        </div>
+                        <div class="stat-value">
+                            <%= model.credentials.expired %>
+                        </div>
+                        <div class="stat-meta muted">
+                            Expired (global)
+                        </div>
+                    </article>
                 </div>
 
-                <div class="security-header-badges">
-                    <span class="badge badge-info">
-                        <%= model.totals.plan %>
-                    </span>
-                    <span class="badge <%= (model.privileged.assignments > 0) ? 'badge-warn' : 'badge-ok' %>">
-                        Privileged assignments: <%= model.privileged.assignments %>
-                    </span>
-                </div>
-            </header>
+                <!-- Row: Findings + Identity donuts -->
+                <div class="security-two-col">
+                    <!-- Findings -->
+                    <article class="card security-card">
+                        <header class="card-header">
+                            <h3>Security findings</h3>
 
-            <!-- Row: Stat cards -->
-            <div class="security-stats-grid">
-                <article class="card stat-card accent-blue">
-                    <div class="stat-top">
-                        <div class="stat-label">Users</div>
-                        <span class="badge badge-ok">IAM</span>
-                    </div>
-                    <div class="stat-value">
-                        <%= model.totals.users %>
-                    </div>
-                    <div class="stat-meta muted">
-                        Members <%= model.identity.members %> · Guests <%= model.identity.guests %>
-                    </div>
-                </article>
+                        </header>
 
-                <article class="card stat-card accent-purple">
-                    <div class="stat-top">
-                        <div class="stat-label">Groups</div>
+                        <div class="card-content">
 
-
-                        <span class="badge <%= model.groupsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
-                            <%= model.groupsWithoutOwners.count %> without owners
-                        </span>
-                    </div>
-                    <div class="stat-value">
-                        <%= model.totals.groups %>
-                    </div>
-                    <div class="stat-meta muted">
-                        Security <%= model.groupsBreakdown.security %> · M365 <%= model.groupsBreakdown.m365 %>
-                    </div>
-                </article>
-
-                <article class="card stat-card accent-amber">
-                    <div class="stat-top">
-                        <div class="stat-label">Apps</div>
-                        <span class="badge <%= model.appsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
-                            <%= model.appsWithoutOwners.count %> without owners
-                        </span>
-                    </div>
-                    <div class="stat-value">
-                        <%= model.totals.apps %>
-                    </div>
-                    <div class="stat-meta muted">
-                        Enterprise applications
-                    </div>
-                </article>
-
-                <article class="card stat-card accent-red">
-                    <div class="stat-top">
-                        <div class="stat-label">Directory roles</div>
-                        <span class="badge <%= model.privileged.assignments > 0 ? 'badge-warn' : 'badge-ok' %>">
-                            High impact: <%= model.privileged.highImpactRolesCount %>
-                        </span>
-                    </div>
-                    <div class="stat-value">
-                        <%= model.totals.directoryRoles %>
-                    </div>
-                    <div class="stat-meta muted">
-                        Tenant governance surface
-                    </div>
-                </article>
-
-                <article class="card stat-card accent-gray">
-                    <div class="stat-top">
-                        <div class="stat-label">Credentials</div>
-                        <span class="badge <%= model.credentials.expiringSoon > 0 ? 'badge-crit' : 'badge-ok' %>">
-                            <%= model.credentials.expiringSoon %> expiring
-                        </span>
-                    </div>
-                    <div class="stat-value">
-                        <%= model.credentials.expired %>
-                    </div>
-                    <div class="stat-meta muted">
-                        Expired (global)
-                    </div>
-                </article>
-            </div>
-
-            <!-- Row: Findings + Identity donuts -->
-            <div class="security-two-col">
-                <!-- Findings -->
-                <article class="card security-card">
-                    <header class="card-header">
-                        <h3>Security findings</h3>
-
-                    </header>
-
-                    <div class="card-content">
-
-                        <div class="finding">
-                            <div class="finding-left">
-                                <div class="finding-title subtle-title">Groups without owners</div>
-                                <div class="muted small">Governance and delegation</div>
-                            </div>
-                            <div class="finding-right">
-                                <span
-                                    class="badge <%= model.groupsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
-                                    <%= model.groupsWithoutOwners.count %>
-                                </span>
-                                <div class="progress">
-                                    <div class="progress-fill <%= model.groupsWithoutOwners.count > 0 ? 'fill-warn' : 'fill-ok' %>"
-                                        style="width:<%= Math.min(100, model.groupsWithoutOwners.count * 10) %>%"></div>
+                            <div class="finding">
+                                <div class="finding-left">
+                                    <div class="finding-title subtle-title">Groups without owners</div>
+                                    <div class="muted small">Governance and delegation</div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="finding">
-                            <div class="finding-left">
-                                <div class="finding-title subtle-title">Apps without owners</div>
-                                <div class="muted small">Operational risk (ungoverned objects)</div>
-                            </div>
-                            <div class="finding-right">
-                                <span
-                                    class="badge <%= model.appsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
-                                    <%= model.appsWithoutOwners.count %>
-                                </span>
-                                <div class="progress">
-                                    <div class="progress-fill <%= model.appsWithoutOwners.count > 0 ? 'fill-warn' : 'fill-ok' %>"
-                                        style="width:<%= Math.min(100, model.appsWithoutOwners.count * 10) %>%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="finding">
-                            <div class="finding-left">
-                                <div class="finding-title subtle-title">Secrets expiring (&lt;<%=
-                                        model.credentials.withinDays %>d)
-                                </div>
-                                <div class="muted small">Credential hygiene</div>
-                            </div>
-                            <div class="finding-right">
-                                <span
-                                    class="badge <%= model.credentials.expiringSoon > 0 ? 'badge-crit' : 'badge-ok' %>">
-                                    <%= model.credentials.expiringSoon %>
-                                </span>
-                                <div class="progress">
-                                    <div class="progress-fill <%= model.credentials.expiringSoon > 0 ? 'fill-crit' : 'fill-ok' %>"
-                                        style="width:<%= Math.min(100, model.credentials.expiringSoon * 12) %>%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="finding">
-                            <div class="finding-left">
-                                <div class="finding-title subtle-title">Privileged assignments</div>
-                                <div class="muted small">High-impact roles</div>
-                            </div>
-                            <div class="finding-right">
-                                <span class="badge <%= model.privileged.assignments > 0 ? 'badge-warn' : 'badge-ok' %>">
-                                    <%= model.privileged.assignments %>
-                                </span>
-                                <div class="progress">
-                                    <div class="progress-fill <%= model.privileged.assignments > 0 ? 'fill-warn' : 'fill-ok' %>"
-                                        style="width:<%= Math.min(100, model.privileged.assignments * 6) %>%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="quick-actions">
-                            <a class="btn btn-primary btn-sm" href="/tenant/apps">Review apps</a>
-                            <a class="btn btn-primary btn-sm" href="/tenant/groups">Review groups</a>
-                            <a class="btn btn-primary btn-sm" href="/tenant/roles">Review roles</a>
-                        </div>
-
-                    </div>
-                </article>
-
-                <!-- Identity donuts -->
-                <article class="card security-card">
-                    <header class="card-header">
-                        <h3>Identity composition</h3>
-
-                    </header>
-
-                    <div class="card-content donuts-grid">
-
-                        <% const total=model.totals.users || 1; %>
-                            <% const guestPct=Math.round((model.identity.guests / total) * 100); %>
-                                <% const disabledPct=Math.round((model.identity.disabled / total) * 100); %>
-
-                                    <div class="donut-card">
-                                        <div class="donut" style="--p:<%= guestPct %>;">
-                                            <div class="donut-center">
-                                                <div class="donut-big">
-                                                    <%= guestPct %>%
-                                                </div>
-                                                <div class="donut-small muted">Guests</div>
-                                            </div>
-                                        </div>
-                                        <div class="donut-caption">
-                                            <div class="donut-title subtle-title">Guest users</div>
-                                            <div class="muted small">
-                                                <%= model.identity.guests %> of <%= model.totals.users %>
-                                            </div>
+                                <div class="finding-right">
+                                    <span
+                                        class="badge <%= model.groupsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
+                                        <%= model.groupsWithoutOwners.count %>
+                                    </span>
+                                    <div class="progress">
+                                        <div class="progress-fill <%= model.groupsWithoutOwners.count > 0 ? 'fill-warn' : 'fill-ok' %>"
+                                            style="width:<%= Math.min(100, model.groupsWithoutOwners.count * 10) %>%">
                                         </div>
                                     </div>
-
-                                    <div class="donut-card">
-                                        <div class="donut" style="--p:<%= disabledPct %>;">
-                                            <div class="donut-center">
-                                                <div class="donut-big">
-                                                    <%= disabledPct %>%
-                                                </div>
-                                                <div class="donut-small muted">Disabled</div>
-                                            </div>
-                                        </div>
-                                        <div class="donut-caption">
-                                            <div class="donut-title subtle-title">Disabled accounts</div>
-                                            <div class="muted small">
-                                                <%= model.identity.disabled %> of <%= model.totals.users %>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                    </div>
-                </article>
-            </div>
-
-            <!-- Row: governance panels -->
-            <div class="security-two-col">
-                <article class="card security-card compact-card">
-                    <header class="card-header">
-                        <h3>Applications hygiene</h3>
-
-                    </header>
-
-                    <div class="card-content">
-
-                        <!-- BLOCK 1: Apps without owners -->
-                        <div class="metric-row">
-                            <div class="metric-label subtle-title">Apps without owners</div>
-                            <div class="metric-value">
-                                <span
-                                    class="badge <%= model.appsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
-                                    <%= model.appsWithoutOwners.count %>
-                                </span>
-                            </div>
-                        </div>
-
-                        <% if (model.appsWithoutOwners.items && model.appsWithoutOwners.items.length> 0) { %>
-                            <div class="scroll-box">
-                                <div class="preview-list">
-                                    <% model.appsWithoutOwners.items.forEach(function(a) { %>
-                                        <div class="preview-item">
-                                            <div class="preview-title">
-                                                <a class="users-link"
-                                                    href="/tenant/apps/<%= encodeURIComponent(a.id) %>">
-                                                    <%= a.displayName || '(Sense nom)' %>
-                                                </a>
-                                            </div>
-                                            <div class="preview-meta">AppId: <%= a.appId || '—' %>
-                                            </div>
-                                        </div>
-                                        <% }); %>
                                 </div>
                             </div>
-                            <% } else { %>
-                                <p class="preview-empty">No apps without assigned owners were found.</p>
-                                <% } %>
 
-                                    <hr style="margin: 14px 0; opacity: .2;" />
-
-                                    <!-- BLOCK 2: Credentials expiring soon -->
-                                    <div class="metric-row">
-                                        <div class="metric-label subtle-title">Credentials expiring soon</div>
-                                        <div class="metric-value">
-                                            <span
-                                                class="badge <%= model.credentials.expiringSoon > 0 ? 'badge-crit' : 'badge-ok' %>">
-                                                <%= model.credentials.expiringSoon %>
-                                            </span>
+                            <div class="finding">
+                                <div class="finding-left">
+                                    <div class="finding-title subtle-title">Apps without owners</div>
+                                    <div class="muted small">Operational risk (ungoverned objects)</div>
+                                </div>
+                                <div class="finding-right">
+                                    <span
+                                        class="badge <%= model.appsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
+                                        <%= model.appsWithoutOwners.count %>
+                                    </span>
+                                    <div class="progress">
+                                        <div class="progress-fill <%= model.appsWithoutOwners.count > 0 ? 'fill-warn' : 'fill-ok' %>"
+                                            style="width:<%= Math.min(100, model.appsWithoutOwners.count * 10) %>%">
                                         </div>
                                     </div>
+                                </div>
+                            </div>
 
-                                    <% if (model.appsExpiringSoon && model.appsExpiringSoon.items &&
-                                        model.appsExpiringSoon.items.length> 0) { %>
-                                        <div class="scroll-box">
-                                            <div class="preview-list">
-                                                <% model.appsExpiringSoon.items.forEach(function(a) { %>
-                                                    <div class="preview-item">
-                                                        <div class="preview-title">
-                                                            <%= a.displayName || '(Sense nom)' %>
-                                                        </div>
-                                                        <div class="preview-meta">AppId: <%= a.appId || '—' %>
-                                                        </div>
+                            <div class="finding">
+                                <div class="finding-left">
+                                    <div class="finding-title subtle-title">Secrets expiring (&lt;<%=
+                                            model.credentials.withinDays %>d)
+                                    </div>
+                                    <div class="muted small">Credential hygiene</div>
+                                </div>
+                                <div class="finding-right">
+                                    <span
+                                        class="badge <%= model.credentials.expiringSoon > 0 ? 'badge-crit' : 'badge-ok' %>">
+                                        <%= model.credentials.expiringSoon %>
+                                    </span>
+                                    <div class="progress">
+                                        <div class="progress-fill <%= model.credentials.expiringSoon > 0 ? 'fill-crit' : 'fill-ok' %>"
+                                            style="width:<%= Math.min(100, model.credentials.expiringSoon * 12) %>%">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="finding">
+                                <div class="finding-left">
+                                    <div class="finding-title subtle-title">Privileged assignments</div>
+                                    <div class="muted small">High-impact roles</div>
+                                </div>
+                                <div class="finding-right">
+                                    <span
+                                        class="badge <%= model.privileged.assignments > 0 ? 'badge-warn' : 'badge-ok' %>">
+                                        <%= model.privileged.assignments %>
+                                    </span>
+                                    <div class="progress">
+                                        <div class="progress-fill <%= model.privileged.assignments > 0 ? 'fill-warn' : 'fill-ok' %>"
+                                            style="width:<%= Math.min(100, model.privileged.assignments * 6) %>%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="quick-actions">
+                                <a class="btn btn-primary btn-sm" href="/tenant/apps">Review apps</a>
+                                <a class="btn btn-primary btn-sm" href="/tenant/groups">Review groups</a>
+                                <a class="btn btn-primary btn-sm" href="/tenant/roles">Review roles</a>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    <!-- Identity donuts -->
+                    <article class="card security-card">
+                        <header class="card-header">
+                            <h3>Identity composition</h3>
+
+                        </header>
+
+                        <div class="card-content donuts-grid">
+
+                            <% const total=model.totals.users || 1; %>
+                                <% const guestPct=Math.round((model.identity.guests / total) * 100); %>
+                                    <% const disabledPct=Math.round((model.identity.disabled / total) * 100); %>
+
+                                        <div class="donut-card">
+                                            <div class="donut" style="--p:<%= guestPct %>;">
+                                                <div class="donut-center">
+                                                    <div class="donut-big">
+                                                        <%= guestPct %>%
                                                     </div>
-                                                    <% }); %>
+                                                    <div class="donut-small muted">Guests</div>
+                                                </div>
+                                            </div>
+                                            <div class="donut-caption">
+                                                <div class="donut-title subtle-title">Guest users</div>
+                                                <div class="muted small">
+                                                    <%= model.identity.guests %> of <%= model.totals.users %>
+                                                </div>
                                             </div>
                                         </div>
-                                        <% } else { %>
-                                            <p class="preview-empty">No credentials nearing expiration have been
-                                                detected.
-                                            </p>
-                                            <% } %>
 
-                    </div>
+                                        <div class="donut-card">
+                                            <div class="donut" style="--p:<%= disabledPct %>;">
+                                                <div class="donut-center">
+                                                    <div class="donut-big">
+                                                        <%= disabledPct %>%
+                                                    </div>
+                                                    <div class="donut-small muted">Disabled</div>
+                                                </div>
+                                            </div>
+                                            <div class="donut-caption">
+                                                <div class="donut-title subtle-title">Disabled accounts</div>
+                                                <div class="muted small">
+                                                    <%= model.identity.disabled %> of <%= model.totals.users %>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                </article>
-
-                <article class="card security-card compact-card">
-                    <header class="card-header">
-                        <h3>Groups governance</h3>
-
-                    </header>
-
-                    <div class="card-content">
-                        <div class="metric-row">
-                            <div class="metric-label subtle-title">Groups without owners</div>
-                            <div class="metric-value">
-                                <span
-                                    class="badge <%= model.groupsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
-                                    <%= model.groupsWithoutOwners.count %>
-                                </span>
-                            </div>
                         </div>
+                    </article>
+                </div>
 
-                        <% if (model.groupsWithoutOwners.items && model.groupsWithoutOwners.items.length> 0) { %>
-                            <div class="scroll-box">
-                                <div class="preview-list">
-                                    <% model.groupsWithoutOwners.items.forEach(function(g) { %>
-                                        <div class="preview-item">
-                                            <div class="preview-title">
-                                                <a class="users-link"
-                                                    href="/tenant/groups/<%= encodeURIComponent(g.id) %>">
-                                                    <%= g.displayName || '(Sense nom)' %>
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <% }); %>
-                                </div>
-                            </div>
-                            <% } else { %>
-                                <p class="preview-empty">No groups without assigned owners were found.</p>
-                                <% } %>
-                    </div>
-                </article>
+                <!-- Row: governance panels -->
+                <div class="security-two-col">
+                    <article class="card security-card compact-card">
+                        <header class="card-header">
+                            <h3>Applications hygiene</h3>
 
+                        </header>
 
-            </div>
+                        <div class="card-content">
 
-            <!-- Row: capacity & portal RBAC -->
-            <div class="security-two-col">
-
-                <article class="card security-card">
-                    <header class="card-header">
-                        <h3>Portal RBAC (App roles)</h3>
-
-                    </header>
-
-                    <div class="card-content">
-                        <% if (model.portalRbac && !model.portalRbac.error) { %>
-
+                            <!-- BLOCK 1: Apps without owners -->
                             <div class="metric-row">
-                                <div class="metric-label subtle-title">Total assignments</div>
-                                <div class="metric-value"><span class="badge badge-ok">
-                                        <%= model.portalRbac.totalAssignments %>
-                                    </span></div>
-                            </div>
-
-                            <div class="mini-bars">
-                                <% Object.keys(model.portalRbac.byLabel || {}).forEach(function(k) { %>
-                                    <% const c=model.portalRbac.byLabel[k]; %>
-                                        <div class="mini-bar-row">
-                                            <div class="mini-bar-label">
-                                                <%= k %>
-                                            </div>
-                                            <div class="mini-bar-track">
-                                                <div class="mini-bar-fill" style="width:<%= Math.min(100, c * 12) %>%">
-                                                </div>
-                                            </div>
-                                            <div class="mini-bar-count muted">
-                                                <%= c %>
-                                            </div>
-                                        </div>
-                                        <% }); %>
-                            </div>
-
-                            <% } else { %>
-                                <p class="preview-empty">
-                                    Portal RBAC not available: <%= (model.portalRbac && model.portalRbac.error) ?
-                                        model.portalRbac.error : 'unknown' %>
-                                </p>
-                                <% } %>
-                    </div>
-                </article>
-                <!-- RIGHT: Directory roles (High impact in use) -->
-                <article class="card security-card">
-                    <header class="card-header">
-                        <h3>Directory roles (high impact)</h3>
-                    </header>
-
-                    <div class="card-content">
-                        <div class="metric-row">
-                            <div class="metric-label subtle-title">Roles in use</div>
-                            <div class="metric-value">
-                                <span
-                                    class="badge <%= (model.privilegedRolesInUse && model.privilegedRolesInUse.length > 0) ? 'badge-warn' : 'badge-ok' %>">
-                                    <%= (model.privilegedRolesInUse || []).length %>
-                                </span>
-                            </div>
-                        </div>
-
-                        <% if (model.privilegedRolesInUse && model.privilegedRolesInUse.length> 0) { %>
-
-                            <div class="scroll-box">
-                                <div class="preview-list">
-                                    <% model.privilegedRolesInUse.forEach(function(r) { %>
-
-                                        <div class="preview-item">
-                                            <div class="preview-title">
-                                                <%= r.displayName %>
-                                                    <span class="muted small">· <%= r.membersCount %> member(s)</span>
-                                            </div>
-
-                                            <% if (r.users && r.users.length> 0) { %>
-                                                <div class="muted small" style="margin-top:6px;">Assigned users</div>
-
-                                                <% r.users.forEach(function(u) { %>
-                                                    <div class="preview-meta" style="margin-top:4px;">
-                                                        <a class="users-link"
-                                                            href="/tenant/users/<%= encodeURIComponent(u.id) %>">
-                                                            <%= u.displayName || '(No name)' %>
-                                                        </a>
-                                                        <% if (u.userPrincipalName) { %>
-
-                                                            <% } %>
-                                                    </div>
-                                                    <% }); %>
-                                                        <% } %>
-                                        </div>
-
-                                        <% }); %>
+                                <div class="metric-label subtle-title">Apps without owners</div>
+                                <div class="metric-value">
+                                    <span
+                                        class="badge <%= model.appsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
+                                        <%= model.appsWithoutOwners.count %>
+                                    </span>
                                 </div>
                             </div>
 
-                            <% } else { %>
-                                <p class="preview-empty">No high-impact roles assigned.</p>
-                                <% } %>
-                    </div>
-                </article>
-            </div>
+                            <% if (model.appsWithoutOwners.items && model.appsWithoutOwners.items.length> 0) { %>
+                                <div class="scroll-box">
+                                    <div class="preview-list">
+                                        <% model.appsWithoutOwners.items.forEach(function(a) { %>
+                                            <div class="preview-item">
+                                                <div class="preview-title">
+                                                    <a class="users-link"
+                                                        href="/tenant/apps/<%= encodeURIComponent(a.id) %>">
+                                                        <%= a.displayName || '(Sense nom)' %>
+                                                    </a>
+                                                </div>
+                                                <div class="preview-meta">AppId: <%= a.appId || '—' %>
+                                                </div>
+                                            </div>
+                                            <% }); %>
+                                    </div>
+                                </div>
+                                <% } else { %>
+                                    <p class="preview-empty">No apps without assigned owners were found.</p>
+                                    <% } %>
 
-        </section>
-    </main>
+                                        <hr style="margin: 14px 0; opacity: .2;" />
 
-    <!-- Modal global (únic, reutilitzable per logout i deletes) -->
-    <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
-        okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+                                        <!-- BLOCK 2: Credentials expiring soon -->
+                                        <div class="metric-row">
+                                            <div class="metric-label subtle-title">Credentials expiring soon</div>
+                                            <div class="metric-value">
+                                                <span
+                                                    class="badge <%= model.credentials.expiringSoon > 0 ? 'badge-crit' : 'badge-ok' %>">
+                                                    <%= model.credentials.expiringSoon %>
+                                                </span>
+                                            </div>
+                                        </div>
 
-        <script src="/js/confirmModal.js"></script>
-        <script src="/js/navbar.js"></script>
+                                        <% if (model.appsExpiringSoon && model.appsExpiringSoon.items &&
+                                            model.appsExpiringSoon.items.length> 0) { %>
+                                            <div class="scroll-box">
+                                                <div class="preview-list">
+                                                    <% model.appsExpiringSoon.items.forEach(function(a) { %>
+                                                        <div class="preview-item">
+                                                            <div class="preview-title">
+                                                                <%= a.displayName || '(Sense nom)' %>
+                                                            </div>
+                                                            <div class="preview-meta">AppId: <%= a.appId || '—' %>
+                                                            </div>
+                                                        </div>
+                                                        <% }); %>
+                                                </div>
+                                            </div>
+                                            <% } else { %>
+                                                <p class="preview-empty">No credentials nearing expiration have been
+                                                    detected.
+                                                </p>
+                                                <% } %>
 
-        <footer class="footer">
-            <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
-        </footer>
+                        </div>
+
+                    </article>
+
+                    <article class="card security-card compact-card">
+                        <header class="card-header">
+                            <h3>Groups governance</h3>
+
+                        </header>
+
+                        <div class="card-content">
+                            <div class="metric-row">
+                                <div class="metric-label subtle-title">Groups without owners</div>
+                                <div class="metric-value">
+                                    <span
+                                        class="badge <%= model.groupsWithoutOwners.count > 0 ? 'badge-warn' : 'badge-ok' %>">
+                                        <%= model.groupsWithoutOwners.count %>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <% if (model.groupsWithoutOwners.items && model.groupsWithoutOwners.items.length> 0) { %>
+                                <div class="scroll-box">
+                                    <div class="preview-list">
+                                        <% model.groupsWithoutOwners.items.forEach(function(g) { %>
+                                            <div class="preview-item">
+                                                <div class="preview-title">
+                                                    <a class="users-link"
+                                                        href="/tenant/groups/<%= encodeURIComponent(g.id) %>">
+                                                        <%= g.displayName || '(Sense nom)' %>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <% }); %>
+                                    </div>
+                                </div>
+                                <% } else { %>
+                                    <p class="preview-empty">No groups without assigned owners were found.</p>
+                                    <% } %>
+                        </div>
+                    </article>
+
+
+                </div>
+
+                <!-- Row: capacity & portal RBAC -->
+                <div class="security-two-col">
+
+                    <article class="card security-card">
+                        <header class="card-header">
+                            <h3>Portal RBAC (App roles)</h3>
+
+                        </header>
+
+                        <div class="card-content">
+                            <% if (model.portalRbac && !model.portalRbac.error) { %>
+
+                                <div class="metric-row">
+                                    <div class="metric-label subtle-title">Total assignments</div>
+                                    <div class="metric-value"><span class="badge badge-ok">
+                                            <%= model.portalRbac.totalAssignments %>
+                                        </span></div>
+                                </div>
+
+                                <div class="mini-bars">
+                                    <% Object.keys(model.portalRbac.byLabel || {}).forEach(function(k) { %>
+                                        <% const c=model.portalRbac.byLabel[k]; %>
+                                            <div class="mini-bar-row">
+                                                <div class="mini-bar-label">
+                                                    <%= k %>
+                                                </div>
+                                                <div class="mini-bar-track">
+                                                    <div class="mini-bar-fill"
+                                                        style="width:<%= Math.min(100, c * 12) %>%">
+                                                    </div>
+                                                </div>
+                                                <div class="mini-bar-count muted">
+                                                    <%= c %>
+                                                </div>
+                                            </div>
+                                            <% }); %>
+                                </div>
+
+                                <% } else { %>
+                                    <p class="preview-empty">
+                                        Portal RBAC not available: <%= (model.portalRbac && model.portalRbac.error) ?
+                                            model.portalRbac.error : 'unknown' %>
+                                    </p>
+                                    <% } %>
+                        </div>
+                    </article>
+                    <!-- RIGHT: Directory roles (High impact in use) -->
+                    <article class="card security-card">
+                        <header class="card-header">
+                            <h3>Directory roles (high impact)</h3>
+                        </header>
+
+                        <div class="card-content">
+                            <div class="metric-row">
+                                <div class="metric-label subtle-title">Roles in use</div>
+                                <div class="metric-value">
+                                    <span
+                                        class="badge <%= (model.privilegedRolesInUse && model.privilegedRolesInUse.length > 0) ? 'badge-warn' : 'badge-ok' %>">
+                                        <%= (model.privilegedRolesInUse || []).length %>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <% if (model.privilegedRolesInUse && model.privilegedRolesInUse.length> 0) { %>
+
+                                <div class="scroll-box">
+                                    <div class="preview-list">
+                                        <% model.privilegedRolesInUse.forEach(function(r) { %>
+
+                                            <div class="preview-item">
+                                                <div class="preview-title">
+                                                    <%= r.displayName %>
+                                                        <span class="muted small">· <%= r.membersCount %>
+                                                                member(s)</span>
+                                                </div>
+
+                                                <% if (r.users && r.users.length> 0) { %>
+                                                    <div class="muted small" style="margin-top:6px;">Assigned users
+                                                    </div>
+
+                                                    <% r.users.forEach(function(u) { %>
+                                                        <div class="preview-meta" style="margin-top:4px;">
+                                                            <a class="users-link"
+                                                                href="/tenant/users/<%= encodeURIComponent(u.id) %>">
+                                                                <%= u.displayName || '(No name)' %>
+                                                            </a>
+                                                            <% if (u.userPrincipalName) { %>
+
+                                                                <% } %>
+                                                        </div>
+                                                        <% }); %>
+                                                            <% } %>
+                                            </div>
+
+                                            <% }); %>
+                                    </div>
+                                </div>
+
+                                <% } else { %>
+                                    <p class="preview-empty">No high-impact roles assigned.</p>
+                                    <% } %>
+                        </div>
+                    </article>
+                </div>
+
+            </section>
+        </main>
+
+        <!-- Modal global -->
+        <%- include('../components/confirmModal', { title: 'Confirmation' ,
+            message: 'Are you sure you want to continue?' , okText: 'Confirm' , cancelText: 'Cancel' }) %>
+
+            <script src="/js/confirmModal.js"></script>
+            <script src="/js/navbar.js"></script>
+
+            <footer class="footer">
+                <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+            </footer>
 
 </body>
 

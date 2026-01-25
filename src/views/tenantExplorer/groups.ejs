@@ -34,10 +34,9 @@
       </a>
       <section class="tenant-users-layout">
         <header class="users-header">
-          <h1>Grups del tenant</h1>
+          <h1>Tenant groups</h1>
           <p>
-            Llista de grups de Microsoft Entra ID (Security, Microsoft 365, etc.)
-            amb el seu nom, tipus principal i origen.
+            List of Microsoft Entra ID groups (Security, Microsoft 365, etc.) with their name, primary type, and source.
           </p>
         </header>
 
@@ -57,9 +56,9 @@
             <article class="card users-card create-user-card">
               <div class="users-card-header">
                 <div class="users-header-left">
-                  <h2>Crear un grup nou</h2>
+                  <h2>Create a new group</h2>
                   <p class="users-meta">
-                    Dona d'alta un grup de seguretat o Microsoft 365 al tenant.
+                    Create a Security or Microsoft 365 group in the tenant.
                   </p>
                 </div>
               </div>
@@ -84,11 +83,11 @@
                       </div>
 
                       <div class="form-group">
-                        <label for="newGroupOwnersInput">Owners del grup</label>
+                        <label for="newGroupOwnersInput">Group owners</label>
                         <input id="newGroupOwnersInput" type="text" class="users-input"
-                          placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
+                          placeholder="Search by name or UPN, or enter a UPN and press Enter" autocomplete="off" />
                         <small class="field-hint">
-                          Cerca i selecciona usuaris del tenant, o escriu el seu UPN manualment i prem Enter.
+                          Search and select tenant users, or manually enter their UPN and press Enter.
                         </small>
 
                         <!-- Dropdown amb usuaris -->
@@ -114,20 +113,20 @@
                           <option value="m365">Microsoft 365</option>
                         </select>
                         <small class="field-hint">
-                          Security: grup per permisos. Microsoft 365: correu, Teams, etc.
+                          Security: permission-based group. Microsoft 365: email, Teams, etc.
                         </small>
                       </div>
 
                       <p class="field-hint">
-                        El grup es crearà com a <strong>Cloud</strong>. Els grups sincronitzats
-                        des d'Active Directory no es poden crear des del portal.
+                        The group will be created as <strong>Cloud</strong>. Groups synchronized from Active Directory
+                        cannot be created from the portal.
                       </p>
                     </div>
                   </div>
 
                   <div class="create-user-actions">
                     <button id="createGroupBtn" type="submit" class="btn btn-primary">
-                      Crear grup
+                      Create group
                     </button>
                   </div>
                 </div>
@@ -144,34 +143,34 @@
               <article class="card users-card">
                 <div class="users-card-header">
                   <div class="users-header-left">
-                    <h2>Llista de grups</h2>
+                    <h2>Group list</h2>
                     <p class="users-meta">
                       <span class="users-meta-count">
                         <%= groups && groups.length ? groups.length : 0 %>
-                      </span> grups trobats
+                      </span> groups found
                     </p>
                   </div>
 
                   <div class="users-header-right">
                     <div class="users-filters">
-                      <input id="groupSearch" type="text" class="users-search-input" placeholder="Cerca per nom"
+                      <input id="groupSearch" type="text" class="users-search-input" placeholder="Search by name"
                         onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
 
                       <select id="groupTypeFilter" class="users-type-filter">
-                        <option value="all">Tots els tipus</option>
+                        <option value="all">All types</option>
                         <option value="security">Security</option>
                         <option value="m365">Microsoft 365</option>
                       </select>
 
                       <select id="groupSourceFilter" class="users-type-filter">
-                        <option value="all">Tots els orígens</option>
+                        <option value="all">All sources</option>
                         <option value="cloud">Cloud</option>
                         <option value="synced">Synced (AD)</option>
                       </select>
                     </div>
 
                     <button type="submit" class="btn btn-primary">
-                      Eliminar seleccionats
+                      Delete selected
                     </button>
                   </div>
                 </div>
@@ -184,7 +183,7 @@
                           <th>Group name</th>
                           <th>Group type</th>
                           <th>Source</th>
-                          <th>Seleccionar</th>
+                          <th>Select</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -196,7 +195,7 @@
                             data-source="<%= sourceLabel.toLowerCase().includes('synced') ? 'synced' : 'cloud' %>">
                             <td>
                               <a href="/tenant/groups/<%= encodeURIComponent(g.id) %>" class="users-link">
-                                <%= g.displayName || '(Sense nom)' %>
+                                <%= g.displayName || '(Unnamed)' %>
                               </a>
                             </td>
                             <td>
@@ -214,7 +213,7 @@
                     </table>
                     <% } else { %>
                       <p class="users-empty">
-                        No s'ha trobat cap grup o no es pot llegir la informació.
+                        No groups were found, or the information could not be retrieved.
                       </p>
                       <% } %>
                 </div>
@@ -398,7 +397,7 @@
               const info = document.createElement('div');
               info.className = 'owner-option-info';
               info.innerHTML = `
-              <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
+              <span class="owner-option-name">${u.displayName || '(Unnamed)'}</span>
               <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
               <span class="owner-option-type">${u.userType || ''}</span>
             `;
@@ -500,9 +499,9 @@
             if (!hasName || !hasDescription || !hasAtLeastOneOwner) {
               e.preventDefault();
 
-              if (!hasName) setGroupError(groupNameError, "Has d'omplir el Group name.");
-              if (!hasDescription) setGroupError(groupDescError, "Has d'omplir la descripció.");
-              if (!hasAtLeastOneOwner) setGroupError(groupOwnersError, "Has d'afegir com a mínim un owner (UPN o seleccionat).");
+              if (!hasName) setGroupError(groupNameError, "You must fill in the Group name.");
+              if (!hasDescription) setGroupError(groupDescError, "You must fill in the description.");
+              if (!hasAtLeastOneOwner) setGroupError(groupOwnersError, "You must add at least one owner (UPN or selected user).");
 
               if (createGroupError) {
                 createGroupError.style.display = 'block';
@@ -529,9 +528,9 @@
       <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
     </footer>
 
-    <!-- Modal global (únic, reutilitzable per logout i deletes) -->
-    <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
-      okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+    <!-- Modal global -->
+    <%- include('../components/confirmModal', { title: 'Confirmation' , message: 'Are you sure you want to continue?' ,
+      okText: 'Confirm' , cancelText: 'Cancel' }) %>
 
       <script src="/js/confirmModal.js"></script>
       <script src="/js/navbar.js"></script>

@@ -9,9 +9,10 @@
 
       <% if (user) { %>
         <li><a href="/me" class="nav-link <%= active==='me' ? 'nav-link-active' : '' %>">My Identity</a></li>
-        <li><a href="/tenant" class="nav-link <%= active==='tenant' ? 'nav-link-active' : '' %>">Tenant Explorer</a></li>
+        <li><a href="/tenant" class="nav-link <%= active==='tenant' ? 'nav-link-active' : '' %>">Tenant Explorer</a>
+        </li>
         <li><a href="/security" class="nav-link <%= active==='security' ? 'nav-link-active' : '' %>">Security</a></li>
-      <% } %>
+        <% } %>
     </ul>
   </div>
 
@@ -20,18 +21,19 @@
       <div class="user-menu">
         <button type="button" class="user-pill" id="userMenuBtn" aria-haspopup="true" aria-expanded="false">
           <span class="user-initial">
-            <%= (user.name || user.username || 'U').charAt(0).toUpperCase() %>
+            <%= (user.name || user.username || 'U' ).charAt(0).toUpperCase() %>
           </span>
 
-          <%
-            const roleLabel = (portalRole && portalRole !== 'Default')
-              ? portalRole.replace('Portal.', '')
-              : 'Default';
-          %>
+          <% const roleLabel=(portalRole && portalRole !=='Default' ) ? portalRole.replace('Portal.', '' ) : 'Default' ;
+            %>
 
-          <span class="user-role"><%= roleLabel %></span>
-          <span class="user-separator">·</span>
-          <span class="user-name"><%= user.name || user.username || 'User' %></span>
+            <span class="user-role">
+              <%= roleLabel %>
+            </span>
+            <span class="user-separator">·</span>
+            <span class="user-name">
+              <%= user.name || user.username || 'User' %>
+            </span>
         </button>
 
         <!-- Dropdown -->
@@ -42,21 +44,14 @@
             Logout
           </button>
 
-          <form
-            id="logoutForm"
-            method="GET"
-            action="/auth/logout"
-            data-confirm="true"
-            data-confirm-title="Confirmació"
-            data-confirm-message="Segur que vols tancar la sessió?"
-            data-confirm-ok="Logout"
-            data-confirm-cancel="Cancel·lar"
-            style="display:none;">
+          <form id="logoutForm" method="GET" action="/auth/logout" data-confirm="true" data-confirm-title="Confirmation"
+            data-confirm-message="Are you sure you want to sign out?" data-confirm-ok="Logout"
+            data-confirm-cancel="Cancel" style="display:none;">
           </form>
         </div>
       </div>
-    <% } else { %>
-      <a href="/auth/login" class="btn btn-outline-light">Sign in</a>
-    <% } %>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline-light">Sign in</a>
+        <% } %>
   </div>
 </nav>

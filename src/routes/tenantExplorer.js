@@ -1030,7 +1030,7 @@ router.get('/tenant/roles/portal/:appRoleId', requireRole('Portal.RoleAdmin'), a
         // 4) Llista d'usuaris per dropdown
         const users = await getAllUsers(accessToken);
 
-        const helpfulInfo = UI_MESSAGES.HELP.PORTAL_ROLE_IDENTITY;
+        const helpfulInfo = UI_MESSAGES.HELP.INTERN_ROLE_IDENTITY;
 
         res.render('tenantExplorer/portalRoleIdentity', {
             title: UI_MESSAGES.TITLES.PORTAL_ROLE_DETAIL(role.displayName || role.value),

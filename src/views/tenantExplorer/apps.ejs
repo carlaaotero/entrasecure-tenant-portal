@@ -34,41 +34,41 @@
             </a>
             <section class="tenant-users-layout">
                 <header class="users-header">
-                    <h1>Aplicacions del tenant</h1>
+                    <h1>Tenant applications</h1>
                     <p>
-                        Llista d'aplicacions (Enterprise apps / service principals) del tenant,
-                        amb el seu Application ID, Object ID i mode d'autenticació principal.
+                        List of tenant applications (Enterprise apps / service principals), including their Application
+                        ID, Object ID, and primary authentication mode.
                     </p>
                 </header>
 
                 <article class="card users-card">
                     <div class="users-card-header">
                         <div class="users-header-left">
-                            <h2>Llista d'aplicacions</h2>
+                            <h2>Application list</h2>
                             <p class="users-meta">
                                 <span class="users-meta-count">
                                     <%= apps && apps.length ? apps.length : 0 %>
-                                </span> aplicacions trobades
+                                </span> applications found
                             </p>
                         </div>
 
                         <div class="users-header-right">
                             <div class="users-filters">
                                 <input id="appSearch" type="text" class="users-search-input"
-                                    placeholder="Cerca per nom o Application ID"
+                                    placeholder="Search by name or Application ID"
                                     onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
 
                                 <select id="appProtocolFilter" class="users-type-filter">
-                                    <option value="all">Tots els protocols</option>
+                                    <option value="all">All protocols</option>
                                     <option value="oidc">OIDC / OAuth2</option>
                                     <option value="saml">SAML</option>
-                                    <option value="other">Altres</option>
+                                    <option value="other">Other</option>
                                 </select>
 
                                 <select id="appScopeFilter" class="users-type-filter">
-                                    <option value="mine" selected>Només les meves aplicacions</option>
-                                    <option value="all">Totes les aplicacions</option>
-                                    <option value="others">Només aplicacions de Microsoft / tercers</option>
+                                    <option value="mine" selected>Only my applications</option>
+                                    <option value="all">All applications</option>
+                                    <option value="others">Only Microsoft / third-party applications</option>
                                 </select>
 
                                 <button type="button" id="showAllAppsBtn" class="btn btn-outline-light"
@@ -86,7 +86,7 @@
                             <table class="users-table">
                                 <thead>
                                     <tr>
-                                        <th>Nom</th>
+                                        <th>Name</th>
                                         <th>Application ID</th>
                                         <th>Object ID</th>
                                         <th>Protocol</th>
@@ -110,7 +110,7 @@
                                                 <td>
                                                     <a href="/tenant/apps/<%= encodeURIComponent(a.id) %>"
                                                         class="users-link">
-                                                        <%= a.displayName || '(Sense nom)' %>
+                                                        <%= a.displayName || '(Unnamed)' %>
                                                     </a>
                                                     <% if (isMine) { %>
                                                         <span
@@ -137,7 +137,8 @@
 
                             </table>
                             <% } else { %>
-                                <p class="users-empty">No s'ha trobat cap aplicació o no es pot llegir la informació.
+                                <p class="users-empty">No applications were found, or the information could not be
+                                    retrieved.
                                 </p>
                                 <% } %>
                     </div>
@@ -201,9 +202,9 @@
             })();
         </script>
 
-        <!-- Modal global (únic, reutilitzable per logout i deletes) -->
-        <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
-            okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+        <!-- Modal global -->
+        <%- include('../components/confirmModal', { title: 'Confirmation' ,
+            message: 'Are you sure you want to continue?' , okText: 'Confirm' , cancelText: 'Cancel' }) %>
 
             <script src="/js/confirmModal.js"></script>
             <script src="/js/navbar.js"></script>

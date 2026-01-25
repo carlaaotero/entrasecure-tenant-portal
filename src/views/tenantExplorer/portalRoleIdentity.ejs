@@ -59,12 +59,23 @@
               <% } %>
 
                 <!-- Perfil (esquerra) -->
+                <!-- PERFIL (columna esquerra) -->
                 <article class="card identity-profile-card">
+                  <div class="identity-avatar-wrapper">
+                    <div class="profile-avatar">
+                      <span>
+                        <% const rName=(role && (role.displayName || role.value)) ? (role.displayName || role.value)
+                          : 'Role' ; const rInitial=rName.charAt(0).toUpperCase(); %>
+                          <%= rInitial %>
+                      </span>
+                    </div>
+                  </div>
+
                   <div class="identity-profile-info">
                     <h2 class="identity-title">
                       <%= role.displayName || role.value %>
                     </h2>
-                    <p class="identity-upn">Portal App Role (RBAC intern)</p>
+                    <p class="identity-upn">Portal App Role (internal RBAC)</p>
                   </div>
 
                   <dl class="identity-details">
@@ -90,72 +101,76 @@
                     </div>
                   </dl>
                 </article>
+                <article class="card identity-edu-card">
+</article>
+
+
 
                 <!-- Assignacions (dreta) -->
-                <article class="card identity-card identity-groups-card">
-                  <h3>Users assigned</h3>
-                  <div class="identity-card-content">
+<article class="card identity-card identity-groups-card">
+  <h3>Users assigned</h3>
 
-                    <!-- ✅ FORM amb el patró "Directory Roles": input + dropdown amb checkboxes + chips -->
-                    <form id="addPortalRoleUsersForm" method="POST"
-                      action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/add"
-                      class="identity-inline-form">
+  <div class="identity-card-content">
+    <form id="addPortalRoleUsersForm" method="POST"
+      action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/add"
+      class="identity-inline-form">
 
-                      <label for="portalRoleUsersInput" class="identity-inline-label">Assignar usuaris al
-                        rol</label>
+      <label for="portalRoleUsersInput" class="identity-inline-label">
+        Assign users to the role
+      </label>
 
-                      <div class="identity-inline-input">
-                        <input id="portalRoleUsersInput" type="text" class="users-input"
-                          placeholder="Cerca per nom o UPN (o fes Enter per afegir manualment)" autocomplete="off" />
+      <div class="identity-inline-input">
+        <input
+          id="portalRoleUsersInput"
+          type="text"
+          class="users-input"
+          placeholder="Search by name or UPN (or press Enter to add manually)"
+          autocomplete="off"
+        />
+      </div>
 
-                      </div>
-                  </div>
+      <div id="portalRoleUsersChips" class="owners-chip-list"></div>
+      <input type="hidden" name="userIds" id="portalRoleUsersHidden" />
 
-                  <small class="field-hint">
-                    <%= helpfulInfo %>
-                  </small>
+      <div class="identity-inline-actions">
+        <button type="submit" class="btn btn-primary btn-sm">Assignar seleccionats</button>
+      </div>
+    </form>
 
-                  <div id="portalRoleUsersChips" class="owners-chip-list"></div>
-                  <input type="hidden" name="userIds" id="portalRoleUsersHidden" />
+    <div class="assignments-scroll">
+      <% if (assignments && assignments.length > 0) { %>
+        <div class="identity-item-list">
+          <% assignments.forEach(function(a) { %>
+            <div class="identity-item-card identity-removable">
 
-                  <div class="identity-inline-actions">
-                    <button type="submit" class="btn btn-primary btn-sm">Assignar seleccionats</button>
-                  </div>
-                  </form>
+              <form method="POST"
+                action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/<%= encodeURIComponent(a.id) %>/remove"
+                class="remove-form" data-confirm="true"
+                data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
+                data-confirm-message="Do you want to remove the assignment of «<%= (a.principalDisplayName || a.principalId || 'this user') %>» from the role «<%= (role.displayName || role.value || 'role') %>»?"
+                data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
+                data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
+                <button type="submit" class="remove-btn">×</button>
+              </form>
 
-                  <div class="assignments-scroll">
-                    <% if (assignments && assignments.length> 0) { %>
-                      <div class="identity-item-list">
-                        <% assignments.forEach(function(a) { %>
-                          <div class="identity-item-card identity-removable">
+              <div class="identity-item-title"><%= a.principalDisplayName || a.principalId %></div>
+              <div class="identity-item-meta">User · <%= a.principalId %></div>
+            </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <p class="identity-empty">There are no users assigned to this role.</p>
+      <% } %>
+    </div>
+  </div>
+</article>
 
-                            <form method="POST"
-                              action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/<%= encodeURIComponent(a.id) %>/remove"
-                              class="remove-form" data-confirm="true"
-                              data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
-                              data-confirm-message="Vols eliminar l'assignació de «<%= (a.principalDisplayName || a.principalId || 'aquest usuari') %>» del rol «<%= (role.displayName || role.value || 'rol') %>»?"
-                              data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
-                              data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
-                              <button type="submit" class="remove-btn">×</button>
-                            </form>
+<!-- Targeta explicativa (igual que roleIdentity) -->
+<article class="card identity-edu-card">
+  <h3 class="identity-edu-title">How to read this information</h3>
+  <p class="identity-edu"><%= helpfulInfo %></p>
+</article>
 
-
-                            <div class="identity-item-title">
-                              <%= a.principalDisplayName || a.principalId %>
-                            </div>
-                            <div class="identity-item-meta">User · <%= a.principalId %>
-                            </div>
-                          </div>
-                          <% }); %>
-                      </div>
-                      <% } else { %>
-                        <p class="identity-empty">No hi ha usuaris assignats a aquest rol.</p>
-                        <% } %>
-                  </div>
-
-
-                  </div>
-                </article>
 
           </section>
     </main>
@@ -183,7 +198,7 @@
           selectedIds.forEach((id, index) => {
             const u = ALL_USERS.find(x => x.id === id);
             const label = u
-              ? `${u.displayName || '(Sense nom)'}${u.userPrincipalName ? ' · ' + u.userPrincipalName : ''}`
+              ? `${u.displayName || '(Unnamed)'}${u.userPrincipalName ? ' · ' + u.userPrincipalName : ''}`
               : id;
 
             const chip = document.createElement('span');
@@ -236,11 +251,11 @@
           panel.innerHTML = `
         <div class="owners-dropdown-header" style="position: sticky; top: 0; background: #fff;">
           <div style="font-size:12px; color:#666; padding:6px 10px;">
-            Selecciona usuaris (marcar múltiples) i prem "Afegir"
+            Select users (multiple selection) and click “Add Selected”
           </div>
           <div style="display:flex; gap:8px; padding:0 10px 10px 10px;">
-            <button type="button" class="btn btn-primary owners-add-btn" id="addSelectedBtn">Afegir</button>
-            <button type="button" class="btn btn-outline-light owners-add-btn" id="closeBtn">Tancar</button>
+            <button type="button" class="btn btn-primary owners-add-btn" id="addSelectedBtn">Add</button>
+            <button type="button" class="btn btn-outline-light owners-add-btn" id="closeBtn">Close</button>
           </div>
         </div>
         <div class="owners-dropdown-list" id="list"></div>
@@ -253,7 +268,7 @@
             row.innerHTML = `
           <input type="checkbox" class="owner-option-checkbox" value="${u.id}">
           <div class="owner-option-info">
-            <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
+            <span class="owner-option-name">${u.displayName || '(Unnamed)'}</span>
             <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
             <span class="owner-option-type">${u.userType || ''}</span>
           </div>
@@ -330,9 +345,9 @@
       })();
     </script>
 
-    <!-- Modal global (únic, reutilitzable per logout i deletes) -->
-    <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
-      okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+    <!-- Modal global -->
+    <%- include('../components/confirmModal', { title: 'Confirmation' , message: 'Are you sure you want to continue?' ,
+      okText: 'Confirm' , cancelText: 'Cancel' }) %>
 
       <script src="/js/confirmModal.js"></script>
       <script src="/js/navbar.js"></script>

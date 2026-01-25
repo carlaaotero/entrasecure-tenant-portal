@@ -29,108 +29,112 @@
   <!-- Navbar -->
   <%- include('components/navbar', { active: 'home' }) %>
 
-  <main>
-    <% if (flash && flash.message) { %>
-  <div class="card" style="margin: 12px auto; padding: 12px; max-width: 720px;">
-    <strong>
-      <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info') %>:
-    </strong>
-    <span><%= flash.message %></span>
-  </div>
-<% } %>
-
-    <!-- Hero -->
-    <section class="hero">
-      <div class="hero-inner">
-        <h1>Welcome to EntraSecure Tenant Portal</h1>
-        <p class="hero-subtitle">
-          A custom web portal to explore identity, access control and governance in Microsoft Entra ID using Microsoft Graph
-        </p>
-
-        <% if (!user) { %>
-          <div class="hero-cta-wrapper">
-            <a href="/auth/login" class="btn btn-primary hero-cta">
-              Sign in with Microsoft Entra ID
-            </a>
-          </div>
-        <% } else { %>
-          <div class="profile-card">
-            <div class="profile-avatar">
-              <span>
-                <% if (user.name) { %>
-                  <%= user.name.charAt(0).toUpperCase() %>
-                <% } else if (user.username) { %>
-                  <%= user.username.charAt(0).toUpperCase() %>
-                <% } else { %>
-                  U
-                <% } %>
-              </span>
-            </div>
-            <div class="profile-info">
-              <div class="profile-name">
-                <%= user.name || 'Signed-in user' %>
-              </div>
-              <div class="profile-upn">
-                <%= user.username || '' %>
-              </div>
-            </div>
-          </div>
+    <main>
+      <% if (flash && flash.message) { %>
+        <div class="card" style="margin: 12px auto; padding: 12px; max-width: 720px;">
+          <strong>
+            <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+          </strong>
+          <span>
+            <%= flash.message %>
+          </span>
+        </div>
         <% } %>
-      </div>
-    </section>
 
-    <!-- Project info -->
-    <section class="info-section">
-      <div class="info-intro">
-        <h2>About this portal</h2>
-        <p>
-          EntraSecure Tenant Portal is a web application developed as part of a Bachelor’s Thesis in Telematics Engineering.
+          <!-- Hero -->
+          <section class="hero">
+            <div class="hero-inner">
+              <h1>Welcome to EntraSecure Tenant Portal</h1>
+              <p class="hero-subtitle">
+                A custom web portal to explore identity, access control and governance in Microsoft Entra ID using
+                Microsoft Graph
+              </p>
 
-The portal provides a structured and simplified view of identity and access management within a Microsoft Entra ID tenant, focusing on users, groups, applications and roles.
+              <% if (!user) { %>
+                <div class="hero-cta-wrapper">
+                  <a href="/auth/login" class="btn btn-primary hero-cta">
+                    Sign in with Microsoft Entra ID
+                  </a>
+                </div>
+                <% } else { %>
+                  <div class="profile-card">
+                    <div class="profile-avatar">
+                      <span>
+                        <% if (user.name) { %>
+                          <%= user.name.charAt(0).toUpperCase() %>
+                            <% } else if (user.username) { %>
+                              <%= user.username.charAt(0).toUpperCase() %>
+                                <% } else { %>
+                                  U
+                                  <% } %>
+                      </span>
+                    </div>
+                    <div class="profile-info">
+                      <div class="profile-name">
+                        <%= user.name || 'Signed-in user' %>
+                      </div>
+                      <div class="profile-upn">
+                        <%= user.username || '' %>
+                      </div>
+                    </div>
+                  </div>
+                  <% } %>
+            </div>
+          </section>
 
-Its main purpose is to help analyze identity relationships, access assignments and governance aspects using Microsoft Graph, while taking into account the real limitations of a Microsoft Entra ID Free environment
-        </p>
-      </div>
+          <!-- Project info -->
+          <section class="info-section">
+            <div class="info-intro">
+              <h2>About this portal</h2>
+              <p>
+                EntraSecure Tenant Portal is a web application developed as part of a Bachelor’s Thesis in Telematics
+                Engineering.
 
-      <div class="info-grid">
-        <article class="card">
-          <h3>Project goals</h3>
-          <ul>
-            <li>Provide a clear view of IAM objects such as users, groups, applications and directory roles.</li>
-            <li>Visualize identity relationships, including memberships, ownership and role assignments.</li>
-            <li>Highlight governance and security aspects within a Microsoft Entra ID tenant.</li>
-            <li>Apply an internal RBAC model to protect portal functionality independently of tenant roles.</li>
-          </ul>
-        </article>
+                The portal provides a structured and simplified view of identity and access management within a
+                Microsoft Entra ID tenant, focusing on users, groups, applications and roles.
 
-        <article class="card">
-          <h3>Key technologies</h3>
-          <ul class="tech-list">
-            <li><strong>Node.js</strong> and <strong>Express </strong> for the backend application logic.</li>
-            <li><strong>EJS</strong> for server-side rendering of the user interface.</li>
-            <li><strong>MSAL Node</strong> for OIDC / OAuth2 authentication against Microsoft Entra ID.</li>
-            <li><strong>Microsoft Graph API</strong> to retrieve and manage tenant data.</li>
-            <li><strong>Session-based access control </strong> combined with <strong>claims-based authorization</strong>.</li>
-          </ul>
-        </article>
-      </div>
-    </section>
-  </main>
+                Its main purpose is to help analyze identity relationships, access assignments and governance aspects
+                using Microsoft Graph, while taking into account the real limitations of a Microsoft Entra ID Free
+                environment
+              </p>
+            </div>
 
-  <footer class="footer">
-    <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
-  </footer>
+            <div class="info-grid">
+              <article class="card">
+                <h3>Project goals</h3>
+                <ul>
+                  <li>Provide a clear view of IAM objects such as users, groups, applications and directory roles.</li>
+                  <li>Visualize identity relationships, including memberships, ownership and role assignments.</li>
+                  <li>Highlight governance and security aspects within a Microsoft Entra ID tenant.</li>
+                  <li>Apply an internal RBAC model to protect portal functionality independently of tenant roles.</li>
+                </ul>
+              </article>
 
-  <!-- Modal global -->
-<%- include('components/confirmModal', {
-  title: 'Confirmació',
-  message: 'Segur que vols continuar?',
-  okText: 'Acceptar',
-  cancelText: 'Cancel·lar'
-}) %>
+              <article class="card">
+                <h3>Key technologies</h3>
+                <ul class="tech-list">
+                  <li><strong>Node.js</strong> and <strong>Express </strong> for the backend application logic.</li>
+                  <li><strong>EJS</strong> for server-side rendering of the user interface.</li>
+                  <li><strong>MSAL Node</strong> for OIDC / OAuth2 authentication against Microsoft Entra ID.</li>
+                  <li><strong>Microsoft Graph API</strong> to retrieve and manage tenant data.</li>
+                  <li><strong>Session-based access control </strong> combined with <strong>claims-based
+                      authorization</strong>.</li>
+                </ul>
+              </article>
+            </div>
+          </section>
+    </main>
 
-<script src="/js/confirmModal.js"></script>
-<script src="/js/navbar.js"></script>
+    <footer class="footer">
+      <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+    </footer>
+
+    <!-- Modal global -->
+    <%- include('components/confirmModal', { title: 'Confirmation' , message: 'Are you sure you want to continue?' ,
+      okText: 'Confirm' , cancelText: 'Cancel' }) %>
+
+      <script src="/js/confirmModal.js"></script>
+      <script src="/js/navbar.js"></script>
 
 </body>
 

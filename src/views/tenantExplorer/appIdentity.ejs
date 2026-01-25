@@ -63,7 +63,7 @@
 
                             <div class="identity-profile-info">
                                 <h2 class="identity-title">
-                                    <%= servicePrincipal.displayName || 'Aplicació del tenant' %>
+                                    <%= servicePrincipal.displayName || 'Tenant application' %>
                                 </h2>
                             </div>
 
@@ -109,12 +109,12 @@
                                     class="identity-inline-form">
 
                                     <label for="appOwnersInput" class="identity-inline-label">
-                                        Afegir owners a l'aplicació
+                                        Add owners to the application
                                     </label>
 
                                     <div class="identity-inline-input">
                                         <input id="appOwnersInput" type="text" class="users-input"
-                                            placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter"
+                                            placeholder="Search by name or UPN, or enter a UPN and press Enter"
                                             autocomplete="off" />
 
                                         <!-- Dropdown amb usuaris -->
@@ -122,7 +122,7 @@
                                     </div>
 
                                     <small class="field-hint">
-                                        Selecciona usuaris amb el desplegable o escriu UPNs manualment.
+                                        Select users from the dropdown or enter UPNs manually.
                                     </small>
 
                                     <!-- Chips -->
@@ -133,7 +133,7 @@
 
                                     <div class="identity-inline-actions">
                                         <button type="submit" class="btn btn-primary btn-sm">
-                                            Afegir owners seleccionats
+                                            Add selected owners
                                         </button>
                                     </div>
                                 </form>
@@ -148,7 +148,7 @@
                                                     action="/tenant/apps/<%= encodeURIComponent(servicePrincipal.id) %>/owners/<%= encodeURIComponent(o.id) %>/remove"
                                                     class="remove-form" data-confirm="true"
                                                     data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
-                                                    data-confirm-message="Vols eliminar «<%= (o.displayName || o.userPrincipalName || 'aquest usuari') %>» com a owner de l'aplicació?"
+                                                    data-confirm-message="Do you want to remove «<%= (o.displayName || o.userPrincipalName || 'aquest usuari') %>» as an owner of the application?"
                                                     data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
                                                     data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
                                                     <button type="submit" class="remove-btn">×</button>
@@ -159,10 +159,10 @@
                                                     <% if (o.id) { %>
                                                         <a href="/tenant/users/<%= encodeURIComponent(o.id) %>"
                                                             class="identity-link">
-                                                            <%= o.displayName || o.userPrincipalName || '(Sense nom)' %>
+                                                            <%= o.displayName || o.userPrincipalName || '(Unnamed)' %>
                                                         </a>
                                                         <% } else { %>
-                                                            <%= o.displayName || o.userPrincipalName || '(Sense nom)' %>
+                                                            <%= o.displayName || o.userPrincipalName || '(Unnamed)' %>
                                                                 <% } %>
                                                 </div>
 
@@ -176,7 +176,7 @@
                                     </div>
                                     <% } else { %>
                                         <p class="identity-empty">
-                                            Aquesta aplicació no té owners o no es pot llegir la informació.
+                                            This application has no owners, or the information could not be retrieved.
                                         </p>
                                         <% } %>
 
@@ -196,12 +196,12 @@
                                     class="identity-inline-form">
 
                                     <label for="appAssignmentsInput" class="identity-inline-label">
-                                        Assignar usuaris a l'aplicació
+                                        Assign users to the application
                                     </label>
 
                                     <div class="identity-inline-input">
                                         <input id="appAssignmentsInput" type="text" class="users-input"
-                                            placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter"
+                                            placeholder="Search by name or UPN, or enter a UPN and press Enter"
                                             autocomplete="off" />
 
                                         <div id="appAssignmentsDropdown" class="owners-dropdown" style="display:none;">
@@ -209,7 +209,7 @@
                                     </div>
 
                                     <small class="field-hint">
-                                        Aquesta acció crea una assignació (default app role) a l'Enterprise App.
+                                        This action creates an assignment (default app role) to the Enterprise App.
                                     </small>
 
                                     <div id="appAssignmentsChips" class="owners-chip-list"></div>
@@ -218,7 +218,7 @@
 
                                     <div class="identity-inline-actions">
                                         <button type="submit" class="btn btn-primary btn-sm">
-                                            Assignar seleccionats
+                                            Assign selected
                                         </button>
                                     </div>
                                 </form>
@@ -233,7 +233,7 @@
                                                     action="/tenant/apps/<%= encodeURIComponent(servicePrincipal.id) %>/assignments/<%= encodeURIComponent(a.id) %>/remove"
                                                     class="remove-form" data-confirm="true"
                                                     data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
-                                                    data-confirm-message="Vols eliminar l'assignació de «<%= (a.principalDisplayName || 'aquest element') %>»?"
+                                                    data-confirm-message="Do you want to remove the assignment for «<%= (a.principalDisplayName || 'aquest element') %>»?"
                                                     data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
                                                     data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
                                                     <button type="submit" class="remove-btn">×</button>
@@ -241,7 +241,7 @@
 
 
                                                 <div class="identity-item-title">
-                                                    <%= a.principalDisplayName || '(Sense nom)' %>
+                                                    <%= a.principalDisplayName || '(Unnamed)' %>
                                                 </div>
 
                                                 <div class="identity-item-meta">
@@ -255,9 +255,8 @@
                                     </div>
                                     <% } else { %>
                                         <p class="identity-empty">
-                                            Aquesta aplicació no té usuaris ni grups assignats directament (o no es pot
-                                            llegir la
-                                            informació).
+                                            This application has no users or groups directly assigned (or the
+                                            information could not be retrieved).
                                         </p>
                                         <% } %>
 
@@ -268,7 +267,7 @@
 
                         <!-- Permisos (appRoles + requiredResourceAccess) -->
                         <article class="card identity-card identity-apps-card">
-                            <h3>Permisos</h3>
+                            <h3>Permissions</h3>
                             <div class="identity-card-content">
                                 <% if (appRegistration || (resolvedPermissions && resolvedPermissions.length> 0)) { %>
                                     <div class="identity-item-list">
@@ -278,16 +277,16 @@
                                                 appRegistration.appRoles.length>
                                                 0) { %>
                                                 <div class="identity-item-card">
-                                                    <div class="identity-item-title">App roles definits per aquesta
-                                                        aplicació</div>
+                                                    <div class="identity-item-title">App roles defined by this
+                                                        application</div>
                                                     <div class="identity-item-meta">
                                                         <ul>
                                                             <% appRegistration.appRoles.forEach(function(r) { %>
                                                                 <li>
                                                                     <strong>
-                                                                        <%= r.displayName || '(Sense nom)' %>
+                                                                        <%= r.displayName || '(Unnamed)' %>
                                                                     </strong>
-                                                                    (<%= r.value || 'sense value' %>)
+                                                                    (<%= r.value || 'no value' %>)
                                                                 </li>
                                                                 <% }); %>
                                                         </ul>
@@ -317,9 +316,8 @@
                                                                                 <% if (p.displayName) { %>
                                                                                     <%= p.displayName %>
                                                                                         <% } else { %>
-                                                                                            Descripció no disponible des
-                                                                                            de
-                                                                                            Microsoft Graph.
+                                                                                            Description not available
+                                                                                            from Microsoft Graph.
                                                                                             <% } %>
                                                                             </p>
                                                                         </div>
@@ -328,17 +326,17 @@
                                                                         <% }); %>
                                                                             <% } else { %>
                                                                                 <p class="identity-empty">
-                                                                                    Aquesta aplicació no té permisos
-                                                                                    d'API
-                                                                                    configurats o no es poden llegir.
+                                                                                    This application has no API
+                                                                                    permissions configured, or they
+                                                                                    could not be retrieved.
                                                                                 </p>
                                                                                 <% } %>
 
                                     </div>
                                     <% } else { %>
                                         <p class="identity-empty">
-                                            Aquesta Enterprise app no té cap app registration associada al tenant
-                                            (és probablement una aplicació de Microsoft o externa).
+                                            This Enterprise app has no app registration associated in the tenant (it is
+                                            likely a Microsoft or external application).
                                         </p>
                                         <% } %>
                             </div>
@@ -347,7 +345,7 @@
 
                         <!-- Credencials (secrets, certificats, federated) -->
                         <article class="card identity-card identity-devices-card">
-                            <h3>Credencials de l'aplicació</h3>
+                            <h3>Application credentials</h3>
                             <div class="identity-card-content">
                                 <% if (appRegistration && ( (appRegistration.passwordCredentials &&
                                     appRegistration.passwordCredentials.length) || (appRegistration.keyCredentials &&
@@ -376,13 +374,13 @@
                                                     appRegistration.keyCredentials.length> 0) {
                                                     %>
                                                     <div class="identity-item-card">
-                                                        <div class="identity-item-title">Certificats</div>
+                                                        <div class="identity-item-title">Certificates</div>
                                                         <div class="identity-item-meta">
                                                             <ul>
                                                                 <% appRegistration.keyCredentials.forEach(function(k) {
                                                                     %>
                                                                     <li>
-                                                                        ID: <%= k.keyId %> · Expira: <%= k.endDateTime
+                                                                        ID: <%= k.keyId %> · Expires: <%= k.endDateTime
                                                                                 || '—' %>
                                                                     </li>
                                                                     <% }); %>
@@ -410,8 +408,8 @@
                                     </div>
                                     <% } else { %>
                                         <p class="identity-empty">
-                                            No s'han trobat secrets, certificats ni federated credentials associats
-                                            (o no es poden llegir).
+                                            No associated secrets, certificates, or federated credentials were found (or
+                                            the information could not be retrieved).
                                         </p>
                                         <% } %>
                             </div>
@@ -419,7 +417,7 @@
 
                         <!-- Card educativa -->
                         <article class="card identity-card identity-edu-card">
-                            <h3>Com llegir aquesta informació</h3>
+                            <h3>How to read this information</h3>
                             <div class="identity-card-content">
                                 <p class="identity-edu">
                                     <%= helpfulInfo %>
@@ -524,7 +522,7 @@
                                 const info = document.createElement('div');
                                 info.className = 'owner-option-info';
                                 info.innerHTML = `
-              <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
+              <span class="owner-option-name">${u.displayName || '(Unnamed)'}</span>
               <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
               <span class="owner-option-type">${u.userType || ''}</span>
             `;
@@ -640,9 +638,9 @@
         </script>
 
 
-        <!-- Modal global (únic, reutilitzable per logout i deletes) -->
-        <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
-            okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+        <!-- Modal global -->
+        <%- include('../components/confirmModal', { title: 'Confirmation' ,
+            message: 'Are you sure you want to continue?' , okText: 'Confirm' , cancelText: 'Cancel' }) %>
 
             <script src="/js/confirmModal.js"></script>
             <script src="/js/navbar.js"></script>

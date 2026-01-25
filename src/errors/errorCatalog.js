@@ -22,9 +22,9 @@ const ERROR_MESSAGES = {
      * ERRORS D’AUTENTICACIÓ I AUTORITZACIÓ
      * Relacionats amb sessió, login i RBAC intern del portal.
      */
-    AUTH_REQUIRED: "Has d'iniciar sessió per accedir a aquesta funcionalitat.",
-    AUTH_FORBIDDEN: "No tens permisos per completar l'autenticació.",
-    FORBIDDEN_PORTAL_ROLE: "No tens permisos (portal role) per accedir a aquesta funcionalitat.",
+    AUTH_REQUIRED: "You must sign in to access this functionality.",
+    AUTH_FORBIDDEN: "You do not have permission to complete the authentication.",
+    FORBIDDEN_PORTAL_ROLE: "You do not have the required portal role to access this functionality.",
 
     /**
      * ERRORS DE MICROSOFT GRAPH (403 – FORBIDDEN)
@@ -32,75 +32,76 @@ const ERROR_MESSAGES = {
      * Serveixen per explicar clarament QUIN rol falta i PER QUÈ.
      */
     GRAPH_FORBIDDEN_IDENTITY_READ:
-        "Microsoft Graph ha denegat la lectura de la teva identitat (403). Comprova permisos delegats i Directory Roles.",
+        "Microsoft Graph denied access to read your identity (403). Check delegated permissions and Directory Roles.",
 
     GRAPH_FORBIDDEN_USER_ADMIN:
-        "El teu compte no disposa del Directory Role 'User Administrator' al tenant.",
+        "Your account does not have the 'User Administrator' Directory Role in the tenant.",
     GRAPH_FORBIDDEN_GROUP_ADMIN:
-        "El teu compte no disposa del Directory Role 'Groups Administrator' al tenant.",
+        "Your account does not have the 'Groups Administrator' Directory Role in the tenant.",
     GRAPH_FORBIDDEN_APP_ADMIN:
-        "El teu compte no disposa del Directory Role 'Application Administrator' al tenant.",
+        "Your account does not have the 'Application Administrator' Directory Role in the tenant.",
     GRAPH_FORBIDDEN_PRIV_ROLE_ADMIN:
-        "Aquesta acció requereix el Directory Role 'Privileged Role Administrator' al tenant.",
+        "This action requires the 'Privileged Role Administrator' Directory Role in the tenant.",
 
     GRAPH_GENERIC_FORBIDDEN:
-        "Microsoft Graph ha denegat l'acció (403). Comprova Directory Roles i permisos.",
+        "Microsoft Graph denied the action (403). Check Directory Roles and permissions.",
 
     /**
      * ERRORS HTTP COMUNS DE GRAPH
      * Utilitzats quan no cal un missatge tan específic.
      */
     GRAPH_BAD_REQUEST:
-        "La petició no és vàlida. Revisa els camps del formulari.",
+        "The request is not valid. Please review the form fields.",
     GRAPH_NOT_FOUND:
-        "No s'ha trobat el recurs demanat.",
+        "The requested resource was not found.",
     GRAPH_CONFLICT:
-        "Conflicte: potser el recurs ja existeix o la dada és duplicada.",
+        "Conflict detected: the resource may already exist or the data is duplicated.",
 
     /**
      * ERRORS INTERNS DEL PORTAL
      * Errors no controlats o inesperats.
      */
     INTERNAL_ERROR:
-        "S'ha produït un error intern al portal.",
+        "An internal portal error has occurred.",
 
 
     // --- USERS (validacions) ---
     USERS_CREATE_MISSING_FIELDS:
-        "Has d'omplir tots els camps per crear l'usuari (nom, UPN i contrasenya).",
+        "You must fill in all fields to create the user (name, UPN, and password).",
     USERS_DELETE_NO_SELECTION:
-        "No has seleccionat cap usuari per eliminar.",
+        "You have not selected any users to delete.",
 
     // --- GROUPS (validacions) ---
     GROUPS_CREATE_MISSING_FIELDS:
-        "Cal indicar el nom del grup, la descripció i el tipus de grup.",
+        "You must provide the group name, description, and group type.",
     GROUPS_CREATE_NO_OWNERS:
-        "Cal indicar com a mínim un owner del grup.",
+        "You must specify at least one group owner.",
     GROUPS_DELETE_NO_SELECTION:
-        "No has seleccionat cap grup per eliminar.",
+        "You have not selected any groups to delete.",
     GROUPS_ADD_OWNERS_NO_SELECTION:
-        "No has indicat cap owner per afegir.",
+        "You have not specified any owners to add.",
     GROUPS_ADD_MEMBERS_NO_SELECTION:
-        "No has indicat cap member per afegir.",
+        "You have not specified any members to add.",
 
     // --- APPS (validacions) ---
-    APP_NO_OWNER_SELECTED: "No has indicat cap owner per afegir.",
-    APP_NO_ASSIGNEE_SELECTED: "No has indicat cap member per assignar.",
+    APP_NO_OWNER_SELECTED:
+        "You have not specified any owners to add.",
+    APP_NO_ASSIGNEE_SELECTED:
+        "You have not specified any members to assign.",
 
     // --- ROLES (validacions) ---
     ROLES_ADD_MEMBERS_NO_SELECTION:
-        "No has indicat cap member per afegir al rol.",
+        "You have not specified any members to add to the role.",
     ROLES_ACTIVATE_FAILED:
-        "No s’ha pogut activar el rol.",
+        "The role could not be activated.",
 
     // --- PORTAL ROLES (validacions) ---
     ROLES_PORTAL_ASSIGN_NO_SELECTION:
-        "No has seleccionat cap usuari per assignar a aquest portal role.",
+        "You have not selected any users to assign to this portal role.",
     ROLES_PORTAL_NOT_FOUND:
-        "No s'ha trobat el portal role.",
+        "The portal role was not found.",
     PORTAL_SERVICE_PRINCIPAL_NOT_FOUND:
-        "No s'ha trobat el service principal del portal.",
-
+        "The portal service principal was not found.",
 };
 
 module.exports = { ERROR_MESSAGES };
