@@ -137,3 +137,14 @@
 .roles-page .owners-dropdown {
   z-index: 9999;
 }
+
+
+
+
+
+.roles-search {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0.75rem;
+}
