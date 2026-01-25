@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="/css/components/button.css" />
     <link rel="stylesheet" href="/css/components/card.css" />
     <link rel="stylesheet" href="/css/components/avatar.css" />
+    <link rel="stylesheet" href="/css/components/confirmModal.css" />
+    <link rel="stylesheet" href="/css/components/navigation.css" />
 
     <!-- Page-specific -->
     <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
@@ -25,584 +27,557 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <div class="brand">EntraSecure Tenant Portal</div>
-            <ul class="nav-links">
-                <li><a href="/" class="nav-link">Home</a></li>
-                <% if (user) { %>
-                    <li><a href="/me" class="nav-link">My Identity</a></li>
-                    <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
-                    <li><a href="/security" class="nav-link">Security</a></li>
+    <%- include('../components/navbar', { active: 'tenant' }) %>
+
+        <main class="tenant-users-main">
+            <a href="/tenant" class="back-arrow" aria-label="Tornar a Tenant Explorer">
+                ←
+            </a>
+            <section class="tenant-users-layout">
+
+                <header class="users-header">
+                    <h1>Usuaris del tenant</h1>
+                    <p>
+                        Llista d'usuaris de Microsoft Entra ID amb informació bàsica:
+                        Display Name, UPN, tipus d'usuari i estat del compte.
+                    </p>
+                </header>
+
+                <% if (flash && flash.message) { %>
+                    <div class="card" style="margin: 12px 0; padding: 12px;">
+                        <strong>
+                            <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+                        </strong>
+                        <span>
+                            <%= flash.message %>
+                        </span>
+                    </div>
                     <% } %>
-            </ul>
-        </div>
-
-        <div class="navbar-right">
-            <% if (user) { %>
-                <div class="user-pill">
-                    <span class="user-initial">
-                        <% if (user.name) { %>
-                            <%= user.name.charAt(0).toUpperCase() %>
-                                <% } else if (user.username) { %>
-                                    <%= user.username.charAt(0).toUpperCase() %>
-                                        <% } else { %>U<% } %>
-                    </span>
-
-                    <span class="user-name">
-                        <%= user.name || user.username || 'Usuari' %>
-                    </span>
-                </div>
-                <% } else { %>
-                    <a href="/auth/login" class="btn btn-outline-light">Login</a>
-                    <% } %>
-        </div>
-    </nav>
-
-    <main class="tenant-users-main">
-        <section class="tenant-users-layout">
-
-            <header class="users-header">
-                <h1>Usuaris del tenant</h1>
-                <p>
-                    Llista d'usuaris de Microsoft Entra ID amb informació bàsica:
-                    Display Name, UPN, tipus d'usuari i estat del compte.
-                </p>
-            </header>
-
-            <% if (flash && flash.message) { %>
-                <div class="card" style="margin: 12px 0; padding: 12px;">
-                    <strong>
-                        <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
-                    </strong>
-                    <span>
-                        <%= flash.message %>
-                    </span>
-                </div>
-                <% } %>
 
 
-                    <!-- CARD / CREAR NOU USUARI -->
-                    <article class="card users-card create-user-card">
-                        <div class="users-card-header">
-                            <div class="users-header-left">
-                                <h2>Crear un usuari nou</h2>
-                                <p class="users-meta">
-                                    Dona d'alta un usuari Member amb una contrasenya inicial segura.
-                                </p>
+                        <!-- CARD / CREAR NOU USUARI -->
+                        <article class="card users-card create-user-card">
+                            <div class="users-card-header">
+                                <div class="users-header-left">
+                                    <h2>Crear un usuari nou</h2>
+                                    <p class="users-meta">
+                                        Dona d'alta un usuari Member amb una contrasenya inicial segura.
+                                    </p>
+                                </div>
                             </div>
-                        </div>
 
-                        <form id="createUserForm" method="POST" action="/tenant/users/create" class="create-user-form">
+                            <form id="createUserForm" method="POST" action="/tenant/users/create"
+                                class="create-user-form">
 
-                            <div class="users-card-body create-user-body">
+                                <div class="users-card-body create-user-body">
 
-                                <div class="create-user-grid">
-                                    <!-- Columna esquerra -->
-                                    <div class="create-user-col">
-                                        <div class="form-group">
-                                            <label for="newDisplayName">Nom complet (Display Name)</label>
-                                            <input id="newDisplayName" type="text" name="displayName" required
-                                                class="users-input" autocomplete="off" />
-                                            <small id="displayNameError" class="field-hint"></small>
+                                    <div class="create-user-grid">
+                                        <!-- Columna esquerra -->
+                                        <div class="create-user-col">
+                                            <div class="form-group">
+                                                <label for="newDisplayName">Nom complet (Display Name)</label>
+                                                <input id="newDisplayName" type="text" name="displayName" required
+                                                    class="users-input" autocomplete="off" />
+                                                <small id="displayNameError" class="field-hint"></small>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="newUserPrincipalName">User Principal Name (UPN)</label>
+                                                <input id="newUserPrincipalName" type="email" name="userPrincipalName"
+                                                    required class="users-input"
+                                                    placeholder="nom@carlaaoterooutlook.onmicrosoft.com" />
+                                                <small class="field-hint">
+                                                    Es genera automàticament a partir del nom, però el pots ajustar.
+                                                </small>
+                                                <small id="upnError" class="field-hint"></small>
+
+                                            </div>
                                         </div>
 
-                                        <div class="form-group">
-                                            <label for="newUserPrincipalName">User Principal Name (UPN)</label>
-                                            <input id="newUserPrincipalName" type="email" name="userPrincipalName"
-                                                required class="users-input"
-                                                placeholder="nom@carlaaoterooutlook.onmicrosoft.com" />
-                                            <small class="field-hint">
-                                                Es genera automàticament a partir del nom, però el pots ajustar.
-                                            </small>
-                                            <small id="upnError" class="field-hint"></small>
+                                        <!-- Columna dreta -->
+                                        <div class="create-user-col">
+                                            <div class="form-group">
+                                                <label for="newUserPassword">Contrasenya inicial</label>
+                                                <div class="password-input-wrapper">
+                                                    <input id="newUserPassword" type="password" name="password" required
+                                                        minlength="8" class="users-input" autocomplete="new-password" />
+                                                </div>
 
+                                                <div class="password-meter">
+                                                    <div id="passwordStrengthBar" class="password-meter-bar"></div>
+                                                </div>
+
+                                                <small id="passwordStrengthText" class="password-hint">
+                                                    La contrasenya ha de tenir majúscules, minúscules, números
+                                                    i mínim 8 caràcters.
+                                                </small>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Columna dreta -->
-                                    <div class="create-user-col">
-                                        <div class="form-group">
-                                            <label for="newUserPassword">Contrasenya inicial</label>
-                                            <div class="password-input-wrapper">
-                                                <input id="newUserPassword" type="password" name="password" required
-                                                    minlength="8" class="users-input" autocomplete="new-password" />
-                                            </div>
+                                    <div class="create-user-actions">
+                                        <button id="createUserBtn" type="submit" class="btn btn-primary"
+                                            aria-disabled="true">
+                                            Crear usuari
+                                        </button>
 
-                                            <div class="password-meter">
-                                                <div id="passwordStrengthBar" class="password-meter-bar"></div>
-                                            </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </article>
 
-                                            <small id="passwordStrengthText" class="password-hint">
-                                                La contrasenya ha de tenir majúscules, minúscules, números
-                                                i mínim 8 caràcters.
-                                            </small>
+                        <!-- Un ÚNIC formulari que engloba les dues cards (llista + inactius) -->
+                        <form method="POST" action="/tenant/users/delete" data-confirm="true"
+                            data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
+                            data-confirm-message="<%= UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE %>"
+                            data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
+                            data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
+
+
+                            <!-- CARD 1: Llista completa d'usuaris -->
+                            <article class="card users-card">
+                                <div class="users-card-header">
+                                    <div class="users-header-left">
+                                        <h2>Llista d'usuaris</h2>
+                                        <p class="users-meta">
+                                            <span class="users-meta-count">
+                                                <%= users && users.length ? users.length : 0 %>
+                                            </span> usuaris trobats
+                                        </p>
+                                    </div>
+
+                                    <div class="users-header-right">
+                                        <div class="users-filters">
+                                            <input id="userSearch" type="text" class="users-search-input"
+                                                placeholder="Cerca per nom o UPN"
+                                                onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
+
+                                            <select id="userTypeFilter" class="users-type-filter">
+                                                <option value="all">Tots els tipus</option>
+                                                <option value="member">Members</option>
+                                                <option value="guest">Guests</option>
+                                            </select>
                                         </div>
+
+                                        <button type="submit" class="btn btn-primary">
+                                            Eliminar seleccionats
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div class="create-user-actions">
-                                    <button id="createUserBtn" type="submit" class="btn btn-primary"
-                                        aria-disabled="true">
-                                        Crear usuari
-                                    </button>
+                                <div class="users-card-body">
+                                    <% if (users && users.length> 0) { %>
+                                        <table class="users-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Display Name</th>
+                                                    <th>User Principal Name</th>
+                                                    <th>User Type</th>
+                                                    <th>Estat</th>
+                                                    <th>Seleccionar</th>
+                                                </tr>
+                                            </thead>
 
+                                            <tbody>
+                                                <% users.forEach(function (u) { %>
+                                                    <tr data-display-name="<%= u.displayName || '' %>"
+                                                        data-upn="<%= u.userPrincipalName || '' %>"
+                                                        data-type="<%= (u.userType || '').toLowerCase() %>">
+                                                        <td>
+                                                            <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
+                                                                class="users-link">
+                                                                <%= u.displayName || '(Sense nom)' %>
+                                                            </a>
+                                                        </td>
+
+                                                        <td>
+                                                            <%= u.userPrincipalName || '' %>
+                                                        </td>
+                                                        <td>
+                                                            <%= u.userType || '—' %>
+                                                        </td>
+
+                                                        <td>
+                                                            <span
+                                                                class="badge <%= u.accountEnabled ? 'badge-ok' : 'badge-disabled' %>">
+                                                                <%= u.accountEnabled ? 'Enabled' : 'Disabled' %>
+                                                            </span>
+                                                        </td>
+
+                                                        <td class="users-select-cell">
+                                                            <input type="checkbox" name="userIds" value="<%= u.id %>" />
+                                                        </td>
+                                                    </tr>
+                                                    <% }); %>
+                                            </tbody>
+                                        </table>
+                                        <% } else { %>
+                                            <p class="users-empty">
+                                                No s'ha trobat cap usuari o no es pot llegir la informació.
+                                            </p>
+                                            <% } %>
                                 </div>
-                            </div>
+                            </article>
+
+                            <!-- CARD 2: Usuaris inactius (per dies sense login) -->
+                            <article class="card users-card inactive-card">
+                                <div class="users-card-header">
+                                    <div class="users-header-left">
+                                        <h2>Usuaris inactius (sign-in)</h2>
+                                        <p class="users-meta">
+                                            Usuaris que fa més de X dies que no inicien sessió.
+                                        </p>
+                                    </div>
+
+                                    <div class="users-header-right">
+                                        <div class="users-filters">
+                                            <label for="inactiveDays" class="inactive-label">
+                                                Dies sense activitat:
+                                            </label>
+                                            <input id="inactiveDays" type="number" min="0" value="1"
+                                                class="inactive-days-input" />
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary">
+                                            Eliminar seleccionats
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="users-card-body">
+                                    <% if (users && users.length> 0) { %>
+                                        <table class="users-table inactive-users-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Display Name</th>
+                                                    <th>User Principal Name</th>
+                                                    <th>User Type</th>
+                                                    <th>Últim sign-in</th>
+                                                    <th>Dies sense sign-in</th>
+                                                    <th>Seleccionar</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                <% users.forEach(function (u) { %>
+                                                    <tr data-last-signin="<%= u.signInActivity && u.signInActivity.lastSignInDateTime ? u.signInActivity.lastSignInDateTime : '' %>"
+                                                        data-type="<%= (u.userType || '').toLowerCase() %>">
+                                                        <td>
+                                                            <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
+                                                                class="users-link">
+                                                                <%= u.displayName || '(Sense nom)' %>
+                                                            </a>
+                                                        </td>
+
+                                                        <td>
+                                                            <%= u.userPrincipalName || '' %>
+                                                        </td>
+                                                        <td>
+                                                            <%= u.userType || '—' %>
+                                                        </td>
+
+                                                        <td>
+                                                            <% if (u.signInActivity &&
+                                                                u.signInActivity.lastSignInDateTime) { %>
+                                                                <%= u.signInActivity.lastSignInDateTime %>
+                                                                    <% } else { %>
+                                                                        <span class="muted-text">Sense dades</span>
+                                                                        <% } %>
+                                                        </td>
+
+                                                        <td class="inactive-days-cell">
+                                                            <!-- El valor real el calcularem via JS, aquí només posem un placeholder -->
+                                                            <span class="inactive-days-value">–</span>
+                                                        </td>
+
+                                                        <td class="users-select-cell">
+                                                            <input type="checkbox" name="userIds" value="<%= u.id %>" />
+                                                        </td>
+                                                    </tr>
+                                                    <% }); %>
+                                            </tbody>
+                                        </table>
+                                        <% } else { %>
+                                            <p class="users-empty">
+                                                No hi ha usuaris per analitzar inactivitat.
+                                            </p>
+                                            <% } %>
+                                </div>
+                            </article>
+
                         </form>
-                    </article>
 
-                    <!-- Un ÚNIC formulari que engloba les dues cards (llista + inactius) -->
-                    <form method="POST" action="/tenant/users/delete" data-confirm="true"
-                        data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
-                        data-confirm-message="<%= UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE %>"
-                        data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
-                        data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
+            </section>
+        </main>
 
+        <!-- JS: filtres + inactivitat + creació d'usuari -->
+        <script>
+            (function () {
+                // --- Filtres de la taula principal ---
+                const searchInput = document.getElementById('userSearch');
+                const typeFilter = document.getElementById('userTypeFilter');
+                const rows = Array.from(document.querySelectorAll('.users-table tbody tr'));
+                const countSpan = document.querySelector('.users-meta-count');
 
-                        <!-- CARD 1: Llista completa d'usuaris -->
-                        <article class="card users-card">
-                            <div class="users-card-header">
-                                <div class="users-header-left">
-                                    <h2>Llista d'usuaris</h2>
-                                    <p class="users-meta">
-                                        <span class="users-meta-count">
-                                            <%= users && users.length ? users.length : 0 %>
-                                        </span> usuaris trobats
-                                    </p>
-                                </div>
+                function applyUserFilters() {
+                    const term = (searchInput && searchInput.value || '').trim().toLowerCase();
+                    const type = (typeFilter && typeFilter.value || 'all').toLowerCase();
 
-                                <div class="users-header-right">
-                                    <div class="users-filters">
-                                        <input id="userSearch" type="text" class="users-search-input"
-                                            placeholder="Cerca per nom o UPN"
-                                            onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
+                    let visibleCount = 0;
 
-                                        <select id="userTypeFilter" class="users-type-filter">
-                                            <option value="all">Tots els tipus</option>
-                                            <option value="member">Members</option>
-                                            <option value="guest">Guests</option>
-                                        </select>
-                                    </div>
+                    rows.forEach(row => {
+                        const dn = (row.dataset.displayName || '').toLowerCase();
+                        const upn = (row.dataset.upn || '').toLowerCase();
+                        const userType = (row.dataset.type || '').toLowerCase();
 
-                                    <button type="submit" class="btn btn-primary">
-                                        Eliminar seleccionats
-                                    </button>
-                                </div>
-                            </div>
+                        const matchesText = !term || dn.includes(term) || upn.includes(term);
+                        const matchesType = type === 'all' || userType === type;
 
-                            <div class="users-card-body">
-                                <% if (users && users.length> 0) { %>
-                                    <table class="users-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Display Name</th>
-                                                <th>User Principal Name</th>
-                                                <th>User Type</th>
-                                                <th>Estat</th>
-                                                <th>Seleccionar</th>
-                                            </tr>
-                                        </thead>
+                        const visible = matchesText && matchesType;
+                        row.style.display = visible ? '' : 'none';
+                        if (visible) visibleCount++;
+                    });
 
-                                        <tbody>
-                                            <% users.forEach(function (u) { %>
-                                                <tr data-display-name="<%= u.displayName || '' %>"
-                                                    data-upn="<%= u.userPrincipalName || '' %>"
-                                                    data-type="<%= (u.userType || '').toLowerCase() %>">
-                                                    <td>
-                                                        <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
-                                                            class="users-link">
-                                                            <%= u.displayName || '(Sense nom)' %>
-                                                        </a>
-                                                    </td>
+                    if (countSpan) countSpan.textContent = visibleCount;
+                }
 
-                                                    <td>
-                                                        <%= u.userPrincipalName || '' %>
-                                                    </td>
-                                                    <td>
-                                                        <%= u.userType || '—' %>
-                                                    </td>
+                if (searchInput) searchInput.addEventListener('input', applyUserFilters);
+                if (typeFilter) typeFilter.addEventListener('change', applyUserFilters);
 
-                                                    <td>
-                                                        <span
-                                                            class="badge <%= u.accountEnabled ? 'badge-ok' : 'badge-disabled' %>">
-                                                            <%= u.accountEnabled ? 'Enabled' : 'Disabled' %>
-                                                        </span>
-                                                    </td>
+                // --- Card d'usuaris inactius ---
+                const inactiveInput = document.getElementById('inactiveDays');
+                const inactiveRows = Array.from(document.querySelectorAll('.inactive-users-table tbody tr'));
 
-                                                    <td class="users-select-cell">
-                                                        <input type="checkbox" name="userIds" value="<%= u.id %>" />
-                                                    </td>
-                                                </tr>
-                                                <% }); %>
-                                        </tbody>
-                                    </table>
-                                    <% } else { %>
-                                        <p class="users-empty">
-                                            No s'ha trobat cap usuari o no es pot llegir la informació.
-                                        </p>
-                                        <% } %>
-                            </div>
-                        </article>
+                function applyInactiveFilter() {
+                    if (!inactiveInput) return;
 
-                        <!-- CARD 2: Usuaris inactius (per dies sense login) -->
-                        <article class="card users-card inactive-card">
-                            <div class="users-card-header">
-                                <div class="users-header-left">
-                                    <h2>Usuaris inactius (sign-in)</h2>
-                                    <p class="users-meta">
-                                        Usuaris que fa més de X dies que no inicien sessió.
-                                    </p>
-                                </div>
+                    const raw = inactiveInput.value;
+                    let days = parseInt(raw, 10);
+                    if (isNaN(days) || days < 0) days = 1;
 
-                                <div class="users-header-right">
-                                    <div class="users-filters">
-                                        <label for="inactiveDays" class="inactive-label">
-                                            Dies sense activitat:
-                                        </label>
-                                        <input id="inactiveDays" type="number" min="0" value="1"
-                                            class="inactive-days-input" />
-                                    </div>
+                    const now = new Date();
 
-                                    <button type="submit" class="btn btn-primary">
-                                        Eliminar seleccionats
-                                    </button>
-                                </div>
-                            </div>
+                    inactiveRows.forEach(row => {
+                        const last = row.dataset.lastSignin;
+                        const cell = row.querySelector('.inactive-days-value');
 
-                            <div class="users-card-body">
-                                <% if (users && users.length> 0) { %>
-                                    <table class="users-table inactive-users-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Display Name</th>
-                                                <th>User Principal Name</th>
-                                                <th>User Type</th>
-                                                <th>Últim sign-in</th>
-                                                <th>Dies sense sign-in</th>
-                                                <th>Seleccionar</th>
-                                            </tr>
-                                        </thead>
+                        let diffDays;
+                        if (!last) {
+                            diffDays = Infinity;
+                        } else {
+                            const d = new Date(last);
+                            diffDays = isNaN(d.getTime()) ? Infinity : (now - d) / (1000 * 60 * 60 * 24);
+                        }
 
-                                        <tbody>
-                                            <% users.forEach(function (u) { %>
-                                                <tr data-last-signin="<%= u.signInActivity && u.signInActivity.lastSignInDateTime ? u.signInActivity.lastSignInDateTime : '' %>"
-                                                    data-type="<%= (u.userType || '').toLowerCase() %>">
-                                                    <td>
-                                                        <a href="/tenant/users/<%= encodeURIComponent(u.id) %>"
-                                                            class="users-link">
-                                                            <%= u.displayName || '(Sense nom)' %>
-                                                        </a>
-                                                    </td>
+                        if (cell) cell.textContent = (diffDays === Infinity) ? 'N/A' : Math.floor(diffDays);
+                        row.style.display = diffDays >= days ? '' : 'none';
+                    });
+                }
 
-                                                    <td>
-                                                        <%= u.userPrincipalName || '' %>
-                                                    </td>
-                                                    <td>
-                                                        <%= u.userType || '—' %>
-                                                    </td>
+                if (inactiveInput) inactiveInput.addEventListener('input', applyInactiveFilter);
 
-                                                    <td>
-                                                        <% if (u.signInActivity && u.signInActivity.lastSignInDateTime)
-                                                            { %>
-                                                            <%= u.signInActivity.lastSignInDateTime %>
-                                                                <% } else { %>
-                                                                    <span class="muted-text">Sense dades</span>
-                                                                    <% } %>
-                                                    </td>
+                applyUserFilters();
+                applyInactiveFilter();
 
-                                                    <td class="inactive-days-cell">
-                                                        <!-- El valor real el calcularem via JS, aquí només posem un placeholder -->
-                                                        <span class="inactive-days-value">–</span>
-                                                    </td>
+                // --- Crear usuari: auto-UPN i força de contrasenya ---
+                const createUserForm = document.getElementById('createUserForm');
+                const displayNameInput = document.getElementById('newDisplayName');
+                const upnInput = document.getElementById('newUserPrincipalName');
+                const passwordInput = document.getElementById('newUserPassword');
+                const strengthBar = document.getElementById('passwordStrengthBar');
+                const strengthText = document.getElementById('passwordStrengthText');
+                const createBtn = document.getElementById('createUserBtn');
+                const displayNameError = document.getElementById('displayNameError');
+                const upnError = document.getElementById('upnError');
 
-                                                    <td class="users-select-cell">
-                                                        <input type="checkbox" name="userIds" value="<%= u.id %>" />
-                                                    </td>
-                                                </tr>
-                                                <% }); %>
-                                        </tbody>
-                                    </table>
-                                    <% } else { %>
-                                        <p class="users-empty">
-                                            No hi ha usuaris per analitzar inactivitat.
-                                        </p>
-                                        <% } %>
-                            </div>
-                        </article>
+                if (createUserForm) createUserForm.setAttribute('novalidate', 'novalidate');
 
-                    </form>
+                const UPN_DOMAIN = 'carlaaoterooutlook.onmicrosoft.com';
+                let upnTouched = false;
+                let passwordStrong = false;
 
-        </section>
-    </main>
-    <footer class="footer">
-        <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
-    </footer>
-
-    <!-- Modal (ha d'estar dins el body, al final) -->
-    <%- include('../components/confirmModal', { title: UI_MESSAGES.MODAL.CONFIRM_TITLE, message:
-        UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE, okText: UI_MESSAGES.MODAL.OK, cancelText: UI_MESSAGES.MODAL.CANCEL })
-        %>
-
-        <!-- JS del modal -->
-        <script src="/js/confirmModal.js"></script>
-
-    <!-- JS: filtres + inactivitat + creació d'usuari -->
-    <script>
-        (function () {
-            // --- Filtres de la taula principal ---
-            const searchInput = document.getElementById('userSearch');
-            const typeFilter = document.getElementById('userTypeFilter');
-            const rows = Array.from(document.querySelectorAll('.users-table tbody tr'));
-            const countSpan = document.querySelector('.users-meta-count');
-
-            function applyUserFilters() {
-                const term = (searchInput && searchInput.value || '').trim().toLowerCase();
-                const type = (typeFilter && typeFilter.value || 'all').toLowerCase();
-
-                let visibleCount = 0;
-
-                rows.forEach(row => {
-                    const dn = (row.dataset.displayName || '').toLowerCase();
-                    const upn = (row.dataset.upn || '').toLowerCase();
-                    const userType = (row.dataset.type || '').toLowerCase();
-
-                    const matchesText = !term || dn.includes(term) || upn.includes(term);
-                    const matchesType = type === 'all' || userType === type;
-
-                    const visible = matchesText && matchesType;
-                    row.style.display = visible ? '' : 'none';
-                    if (visible) visibleCount++;
-                });
-
-                if (countSpan) countSpan.textContent = visibleCount;
-            }
-
-            if (searchInput) searchInput.addEventListener('input', applyUserFilters);
-            if (typeFilter) typeFilter.addEventListener('change', applyUserFilters);
-
-            // --- Card d'usuaris inactius ---
-            const inactiveInput = document.getElementById('inactiveDays');
-            const inactiveRows = Array.from(document.querySelectorAll('.inactive-users-table tbody tr'));
-
-            function applyInactiveFilter() {
-                if (!inactiveInput) return;
-
-                const raw = inactiveInput.value;
-                let days = parseInt(raw, 10);
-                if (isNaN(days) || days < 0) days = 1;
-
-                const now = new Date();
-
-                inactiveRows.forEach(row => {
-                    const last = row.dataset.lastSignin;
-                    const cell = row.querySelector('.inactive-days-value');
-
-                    let diffDays;
-                    if (!last) {
-                        diffDays = Infinity;
-                    } else {
-                        const d = new Date(last);
-                        diffDays = isNaN(d.getTime()) ? Infinity : (now - d) / (1000 * 60 * 60 * 24);
+                function clearCreateUserErrors() {
+                    if (displayNameError) {
+                        displayNameError.textContent = '';
+                        displayNameError.classList.remove('error');
                     }
-
-                    if (cell) cell.textContent = (diffDays === Infinity) ? 'N/A' : Math.floor(diffDays);
-                    row.style.display = diffDays >= days ? '' : 'none';
-                });
-            }
-
-            if (inactiveInput) inactiveInput.addEventListener('input', applyInactiveFilter);
-
-            applyUserFilters();
-            applyInactiveFilter();
-
-            // --- Crear usuari: auto-UPN i força de contrasenya ---
-            const createUserForm = document.getElementById('createUserForm');
-            const displayNameInput = document.getElementById('newDisplayName');
-            const upnInput = document.getElementById('newUserPrincipalName');
-            const passwordInput = document.getElementById('newUserPassword');
-            const strengthBar = document.getElementById('passwordStrengthBar');
-            const strengthText = document.getElementById('passwordStrengthText');
-            const createBtn = document.getElementById('createUserBtn');
-            const displayNameError = document.getElementById('displayNameError');
-            const upnError = document.getElementById('upnError');
-
-            if (createUserForm) createUserForm.setAttribute('novalidate', 'novalidate');
-
-            const UPN_DOMAIN = 'carlaaoterooutlook.onmicrosoft.com';
-            let upnTouched = false;
-            let passwordStrong = false;
-
-            function clearCreateUserErrors() {
-                if (displayNameError) {
-                    displayNameError.textContent = '';
-                    displayNameError.classList.remove('error');
-                }
-                if (upnError) {
-                    upnError.textContent = '';
-                    upnError.classList.remove('error');
-                }
-                if (strengthText) strengthText.classList.remove('error');
-            }
-
-            function showDisplayNameError(msg) {
-                if (!displayNameError) return;
-                displayNameError.textContent = msg;
-                displayNameError.classList.add('error');
-            }
-
-            function showUpnError(msg) {
-                if (!upnError) return;
-                upnError.textContent = msg;
-                upnError.classList.add('error');
-            }
-
-            function showPasswordError(msg) {
-                if (!strengthText) return;
-                strengthText.textContent = msg;
-                strengthText.classList.add('error');
-            }
-
-            function setCreateButtonEnabled(enabled) {
-                if (!createBtn) return;
-                createBtn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
-                createBtn.style.opacity = enabled ? '1' : '0.6';
-                createBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
-            }
-
-            function isCreateFormValid() {
-                const dn = (displayNameInput && displayNameInput.value || '').trim();
-                const upn = (upnInput && upnInput.value || '').trim();
-                const pw = (passwordInput && passwordInput.value || '').trim();
-                return Boolean(dn && upn && pw && passwordStrong);
-            }
-
-            function updateCreateButtonState() {
-                setCreateButtonEnabled(isCreateFormValid());
-            }
-
-            function slugifyName(name) {
-                return (name || '')
-                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                    .toLowerCase()
-                    .trim()
-                    .replace(/\s+/g, '.')
-                    .replace(/[^a-z0-9.]/g, '');
-            }
-
-            function updateUPNFromDisplayName() {
-                if (!displayNameInput || !upnInput || upnTouched) return;
-                const base = slugifyName(displayNameInput.value);
-                upnInput.value = base ? `${base}@${UPN_DOMAIN}` : '';
-            }
-
-            if (upnInput) {
-                upnInput.addEventListener('input', () => {
-                    upnTouched = true;
-                    clearCreateUserErrors();
-                    updateCreateButtonState();
-                });
-            }
-
-            if (displayNameInput) {
-                displayNameInput.addEventListener('input', () => {
-                    updateUPNFromDisplayName();
-                    clearCreateUserErrors();
-                    updateCreateButtonState();
-                });
-                displayNameInput.addEventListener('blur', updateUPNFromDisplayName);
-            }
-
-            function evaluatePasswordStrength(pwd) {
-                if (!strengthBar || !strengthText) return;
-
-                const rootStyles = getComputedStyle(document.documentElement);
-                const themeGrey = rootStyles.getPropertyValue('--color2') || '#504845';
-                const themeBlue = rootStyles.getPropertyValue('--color3') || '#6789a6';
-
-                strengthBar.className = 'password-meter-bar';
-                strengthBar.style.width = '0%';
-                strengthBar.style.backgroundColor = 'transparent';
-
-                passwordStrong = false;
-
-                if (!pwd) {
-                    strengthText.textContent = 'La contrasenya ha de tenir majúscules, minúscules, números i mínim 8 caràcters.';
-                    updateCreateButtonState();
-                    return;
+                    if (upnError) {
+                        upnError.textContent = '';
+                        upnError.classList.remove('error');
+                    }
+                    if (strengthText) strengthText.classList.remove('error');
                 }
 
-                const lengthOK = pwd.length >= 8;
-                const hasLower = /[a-z]/.test(pwd);
-                const hasUpper = /[A-Z]/.test(pwd);
-                const hasDigit = /\d/.test(pwd);
-                const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
-                const categories = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
-
-                if (!lengthOK || categories <= 1) {
-                    strengthBar.style.width = '33%';
-                    strengthBar.style.backgroundColor = '#ef4444';
-                    strengthText.textContent = 'Massa dèbil. Afegeix més longitud i combinació.';
-                    passwordStrong = false;
-                } else if (categories === 2) {
-                    strengthBar.style.width = '66%';
-                    strengthBar.style.backgroundColor = themeGrey;
-                    strengthText.textContent = 'Acceptable, però recomanable afegir més categories.';
-                    passwordStrong = false;
-                } else {
-                    strengthBar.style.width = '100%';
-                    strengthBar.style.backgroundColor = themeBlue;
-                    strengthText.textContent = 'Contrasenya forta i vàlida per a les polítiques de complexitat.';
-                    passwordStrong = true;
+                function showDisplayNameError(msg) {
+                    if (!displayNameError) return;
+                    displayNameError.textContent = msg;
+                    displayNameError.classList.add('error');
                 }
 
-                updateCreateButtonState();
-            }
+                function showUpnError(msg) {
+                    if (!upnError) return;
+                    upnError.textContent = msg;
+                    upnError.classList.add('error');
+                }
 
-            if (passwordInput) {
-                passwordInput.addEventListener('input', (e) => {
-                    clearCreateUserErrors();
-                    evaluatePasswordStrength(e.target.value || '');
-                });
-                evaluatePasswordStrength('');
-            }
+                function showPasswordError(msg) {
+                    if (!strengthText) return;
+                    strengthText.textContent = msg;
+                    strengthText.classList.add('error');
+                }
 
-            if (createBtn) {
-                createBtn.addEventListener('click', (e) => {
-                    const isAriaDisabled = createBtn.getAttribute('aria-disabled') === 'true';
-                    if (!isAriaDisabled) return;
+                function setCreateButtonEnabled(enabled) {
+                    if (!createBtn) return;
+                    createBtn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+                    createBtn.style.opacity = enabled ? '1' : '0.6';
+                    createBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+                }
 
-                    e.preventDefault();
-                    clearCreateUserErrors();
-
+                function isCreateFormValid() {
                     const dn = (displayNameInput && displayNameInput.value || '').trim();
                     const upn = (upnInput && upnInput.value || '').trim();
                     const pw = (passwordInput && passwordInput.value || '').trim();
+                    return Boolean(dn && upn && pw && passwordStrong);
+                }
 
-                    if (!dn) { showDisplayNameError("Has d'omplir el Display Name."); displayNameInput && displayNameInput.focus(); return; }
-                    if (!upn) { showUpnError("Has d'omplir el UPN."); upnInput && upnInput.focus(); return; }
-                    if (!pw) { showPasswordError("Has d'omplir la contrasenya inicial."); passwordInput && passwordInput.focus(); return; }
-                    if (!passwordStrong) { showPasswordError("La contrasenya no compleix els requisits mínims."); passwordInput && passwordInput.focus(); return; }
+                function updateCreateButtonState() {
+                    setCreateButtonEnabled(isCreateFormValid());
+                }
 
-                    showPasswordError("Has d'omplir tots els camps i posar una contrasenya forta.");
-                });
-            }
+                function slugifyName(name) {
+                    return (name || '')
+                        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, '.')
+                        .replace(/[^a-z0-9.]/g, '');
+                }
 
-            if (createUserForm) {
-                createUserForm.addEventListener('submit', (e) => {
-                    if (!isCreateFormValid()) {
+                function updateUPNFromDisplayName() {
+                    if (!displayNameInput || !upnInput || upnTouched) return;
+                    const base = slugifyName(displayNameInput.value);
+                    upnInput.value = base ? `${base}@${UPN_DOMAIN}` : '';
+                }
+
+                if (upnInput) {
+                    upnInput.addEventListener('input', () => {
+                        upnTouched = true;
+                        clearCreateUserErrors();
+                        updateCreateButtonState();
+                    });
+                }
+
+                if (displayNameInput) {
+                    displayNameInput.addEventListener('input', () => {
+                        updateUPNFromDisplayName();
+                        clearCreateUserErrors();
+                        updateCreateButtonState();
+                    });
+                    displayNameInput.addEventListener('blur', updateUPNFromDisplayName);
+                }
+
+                function evaluatePasswordStrength(pwd) {
+                    if (!strengthBar || !strengthText) return;
+
+                    const rootStyles = getComputedStyle(document.documentElement);
+                    const themeGrey = rootStyles.getPropertyValue('--color2') || '#504845';
+                    const themeBlue = rootStyles.getPropertyValue('--color3') || '#6789a6';
+
+                    strengthBar.className = 'password-meter-bar';
+                    strengthBar.style.width = '0%';
+                    strengthBar.style.backgroundColor = 'transparent';
+
+                    passwordStrong = false;
+
+                    if (!pwd) {
+                        strengthText.textContent = 'La contrasenya ha de tenir majúscules, minúscules, números i mínim 8 caràcters.';
+                        updateCreateButtonState();
+                        return;
+                    }
+
+                    const lengthOK = pwd.length >= 8;
+                    const hasLower = /[a-z]/.test(pwd);
+                    const hasUpper = /[A-Z]/.test(pwd);
+                    const hasDigit = /\d/.test(pwd);
+                    const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+                    const categories = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
+
+                    if (!lengthOK || categories <= 1) {
+                        strengthBar.style.width = '33%';
+                        strengthBar.style.backgroundColor = '#ef4444';
+                        strengthText.textContent = 'Massa dèbil. Afegeix més longitud i combinació.';
+                        passwordStrong = false;
+                    } else if (categories === 2) {
+                        strengthBar.style.width = '66%';
+                        strengthBar.style.backgroundColor = themeGrey;
+                        strengthText.textContent = 'Acceptable, però recomanable afegir més categories.';
+                        passwordStrong = false;
+                    } else {
+                        strengthBar.style.width = '100%';
+                        strengthBar.style.backgroundColor = themeBlue;
+                        strengthText.textContent = 'Contrasenya forta i vàlida per a les polítiques de complexitat.';
+                        passwordStrong = true;
+                    }
+
+                    updateCreateButtonState();
+                }
+
+                if (passwordInput) {
+                    passwordInput.addEventListener('input', (e) => {
+                        clearCreateUserErrors();
+                        evaluatePasswordStrength(e.target.value || '');
+                    });
+                    evaluatePasswordStrength('');
+                }
+
+                if (createBtn) {
+                    createBtn.addEventListener('click', (e) => {
+                        const isAriaDisabled = createBtn.getAttribute('aria-disabled') === 'true';
+                        if (!isAriaDisabled) return;
+
                         e.preventDefault();
                         clearCreateUserErrors();
+
+                        const dn = (displayNameInput && displayNameInput.value || '').trim();
+                        const upn = (upnInput && upnInput.value || '').trim();
+                        const pw = (passwordInput && passwordInput.value || '').trim();
+
+                        if (!dn) { showDisplayNameError("Has d'omplir el Display Name."); displayNameInput && displayNameInput.focus(); return; }
+                        if (!upn) { showUpnError("Has d'omplir el UPN."); upnInput && upnInput.focus(); return; }
+                        if (!pw) { showPasswordError("Has d'omplir la contrasenya inicial."); passwordInput && passwordInput.focus(); return; }
+                        if (!passwordStrong) { showPasswordError("La contrasenya no compleix els requisits mínims."); passwordInput && passwordInput.focus(); return; }
+
                         showPasswordError("Has d'omplir tots els camps i posar una contrasenya forta.");
-                    }
-                });
-            }
+                    });
+                }
 
-            updateCreateButtonState();
-        })();
-    </script>
+                if (createUserForm) {
+                    createUserForm.addEventListener('submit', (e) => {
+                        if (!isCreateFormValid()) {
+                            e.preventDefault();
+                            clearCreateUserErrors();
+                            showPasswordError("Has d'omplir tots els camps i posar una contrasenya forta.");
+                        }
+                    });
+                }
 
-    
+                updateCreateButtonState();
+            })();
+        </script>
+
+        <!-- Modal global -->
+        <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
+            okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+
+
+            <script src="/js/confirmModal.js"></script>
+            <script src="/js/navbar.js"></script>
+
+
+            <footer class="footer">
+                <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+            </footer>
+
 </body>
 
 </html>

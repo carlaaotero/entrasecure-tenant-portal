@@ -11,6 +11,7 @@
   background: var(--color3);
   color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  
 }
 
 .navbar-left {
@@ -64,35 +65,44 @@
   gap: 0.75rem;
 }
 
-/* Pill usuari a la dreta */
+.user-menu { position: relative; }
 
+/* Pill usuari a la dreta (BUTTON) */
 .user-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
+
+  /* look & feel */
   background: rgba(255, 255, 255, 0.12);
-  font-size: 0.9rem;
+
+  /* IMPORTANT: com és button, forcem text blanc */
+  color: #ffffff;
+  font: inherit;
+
+  border: 0;
+  cursor: pointer;
+}
+
+.user-pill:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.user-pill:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(224, 229, 239, 0.65); /* equivalent suau a var(--color4) */
 }
 
 .user-name {
+  color: #ffffff;
   max-width: 180px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.user-menu { position: relative; }
-
-.user-pill {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
 
 .user-dropdown {
   position: absolute;
@@ -105,25 +115,50 @@
   padding: 8px;
   box-shadow: 0 10px 30px rgba(0,0,0,.10);
   z-index: 9999;
+  color: var(--color1);
 }
 
 .user-dropdown-item {
-  display: block;
+  display: flex;
+  align-items: center;
+
   width: 100%;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+
   text-align: left;
-  padding: 10px 10px;
-  border-radius: 10px;
   text-decoration: none;
-  color: inherit;
+  color: var(--color1);
   background: transparent;
   border: 0;
   cursor: pointer;
+
+  transition: background 0.15s ease;
 }
 
+
 .user-dropdown-item:hover {
-  background: rgba(0,0,0,.05);
+  background: rgba(103, 137, 166, 0.14);
 }
 
 .user-dropdown-danger {
-  color: #b91c1c;
+  color: var(--color1) !important;
+  background: transparent !important;
+  font-weight: 500;
+}
+.user-dropdown-item + .user-dropdown-item {
+  margin-top: 2px;
+}
+
+.user-role {
+color: inherit;
+  font: inherit;
+  opacity: 1;
+}
+.user-separator {
+  opacity: 0.6;
 }

@@ -1,14 +1,15 @@
-// src/errors/graphErrorHandler.js
-const { ERROR_MESSAGES } = require('./errorCatalog');
+/**
+ * src/errors/graphErrorHandler.js
+ * 
+ * Representen errors generals del sistema que no han pogut ser
+ * classificats en una categoria específica (validació, permisos,
+ * Microsoft Graph, etc.).
+ *
+ * Aquests errors s’utilitzen com a fallback per evitar que
+ * l’aplicació falli o mostri informació tècnica a l’usuari final.
+ */
 
-/*function getGraphStatus(err) {
-  return (
-    err?.status ||
-    err?.response?.status ||
-    err?.response?.statusCode ||
-    err?.response?.data?.error?.code
-  );
-}*/
+const { ERROR_MESSAGES } = require('./errorCatalog');
 
 function isForbidden(err) {
   const status = err?.status || err?.response?.status;

@@ -35,6 +35,16 @@ app.use(
     })
 );
 
+const { getDisplayRole } = require('./middleware/rbac');
+
+// RBAC role + user per totes les views (EJS)
+app.use((req, res, next) => {
+  res.locals.user = req.session?.user || null;
+  res.locals.portalRole = req.session?.user ? getDisplayRole(req) : 'Default';
+  res.locals.flash = req.session?.flash || null;
+  next();
+});
+
 // Estàtics (CSS/JS/imatges)
 app.use(express.static(path.join(__dirname, '..', 'public')));
 

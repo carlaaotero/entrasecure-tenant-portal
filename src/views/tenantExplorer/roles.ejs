@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="/css/components/button.css" />
     <link rel="stylesheet" href="/css/components/card.css" />
     <link rel="stylesheet" href="/css/components/avatar.css" />
+    <link rel="stylesheet" href="/css/components/confirmModal.css" />
+    <link rel="stylesheet" href="/css/components/navigation.css" />
 
     <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
     <link rel="stylesheet" href="/css/pages/tenantExplorer.css" />
@@ -26,226 +28,204 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <div class="brand">EntraSecure Tenant Portal</div>
-            <ul class="nav-links">
-                <li><a href="/" class="nav-link">Home</a></li>
-                <% if (user) { %>
-                    <li><a href="/me" class="nav-link">My Identity</a></li>
-                    <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
-                    <li><a href="/security" class="nav-link">Security</a></li>
-                <% } %>
-            </ul>
-        </div>
+    <%- include('../components/navbar', { active: 'tenant' }) %>
 
-        <div class="navbar-right">
-            <% if (user) { %>
-                <div class="user-pill">
-                    <span class="user-initial">
-                        <% if (user.name) { %>
-                            <%= user.name.charAt(0).toUpperCase() %>
-                        <% } else if (user.username) { %>
-                            <%= user.username.charAt(0).toUpperCase() %>
-                        <% } else { %>U<% } %>
-                    </span>
+        <main class="tenant-users-main">
+            <a href="/tenant" class="back-arrow" aria-label="Tornar a Tenant Explorer">
+                ←
+            </a>
+            <section class="tenant-users-layout">
+                <header class="users-header">
+                    <h1>Roles</h1>
+                    <p>
+                        Group-based role assignments and internal portal roles
+                    </p>
+                </header>
 
-                    <span class="user-name">
-                        <%= user.name || user.username || 'Usuari' %>
-                    </span>
-                </div>
-            <% } else { %>
-                <a href="/auth/login" class="btn btn-outline-light">Login</a>
-            <% } %>
-        </div>
-    </nav>
+                <% if (flash && flash.message) { %>
+                    <div class="card" style="margin: 12px 0; padding: 12px;">
+                        <strong>
+                            <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+                        </strong>
+                        <span>
+                            <%= flash.message %>
+                        </span>
+                    </div>
+                    <% } %>
 
-    <main class="tenant-users-main">
-        <section class="tenant-users-layout">
+                        <div class="roles-layout">
 
-            <header class="users-header">
-                <h1>Roles</h1>
-                <p>
-                    Group-based role assignments and internal portal roles
-                </p>
-            </header>
+                            <!-- LEFT: Portal roles -->
+                            <article class="card roles-column">
+                                <header class="card-header">
+                                    <h3>Portal roles</h3>
+                                    <p class="muted">Internal portal roles mapped to Entra ID groups.</p>
+                                </header>
 
-            <% if (flash && flash.message) { %>
-                <div class="card" style="margin: 12px 0; padding: 12px;">
-                    <strong>
-                        <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
-                    </strong>
-                    <span>
-                        <%= flash.message %>
-                    </span>
-                </div>
-            <% } %>
+                                <div class="card-content users-card-body">
+                                    <% if (portalRoles && portalRoles.length> 0) { %>
+                                        <div class="preview-list">
+                                            <% portalRoles.forEach(function(r) { %>
+                                                <div class="preview-item">
 
-            <div class="roles-layout">
+                                                    <!-- ✅ title + badge -->
+                                                    <div class="role-row">
+                                                        <div class="preview-title">
+                                                            <% if (r.id) { %>
+                                                                <a class="users-link"
+                                                                    href="/tenant/roles/portal/<%= encodeURIComponent(r.id) %>">
+                                                                    <%= r.key %>
+                                                                </a>
+                                                                <% } else { %>
+                                                                    <%= r.key %>
+                                                                        <% } %>
+                                                        </div>
 
-                <!-- LEFT: Portal roles -->
-                <article class="card roles-column">
-                    <header class="card-header">
-                        <h3>Portal roles</h3>
-                        <p class="muted">Internal portal roles mapped to Entra ID groups.</p>
-                    </header>
+                                                        <% if (r.isPrivileged) { %>
+                                                            <span class="role-badge role-badge-priv">Privileged</span>
+                                                            <% } %>
+                                                    </div>
 
-                    <div class="card-content users-card-body">
-                        <% if (portalRoles && portalRoles.length > 0) { %>
-                            <div class="preview-list">
-                                <% portalRoles.forEach(function(r) { %>
-                                    <div class="preview-item">
-
-                                        <!-- ✅ title + badge -->
-                                        <div class="role-row">
-                                            <div class="preview-title">
-                                                <% if (r.id) { %>
-                                                    <a class="users-link"
-                                                        href="/tenant/roles/portal/<%= encodeURIComponent(r.id) %>">
-                                                        <%= r.key %>
-                                                    </a>
-                                                <% } else { %>
-                                                    <%= r.key %>
-                                                <% } %>
-                                            </div>
-
-                                            <% if (r.isPrivileged) { %>
-                                                <span class="role-badge role-badge-priv">Privileged</span>
+                                                    <div class="preview-meta">
+                                                        <%= r.description %>
+                                                    </div>
+                                                </div>
+                                                <% }); %>
+                                        </div>
+                                        <% } else { %>
+                                            <p class="preview-empty">No portal roles defined.</p>
                                             <% } %>
+                                </div>
+                            </article>
+
+                            <!-- RIGHT: Directory roles -->
+                            <article class="card roles-column">
+                                <header class="card-header">
+                                    <h3>Directory roles</h3>
+                                    <p class="muted">Microsoft Entra ID directory roles (tenant governance).</p>
+                                </header>
+
+                                <div class="card-content users-card-body">
+
+                                    <!-- Activated roles -->
+                                    <div class="roles-subsection">
+                                        <div class="roles-subsection-header">
+                                            <h4 class="section-title">Activated roles</h4>
+                                            <p class="muted small">Only roles currently activated in the tenant.</p>
                                         </div>
 
-                                        <div class="preview-meta">
-                                            <%= r.description %>
+                                        <div class="roles-subscroll roles-subscroll-small">
+                                            <% if (directoryRoles && directoryRoles.length> 0) { %>
+                                                <div class="preview-list">
+                                                    <% directoryRoles.forEach(function(r) { %>
+                                                        <div class="preview-item">
+
+                                                            <!-- ✅ title + badge -->
+                                                            <div class="role-row">
+                                                                <div class="preview-title">
+                                                                    <a class="users-link"
+                                                                        href="/tenant/roles/<%= encodeURIComponent(r.id) %>">
+                                                                        <%= r.displayName %>
+                                                                    </a>
+                                                                </div>
+
+                                                                <% if (r.isPrivileged) { %>
+                                                                    <span
+                                                                        class="role-badge role-badge-priv">Privileged</span>
+                                                                    <% } %>
+                                                            </div>
+
+                                                            <div class="preview-meta">Role ID: <%= r.id %>
+                                                            </div>
+                                                        </div>
+                                                        <% }); %>
+                                                </div>
+                                                <% } else { %>
+                                                    <p class="preview-empty">No activated directory roles found.</p>
+                                                    <% } %>
                                         </div>
                                     </div>
-                                <% }); %>
-                            </div>
-                        <% } else { %>
-                            <p class="preview-empty">No portal roles defined.</p>
-                        <% } %>
-                    </div>
-                </article>
 
-                <!-- RIGHT: Directory roles -->
-                <article class="card roles-column">
-                    <header class="card-header">
-                        <h3>Directory roles</h3>
-                        <p class="muted">Microsoft Entra ID directory roles (tenant governance).</p>
-                    </header>
+                                    <hr class="divider" />
 
-                    <div class="card-content users-card-body">
+                                    <!-- All roles (templates) -->
+                                    <div class="roles-subsection">
+                                        <div class="roles-subsection-header">
+                                            <h4 class="section-title">All roles (templates)</h4>
+                                            <p class="muted small">Full catalog of available directory roles.</p>
+                                        </div>
 
-                        <!-- Activated roles -->
-                        <div class="roles-subsection">
-                            <div class="roles-subsection-header">
-                                <h4 class="section-title">Activated roles</h4>
-                                <p class="muted small">Only roles currently activated in the tenant.</p>
-                            </div>
+                                        <!-- local helper: per templates no tenim isPrivileged del backend -->
+                                        <% const privilegedKeywords=[ 'Global Administrator' , 'Privileged'
+                                            , 'Security Administrator' , 'Conditional Access'
+                                            , 'Authentication Administrator' , 'User Administrator'
+                                            , 'Groups Administrator' , 'Application Administrator'
+                                            , 'Cloud Application Administrator' , 'Intune Administrator'
+                                            , 'Exchange Administrator' , 'SharePoint Administrator'
+                                            , 'Teams Administrator' , ]; function isPrivilegedTemplate(name) { const
+                                            n=(name || '' ).toLowerCase(); return privilegedKeywords.some(k=>
+                                            n.includes(k.toLowerCase()));
+                                            }
+                                            %>
 
-                            <div class="roles-subscroll roles-subscroll-small">
-                                <% if (directoryRoles && directoryRoles.length > 0) { %>
-                                    <div class="preview-list">
-                                        <% directoryRoles.forEach(function(r) { %>
-                                            <div class="preview-item">
+                                            <div class="roles-subscroll roles-subscroll-large">
+                                                <% if (roleTemplates && roleTemplates.length> 0) { %>
+                                                    <div class="preview-list">
+                                                        <% roleTemplates.forEach(function(t) { %>
+                                                            <div class="preview-item">
 
-                                                <!-- ✅ title + badge -->
-                                                <div class="role-row">
-                                                    <div class="preview-title">
-                                                        <a class="users-link"
-                                                            href="/tenant/roles/<%= encodeURIComponent(r.id) %>">
-                                                            <%= r.displayName %>
-                                                        </a>
+                                                                <!-- ✅ title + badge -->
+                                                                <div class="role-row">
+                                                                    <div class="preview-title">
+                                                                        <form method="POST"
+                                                                            action="/tenant/roles/activate"
+                                                                            style="display:inline;">
+                                                                            <input type="hidden" name="templateId"
+                                                                                value="<%= t.id %>" />
+                                                                            <button type="submit" class="link-button">
+                                                                                <%= t.displayName %>
+                                                                            </button>
+                                                                        </form>
+                                                                    </div>
+
+                                                                    <% if (isPrivilegedTemplate(t.displayName)) { %>
+                                                                        <span
+                                                                            class="role-badge role-badge-priv">Privileged</span>
+                                                                        <% } %>
+                                                                </div>
+
+                                                                <div class="preview-meta">
+                                                                    <%= (t.description && t.description.length> 0) ?
+                                                                        t.description : 'No description available.' %>
+                                                                </div>
+                                                            </div>
+                                                            <% }); %>
                                                     </div>
-
-                                                    <% if (r.isPrivileged) { %>
-                                                        <span class="role-badge role-badge-priv">Privileged</span>
-                                                    <% } %>
-                                                </div>
-
-                                                <div class="preview-meta">Role ID: <%= r.id %></div>
+                                                    <% } else { %>
+                                                        <p class="preview-empty">No role templates available.</p>
+                                                        <% } %>
                                             </div>
-                                        <% }); %>
                                     </div>
-                                <% } else { %>
-                                    <p class="preview-empty">No activated directory roles found.</p>
-                                <% } %>
-                            </div>
+
+                                </div>
+                            </article>
+
                         </div>
 
-                        <hr class="divider" />
+            </section>
+        </main>
 
-                        <!-- All roles (templates) -->
-                        <div class="roles-subsection">
-                            <div class="roles-subsection-header">
-                                <h4 class="section-title">All roles (templates)</h4>
-                                <p class="muted small">Full catalog of available directory roles.</p>
-                            </div>
+        <!-- Modal global (únic, reutilitzable per logout i deletes) -->
+        <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
+            okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
 
-                            <!-- local helper: per templates no tenim isPrivileged del backend -->
-                            <%
-                              const privilegedKeywords = [
-                                'Global Administrator',
-                                'Privileged',
-                                'Security Administrator',
-                                'Conditional Access',
-                                'Authentication Administrator',
-                                'User Administrator',
-                                'Groups Administrator',
-                                'Application Administrator',
-                                'Cloud Application Administrator',
-                                'Intune Administrator',
-                                'Exchange Administrator',
-                                'SharePoint Administrator',
-                                'Teams Administrator',
-                              ];
+            <script src="/js/confirmModal.js"></script>
+            <script src="/js/navbar.js"></script>
 
-                              function isPrivilegedTemplate(name) {
-                                const n = (name || '').toLowerCase();
-                                return privilegedKeywords.some(k => n.includes(k.toLowerCase()));
-                              }
-                            %>
+            <footer class="footer">
+                <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+            </footer>
 
-                            <div class="roles-subscroll roles-subscroll-large">
-                                <% if (roleTemplates && roleTemplates.length > 0) { %>
-                                    <div class="preview-list">
-                                        <% roleTemplates.forEach(function(t) { %>
-                                            <div class="preview-item">
-
-                                                <!-- ✅ title + badge -->
-                                                <div class="role-row">
-                                                    <div class="preview-title">
-                                                        <form method="POST" action="/tenant/roles/activate" style="display:inline;">
-                                                            <input type="hidden" name="templateId" value="<%= t.id %>" />
-                                                            <button type="submit" class="link-button">
-                                                                <%= t.displayName %>
-                                                            </button>
-                                                        </form>
-                                                    </div>
-
-                                                    <% if (isPrivilegedTemplate(t.displayName)) { %>
-                                                        <span class="role-badge role-badge-priv">Privileged</span>
-                                                    <% } %>
-                                                </div>
-
-                                                <div class="preview-meta">
-                                                    <%= (t.description && t.description.length > 0) ? t.description : 'No description available.' %>
-                                                </div>
-                                            </div>
-                                        <% }); %>
-                                    </div>
-                                <% } else { %>
-                                    <p class="preview-empty">No role templates available.</p>
-                                <% } %>
-                            </div>
-                        </div>
-
-                    </div>
-                </article>
-
-            </div>
-
-        </section>
-    </main>
 </body>
 
 </html>

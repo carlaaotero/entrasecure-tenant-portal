@@ -18,6 +18,8 @@
   <link rel="stylesheet" href="/css/components/button.css" />
   <link rel="stylesheet" href="/css/components/card.css" />
   <link rel="stylesheet" href="/css/components/avatar.css" />
+  <link rel="stylesheet" href="/css/components/confirmModal.css" />
+  <link rel="stylesheet" href="/css/components/navigation.css" />
 
   <!-- Mateix layout que My Identity / Group Identity -->
   <link rel="stylesheet" href="/css/pages/identity.css" />
@@ -29,144 +31,118 @@
 
 <body class="role-identity-page">
   <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-left">
-      <div class="brand">EntraSecure Tenant Portal</div>
-      <ul class="nav-links">
-        <li><a href="/" class="nav-link">Home</a></li>
-        <% if (user) { %>
-          <li><a href="/me" class="nav-link">My Identity</a></li>
-          <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
-          <li><a href="/security" class="nav-link">Security</a></li>
-          <% } %>
-      </ul>
-    </div>
+  <%- include('../components/navbar', { active: 'tenant' }) %>
 
-    <div class="navbar-right">
-      <% if (user) { %>
-        <div class="user-pill">
-          <span class="user-initial">
-            <% const navName=user.name || user.username || 'U' ; const navInitial=navName.charAt(0).toUpperCase(); %>
-              <%= navInitial %>
-          </span>
-          <span class="user-name">
-            <%= user.name || user.username || 'Usuari' %>
-          </span>
+    <main class="identity-main">
+      <a href="/tenant/roles" class="back-arrow" aria-label="Tornar a Tenant Explorer">
+        ←
+      </a>
+      <% if (flash && flash.message) { %>
+        <div class="identity-flash-wrapper">
+          <div class="card flash-card">
+            <strong>
+              <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+            </strong>
+            <span>
+              <%= flash.message %>
+            </span>
+          </div>
         </div>
-        <% } else { %>
-          <a href="/auth/login" class="btn btn-outline-light">Login</a>
-          <% } %>
-    </div>
-  </nav>
+        <% } %>
 
-  <main class="identity-main">
+          <section class="identity-layout">
 
-    <% if (flash && flash.message) { %>
-      <div class="identity-flash-wrapper">
-        <div class="card flash-card">
-          <strong>
-            <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
-          </strong>
-          <span>
-            <%= flash.message %>
-          </span>
-        </div>
-      </div>
-      <% } %>
-
-        <section class="identity-layout">
-
-          <!-- PERFIL DEL ROLE (columna esquerra) -->
-          <article class="card identity-profile-card">
-            <div class="identity-avatar-wrapper">
-              <div class="profile-avatar">
-                <span>
-                  <% const rName=(role && role.displayName) ? role.displayName : 'Role' ; const
-                    rInitial=rName.charAt(0).toUpperCase(); %>
-                    <%= rInitial %>
-                </span>
-              </div>
-            </div>
-
-            <div class="identity-profile-info">
-              <h2 class="identity-title">
-                <%= (role && role.displayName) ? role.displayName : 'Directory Role' %>
-              </h2>
-            </div>
-
-            <!-- Detalls del role (mateix estil que group/user) -->
-            <dl class="identity-details">
-              <div class="identity-detail-row">
-                <dt>Display name</dt>
-                <dd>
-                  <%= role && role.displayName ? role.displayName : '—' %>
-                </dd>
+            <!-- PERFIL DEL ROLE (columna esquerra) -->
+            <article class="card identity-profile-card">
+              <div class="identity-avatar-wrapper">
+                <div class="profile-avatar">
+                  <span>
+                    <% const rName=(role && role.displayName) ? role.displayName : 'Role' ; const
+                      rInitial=rName.charAt(0).toUpperCase(); %>
+                      <%= rInitial %>
+                  </span>
+                </div>
               </div>
 
-              <div class="identity-detail-row">
-                <dt>Role ID</dt>
-                <dd>
-                  <%= role && role.id ? role.id : '—' %>
-                </dd>
+              <div class="identity-profile-info">
+                <h2 class="identity-title">
+                  <%= (role && role.displayName) ? role.displayName : 'Directory Role' %>
+                </h2>
               </div>
 
-              <div class="identity-detail-row">
-                <dt>Template ID</dt>
-                <dd>
-                  <%= role && role.roleTemplateId ? role.roleTemplateId : '—' %>
-                </dd>
-              </div>
-
-              <div class="identity-detail-row">
-                <dt>Description</dt>
-                <dd>
-                  <%= (role && role.description && role.description.length> 0) ? role.description : '—' %>
-                </dd>
-              </div>
-            </dl>
-          </article>
-
-          <!-- ASSIGNMENTS (columna dreta, com Members/Owners en groups) -->
-          <article class="card identity-card identity-groups-card">
-            <h3>Assignments</h3>
-            <div class="identity-card-content">
-
-              <!-- Formulari per afegir membres amb desplegable -->
-              <form id="addRoleMembersForm" method="POST"
-                action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/add" class="identity-inline-form">
-
-                <label for="roleMembersInput" class="identity-inline-label">
-                  Afegir membres al rol
-                </label>
-
-                <div class="identity-inline-input">
-                  <input id="roleMembersInput" type="text" class="users-input"
-                    placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
-                  <div id="roleMembersDropdown" class="owners-dropdown" style="display:none;"></div>
+              <!-- Detalls del role (mateix estil que group/user) -->
+              <dl class="identity-details">
+                <div class="identity-detail-row">
+                  <dt>Display name</dt>
+                  <dd>
+                    <%= role && role.displayName ? role.displayName : '—' %>
+                  </dd>
                 </div>
 
-                <small class="field-hint">
-                  Pots seleccionar usuaris amb el desplegable o escriure UPNs manualment (separats per comes o Enter).
-                </small>
-
-                <!-- Chips -->
-                <div id="roleMembersChips" class="owners-chip-list"></div>
-
-                <!-- Hidden -->
-                <input type="hidden" name="memberKeys" id="roleMembersHidden" />
-
-                <div class="identity-inline-actions">
-                  <button type="submit" class="btn btn-primary btn-sm">
-                    Afegir membres seleccionats
-                  </button>
+                <div class="identity-detail-row">
+                  <dt>Role ID</dt>
+                  <dd>
+                    <%= role && role.id ? role.id : '—' %>
+                  </dd>
                 </div>
-              </form>
 
-              <% if (members && members.length> 0) { %>
-                <div class="identity-item-list">
-                  <% members.forEach(function(m) { const label=m.userPrincipalName ? 'User' : (m.appId
-                    ? 'Service principal' : 'Group' ); const subtitle=m.userPrincipalName ? m.userPrincipalName :
-                    (m.appId ? ('App ID: ' + m.appId) : (' Object ID: ' + m.id));
+                <div class="identity-detail-row">
+                  <dt>Template ID</dt>
+                  <dd>
+                    <%= role && role.roleTemplateId ? role.roleTemplateId : '—' %>
+                  </dd>
+                </div>
+
+                <div class="identity-detail-row">
+                  <dt>Description</dt>
+                  <dd>
+                    <%= (role && role.description && role.description.length> 0) ? role.description : '—' %>
+                  </dd>
+                </div>
+              </dl>
+            </article>
+
+            <!-- ASSIGNMENTS (columna dreta, com Members/Owners en groups) -->
+            <article class="card identity-card identity-groups-card">
+              <h3>Assignments</h3>
+              <div class="identity-card-content">
+
+                <!-- Formulari per afegir membres amb desplegable -->
+                <form id="addRoleMembersForm" method="POST"
+                  action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/add" class="identity-inline-form">
+
+                  <label for="roleMembersInput" class="identity-inline-label">
+                    Afegir membres al rol
+                  </label>
+
+                  <div class="identity-inline-input">
+                    <input id="roleMembersInput" type="text" class="users-input"
+                      placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
+                    <div id="roleMembersDropdown" class="owners-dropdown" style="display:none;"></div>
+                  </div>
+
+                  <small class="field-hint">
+                    Pots seleccionar usuaris amb el desplegable o escriure UPNs manualment (separats per comes o Enter).
+                  </small>
+
+                  <!-- Chips -->
+                  <div id="roleMembersChips" class="owners-chip-list"></div>
+
+                  <!-- Hidden -->
+                  <input type="hidden" name="memberKeys" id="roleMembersHidden" />
+
+                  <div class="identity-inline-actions">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                      Afegir membres seleccionats
+                    </button>
+                  </div>
+                </form>
+
+                <% if (members && members.length> 0) { %>
+                  <div class="identity-item-list">
+                    <% members.forEach(function(m) { const label=m.userPrincipalName ? 'User' : (m.appId
+                      ? 'Service principal' : 'Group' ); const subtitle=m.userPrincipalName ? m.userPrincipalName :
+                      (m.appId ? ('App ID: ' + m.appId) : (' Object ID: ' + m.id));
               %>
 
                 <div class="identity-item-card identity-removable">
@@ -174,69 +150,58 @@
                   <!-- BOTÓ ELIMINAR (creu) com a grups -->
                   <% const confirmMsg =
   ' Vols eliminar «' + (m.displayName || m.userPrincipalName || m.id) + '» del rol «' + (role.displayName
-                    || 'Directory Role' ) + '»?' ; %>
+                      || 'Directory Role' ) + '»?' ; %>
 
-                    <form method="POST"
-                      action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/<%= encodeURIComponent(m.id) %>/remove"
-                      class="remove-form" data-confirm="true"
-                      data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
-                      data-confirm-message='<%= confirmMsg %>' data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
-                      data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
-                      <button type="submit" class="remove-btn">×</button>
-                    </form>
+                      <form method="POST"
+                        action="/tenant/roles/<%= encodeURIComponent(role.id) %>/members/<%= encodeURIComponent(m.id) %>/remove"
+                        class="remove-form" data-confirm="true"
+                        data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
+                        data-confirm-message='<%= confirmMsg %>' data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
+                        data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
+                        <button type="submit" class="remove-btn">×</button>
+                      </form>
 
 
-                    <!-- INFO -->
-                    <div class="identity-item-title">
-                      <% if (m.userPrincipalName) { %>
-                        <!-- si és usuari, enllacem al seu detall com als altres mòduls -->
-                        <a href="/tenant/users/<%= encodeURIComponent(m.id) %>" class="identity-link">
-                          <%= m.displayName || m.userPrincipalName || '(Sense nom)' %>
-                        </a>
-                        <% } else { %>
-                          <%= m.displayName || '(Sense nom)' %>
-                            <% } %>
-                    </div>
+                      <!-- INFO -->
+                      <div class="identity-item-title">
+                        <% if (m.userPrincipalName) { %>
+                          <!-- si és usuari, enllacem al seu detall com als altres mòduls -->
+                          <a href="/tenant/users/<%= encodeURIComponent(m.id) %>" class="identity-link">
+                            <%= m.displayName || m.userPrincipalName || '(Sense nom)' %>
+                          </a>
+                          <% } else { %>
+                            <%= m.displayName || '(Sense nom)' %>
+                              <% } %>
+                      </div>
 
-                    <div class="identity-item-meta">
-                      <%= subtitle %><br />
-                        <%= label %>
-                    </div>
+                      <div class="identity-item-meta">
+                        <%= subtitle %><br />
+                          <%= label %>
+                      </div>
 
-                </div>
-                <% }); %>
-            </div>
-            <% } else { %>
-              <p class="identity-empty">
-                No hi ha membres assignats a aquest rol o no es pot llegir la informació.
+                  </div>
+                  <% }); %>
+              </div>
+              <% } else { %>
+                <p class="identity-empty">
+                  No hi ha membres assignats a aquest rol o no es pot llegir la informació.
+                </p>
+                <% } %>
+
+                  </div>
+            </article>
+
+            <!-- Targeta explicativa (com grups) -->
+            <article class="card identity-edu-card">
+              <h3 class="identity-edu-title">Com llegir aquesta informació</h3>
+              <p class="identity-edu">
+                Aquesta vista mostra la identitat d'un Directory Role del tenant i els seus membres assignats.
+                Pots afegir usuaris al rol i eliminar assignacions existents.
               </p>
-              <% } %>
+            </article>
 
-                </div>
-          </article>
-
-          <!-- Targeta explicativa (com grups) -->
-          <article class="card identity-edu-card">
-            <h3 class="identity-edu-title">Com llegir aquesta informació</h3>
-            <p class="identity-edu">
-              Aquesta vista mostra la identitat d'un Directory Role del tenant i els seus membres assignats.
-              Pots afegir usuaris al rol i eliminar assignacions existents.
-            </p>
-          </article>
-
-        </section>
-  </main>
-
-  <footer class="footer">
-    <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
-  </footer>
-
-  <!-- Modal -->
-  <%- include('../components/confirmModal', { title: UI_MESSAGES.MODAL.CONFIRM_TITLE, message:
-    UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE, okText: UI_MESSAGES.MODAL.OK, cancelText: UI_MESSAGES.MODAL.CANCEL }) %>
-
-    <script src="/js/confirmModal.js"></script>
-
+          </section>
+    </main>
 
     <!-- JS: selector desplegable + chips (mateix patró que groupIdentity) -->
     <script>
@@ -421,6 +386,18 @@
         }
       })();
     </script>
+
+    <!-- Modal global (únic, reutilitzable per logout i deletes) -->
+    <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
+      okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+
+      <script src="/js/confirmModal.js"></script>
+      <script src="/js/navbar.js"></script>
+
+      <footer class="footer">
+        <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+      </footer>
+
 
 </body>
 

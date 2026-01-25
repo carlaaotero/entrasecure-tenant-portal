@@ -8,181 +8,157 @@
     <%= title %> · EntraSecure
   </title>
 
+  <!-- Design foundation -->
   <link rel="stylesheet" href="/css/foundation.css" />
+  <!-- Utilities -->
   <link rel="stylesheet" href="/css/utilities.css" />
+
+  <!-- Components -->
   <link rel="stylesheet" href="/css/components/navbar.css" />
   <link rel="stylesheet" href="/css/components/button.css" />
   <link rel="stylesheet" href="/css/components/card.css" />
   <link rel="stylesheet" href="/css/components/avatar.css" />
+  <link rel="stylesheet" href="/css/components/confirmModal.css" />
+  <link rel="stylesheet" href="/css/components/navigation.css" />
+
   <link rel="stylesheet" href="/css/pages/identity.css" />
   <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
   <link rel="stylesheet" href="/css/pages/tenantRoles.css" />
 </head>
 
 <body>
-  <nav class="navbar">
-    <div class="navbar-left">
-      <div class="brand">EntraSecure Tenant Portal</div>
-      <ul class="nav-links">
-        <li><a href="/" class="nav-link">Home</a></li>
-        <% if (user) { %>
-          <li><a href="/me" class="nav-link">My Identity</a></li>
-          <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
-          <li><a href="/security" class="nav-link">Security</a></li>
-          <% } %>
-      </ul>
-    </div>
+  <!-- Navbar -->
+  <%- include('../components/navbar', { active: 'tenant' }) %>
 
-    <div class="navbar-right">
-      <% if (user) { %>
-        <div class="user-pill">
-          <span class="user-initial">
-            <%= (user.name || user.username || 'U' ).charAt(0).toUpperCase() %>
-          </span>
-          <span class="user-name">
-            <%= user.name || user.username || 'Usuari' %>
-          </span>
+    <main class="identity-main roles-page">
+      <a href="/tenant/roles" class="back-arrow" aria-label="Tornar a Tenant Explorer">
+        ←
+      </a>
+      <% if (flash && flash.message) { %>
+        <div class="identity-flash-wrapper">
+          <div class="card flash-card">
+            <strong>
+              <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+            </strong>
+            <span>
+              <%= flash.message %>
+            </span>
+          </div>
         </div>
-        <% } else { %>
-          <a href="/auth/login" class="btn btn-outline-light">Login</a>
-          <% } %>
-    </div>
-  </nav>
+        <% } %>
 
-  <main class="identity-main roles-page">
+          <section class="identity-layout">
 
-    <% if (flash && flash.message) { %>
-      <div class="identity-flash-wrapper">
-        <div class="card flash-card">
-          <strong>
-            <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
-          </strong>
-          <span>
-            <%= flash.message %>
-          </span>
-        </div>
-      </div>
-      <% } %>
+            <% if (flash && flash.type==='error' ) { %>
+              <div class="card" style="margin: 12px 0; padding: 12px;">
+                <strong>Error:</strong>
+                <span>
+                  <%= flash.message %>
+                </span>
+              </div>
+              <% } %>
 
-        <section class="identity-layout">
-
-          <% if (flash && flash.type==='error' ) { %>
-            <div class="card" style="margin: 12px 0; padding: 12px;">
-              <strong>Error:</strong>
-              <span>
-                <%= flash.message %>
-              </span>
-            </div>
-            <% } %>
-
-              <!-- Perfil (esquerra) -->
-              <article class="card identity-profile-card">
-                <div class="identity-profile-info">
-                  <h2 class="identity-title">
-                    <%= role.displayName || role.value %>
-                  </h2>
-                  <p class="identity-upn">Portal App Role (RBAC intern)</p>
-                </div>
-
-                <dl class="identity-details">
-                  <div class="identity-detail-row">
-                    <dt>Role ID</dt>
-                    <dd>
-                      <%= role.id %>
-                    </dd>
+                <!-- Perfil (esquerra) -->
+                <article class="card identity-profile-card">
+                  <div class="identity-profile-info">
+                    <h2 class="identity-title">
+                      <%= role.displayName || role.value %>
+                    </h2>
+                    <p class="identity-upn">Portal App Role (RBAC intern)</p>
                   </div>
 
-                  <div class="identity-detail-row">
-                    <dt>Value</dt>
-                    <dd>
-                      <%= role.value || '—' %>
-                    </dd>
-                  </div>
-
-                  <div class="identity-detail-row">
-                    <dt>Description</dt>
-                    <dd>
-                      <%= role.description || '—' %>
-                    </dd>
-                  </div>
-                </dl>
-              </article>
-
-              <!-- Assignacions (dreta) -->
-              <article class="card identity-card identity-groups-card">
-                <h3>Users assigned</h3>
-                <div class="identity-card-content">
-
-                  <!-- ✅ FORM amb el patró "Directory Roles": input + dropdown amb checkboxes + chips -->
-                  <form id="addPortalRoleUsersForm" method="POST"
-                    action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/add"
-                    class="identity-inline-form">
-
-                    <label for="portalRoleUsersInput" class="identity-inline-label">Assignar usuaris al
-                      rol</label>
-
-                    <div class="identity-inline-input">
-                      <input id="portalRoleUsersInput" type="text" class="users-input"
-                        placeholder="Cerca per nom o UPN (o fes Enter per afegir manualment)" autocomplete="off" />
-
+                  <dl class="identity-details">
+                    <div class="identity-detail-row">
+                      <dt>Role ID</dt>
+                      <dd>
+                        <%= role.id %>
+                      </dd>
                     </div>
-                </div>
 
-                <small class="field-hint">
-                  <%= helpfulInfo %>
-                </small>
-
-                <div id="portalRoleUsersChips" class="owners-chip-list"></div>
-                <input type="hidden" name="userIds" id="portalRoleUsersHidden" />
-
-                <div class="identity-inline-actions">
-                  <button type="submit" class="btn btn-primary btn-sm">Assignar seleccionats</button>
-                </div>
-                </form>
-
-                <div class="assignments-scroll">
-                  <% if (assignments && assignments.length> 0) { %>
-                    <div class="identity-item-list">
-                      <% assignments.forEach(function(a) { %>
-                        <div class="identity-item-card identity-removable">
-
-                          <form method="POST"
-                            action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/<%= encodeURIComponent(a.id) %>/remove"
-                            class="remove-form" data-confirm="true"
-                            data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
-                            data-confirm-message="Vols eliminar l'assignació de «<%= (a.principalDisplayName || a.principalId || 'aquest usuari') %>» del rol «<%= (role.displayName || role.value || 'rol') %>»?"
-                            data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
-                            data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
-                            <button type="submit" class="remove-btn">×</button>
-                          </form>
-
-
-                          <div class="identity-item-title">
-                            <%= a.principalDisplayName || a.principalId %>
-                          </div>
-                          <div class="identity-item-meta">User · <%= a.principalId %>
-                          </div>
-                        </div>
-                        <% }); %>
+                    <div class="identity-detail-row">
+                      <dt>Value</dt>
+                      <dd>
+                        <%= role.value || '—' %>
+                      </dd>
                     </div>
-                    <% } else { %>
-                      <p class="identity-empty">No hi ha usuaris assignats a aquest rol.</p>
-                      <% } %>
-                </div>
+
+                    <div class="identity-detail-row">
+                      <dt>Description</dt>
+                      <dd>
+                        <%= role.description || '—' %>
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+
+                <!-- Assignacions (dreta) -->
+                <article class="card identity-card identity-groups-card">
+                  <h3>Users assigned</h3>
+                  <div class="identity-card-content">
+
+                    <!-- ✅ FORM amb el patró "Directory Roles": input + dropdown amb checkboxes + chips -->
+                    <form id="addPortalRoleUsersForm" method="POST"
+                      action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/add"
+                      class="identity-inline-form">
+
+                      <label for="portalRoleUsersInput" class="identity-inline-label">Assignar usuaris al
+                        rol</label>
+
+                      <div class="identity-inline-input">
+                        <input id="portalRoleUsersInput" type="text" class="users-input"
+                          placeholder="Cerca per nom o UPN (o fes Enter per afegir manualment)" autocomplete="off" />
+
+                      </div>
+                  </div>
+
+                  <small class="field-hint">
+                    <%= helpfulInfo %>
+                  </small>
+
+                  <div id="portalRoleUsersChips" class="owners-chip-list"></div>
+                  <input type="hidden" name="userIds" id="portalRoleUsersHidden" />
+
+                  <div class="identity-inline-actions">
+                    <button type="submit" class="btn btn-primary btn-sm">Assignar seleccionats</button>
+                  </div>
+                  </form>
+
+                  <div class="assignments-scroll">
+                    <% if (assignments && assignments.length> 0) { %>
+                      <div class="identity-item-list">
+                        <% assignments.forEach(function(a) { %>
+                          <div class="identity-item-card identity-removable">
+
+                            <form method="POST"
+                              action="/tenant/roles/portal/<%= encodeURIComponent(role.id) %>/assignments/<%= encodeURIComponent(a.id) %>/remove"
+                              class="remove-form" data-confirm="true"
+                              data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
+                              data-confirm-message="Vols eliminar l'assignació de «<%= (a.principalDisplayName || a.principalId || 'aquest usuari') %>» del rol «<%= (role.displayName || role.value || 'rol') %>»?"
+                              data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
+                              data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
+                              <button type="submit" class="remove-btn">×</button>
+                            </form>
 
 
-                </div>
-              </article>
+                            <div class="identity-item-title">
+                              <%= a.principalDisplayName || a.principalId %>
+                            </div>
+                            <div class="identity-item-meta">User · <%= a.principalId %>
+                            </div>
+                          </div>
+                          <% }); %>
+                      </div>
+                      <% } else { %>
+                        <p class="identity-empty">No hi ha usuaris assignats a aquest rol.</p>
+                        <% } %>
+                  </div>
 
-        </section>
-  </main>
 
-  <!-- Modal -->
-  <%- include('../components/confirmModal', { title: UI_MESSAGES.MODAL.CONFIRM_TITLE, message:
-    UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE, okText: UI_MESSAGES.MODAL.OK, cancelText: UI_MESSAGES.MODAL.CANCEL }) %>
+                  </div>
+                </article>
 
-    <script src="/js/confirmModal.js"></script>
-
+          </section>
+    </main>
 
     <script>
       (function () {
@@ -353,6 +329,17 @@
         renderChips();
       })();
     </script>
+
+    <!-- Modal global (únic, reutilitzable per logout i deletes) -->
+    <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
+      okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+
+      <script src="/js/confirmModal.js"></script>
+      <script src="/js/navbar.js"></script>
+
+      <footer class="footer">
+        <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+      </footer>
 
 </body>
 

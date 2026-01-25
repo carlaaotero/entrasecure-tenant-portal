@@ -18,558 +18,524 @@
   <link rel="stylesheet" href="/css/components/button.css" />
   <link rel="stylesheet" href="/css/components/card.css" />
   <link rel="stylesheet" href="/css/components/avatar.css" />
+  <link rel="stylesheet" href="/css/components/confirmModal.css" />
+  <link rel="stylesheet" href="/css/components/navigation.css" />
 
-  <!-- De moment reutilitzem els estils de la pàgina d'usuaris -->
   <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
 </head>
 
 <body>
   <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-left">
-      <div class="brand">EntraSecure Tenant Portal</div>
-      <ul class="nav-links">
-        <li><a href="/" class="nav-link">Home</a></li>
-        <% if (user) { %>
-          <li><a href="/me" class="nav-link">My Identity</a></li>
-          <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
-          <li><a href="/security" class="nav-link">Security</a></li>
+  <%- include('../components/navbar', { active: 'tenant' }) %>
+
+    <main class="tenant-users-main">
+      <a href="/tenant" class="back-arrow" aria-label="Tornar a Tenant Explorer">
+        ←
+      </a>
+      <section class="tenant-users-layout">
+        <header class="users-header">
+          <h1>Grups del tenant</h1>
+          <p>
+            Llista de grups de Microsoft Entra ID (Security, Microsoft 365, etc.)
+            amb el seu nom, tipus principal i origen.
+          </p>
+        </header>
+
+        <% if (flash && flash.message) { %>
+          <div class="card" style="margin: 12px 0; padding: 12px;">
+            <strong>
+              <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+            </strong>
+            <span>
+              <%= flash.message %>
+            </span>
+          </div>
           <% } %>
-      </ul>
-    </div>
-
-    <div class="navbar-right">
-      <% if (user) { %>
-        <div class="user-pill">
-          <span class="user-initial">
-            <% if (user.name) { %>
-              <%= user.name.charAt(0).toUpperCase() %>
-                <% } else if (user.username) { %>
-                  <%= user.username.charAt(0).toUpperCase() %>
-                    <% } else { %>U<% } %>
-          </span>
-
-          <span class="user-name">
-            <%= user.name || user.username || 'Usuari' %>
-          </span>
-        </div>
-        <% } else { %>
-          <a href="/auth/login" class="btn btn-outline-light">Login</a>
-          <% } %>
-    </div>
-  </nav>
-
-  <main class="tenant-users-main">
-    <section class="tenant-users-layout">
-      <header class="users-header">
-        <h1>Grups del tenant</h1>
-        <p>
-          Llista de grups de Microsoft Entra ID (Security, Microsoft 365, etc.)
-          amb el seu nom, tipus principal i origen.
-        </p>
-      </header>
-
-      <% if (flash && flash.message) { %>
-        <div class="card" style="margin: 12px 0; padding: 12px;">
-          <strong>
-            <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
-          </strong>
-          <span>
-            <%= flash.message %>
-          </span>
-        </div>
-        <% } %>
 
 
-          <!-- CARD / CREAR NOU GRUP -->
-          <article class="card users-card create-user-card">
-            <div class="users-card-header">
-              <div class="users-header-left">
-                <h2>Crear un grup nou</h2>
-                <p class="users-meta">
-                  Dona d'alta un grup de seguretat o Microsoft 365 al tenant.
-                </p>
+            <!-- CARD / CREAR NOU GRUP -->
+            <article class="card users-card create-user-card">
+              <div class="users-card-header">
+                <div class="users-header-left">
+                  <h2>Crear un grup nou</h2>
+                  <p class="users-meta">
+                    Dona d'alta un grup de seguretat o Microsoft 365 al tenant.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <form id="createGroupForm" method="POST" action="/tenant/groups/create" class="create-user-form">
-              <div class="users-card-body create-user-body">
+              <form id="createGroupForm" method="POST" action="/tenant/groups/create" class="create-user-form">
+                <div class="users-card-body create-user-body">
 
-                <div class="create-user-grid">
-                  <!-- Columna esquerra -->
-                  <div class="create-user-col">
-                    <div class="form-group">
-                      <label for="newGroupDisplayName">Group name</label>
-                      <input id="newGroupDisplayName" type="text" name="displayName" class="users-input"
-                        autocomplete="off" />
-                      <small id="groupNameError" class="field-hint"></small>
+                  <div class="create-user-grid">
+                    <!-- Columna esquerra -->
+                    <div class="create-user-col">
+                      <div class="form-group">
+                        <label for="newGroupDisplayName">Group name</label>
+                        <input id="newGroupDisplayName" type="text" name="displayName" class="users-input"
+                          autocomplete="off" />
+                        <small id="groupNameError" class="field-hint"></small>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="newGroupDescription">Group description</label>
+                        <textarea id="newGroupDescription" name="description" rows="3" class="users-input"></textarea>
+                        <small id="groupDescError" class="field-hint"></small>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="newGroupOwnersInput">Owners del grup</label>
+                        <input id="newGroupOwnersInput" type="text" class="users-input"
+                          placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
+                        <small class="field-hint">
+                          Cerca i selecciona usuaris del tenant, o escriu el seu UPN manualment i prem Enter.
+                        </small>
+
+                        <!-- Dropdown amb usuaris -->
+                        <div id="ownersDropdown" class="owners-dropdown" style="display:none;"></div>
+
+                        <!-- Llista visual d'owners seleccionats -->
+                        <div id="ownersChips" class="owners-chip-list"></div>
+
+                        <!-- Valor real que s'enviarà al servidor: upn1,upn2,... -->
+                        <input type="hidden" name="ownerUpns" id="ownersHidden" />
+
+                        <small id="groupOwnersError" class="field-hint"></small>
+
+                      </div>
                     </div>
 
-                    <div class="form-group">
-                      <label for="newGroupDescription">Group description</label>
-                      <textarea id="newGroupDescription" name="description" rows="3" class="users-input"></textarea>
-                      <small id="groupDescError" class="field-hint"></small>
-                    </div>
+                    <!-- Columna dreta -->
+                    <div class="create-user-col">
+                      <div class="form-group">
+                        <label for="newGroupType">Group type</label>
+                        <select id="newGroupType" name="groupType" class="users-input">
+                          <option value="security">Security</option>
+                          <option value="m365">Microsoft 365</option>
+                        </select>
+                        <small class="field-hint">
+                          Security: grup per permisos. Microsoft 365: correu, Teams, etc.
+                        </small>
+                      </div>
 
-                    <div class="form-group">
-                      <label for="newGroupOwnersInput">Owners del grup</label>
-                      <input id="newGroupOwnersInput" type="text" class="users-input"
-                        placeholder="Cerca per nom o UPN, o escriu un UPN i prem Enter" autocomplete="off" />
-                      <small class="field-hint">
-                        Cerca i selecciona usuaris del tenant, o escriu el seu UPN manualment i prem Enter.
-                      </small>
-
-                      <!-- Dropdown amb usuaris -->
-                      <div id="ownersDropdown" class="owners-dropdown" style="display:none;"></div>
-
-                      <!-- Llista visual d'owners seleccionats -->
-                      <div id="ownersChips" class="owners-chip-list"></div>
-
-                      <!-- Valor real que s'enviarà al servidor: upn1,upn2,... -->
-                      <input type="hidden" name="ownerUpns" id="ownersHidden" />
-
-                      <small id="groupOwnersError" class="field-hint"></small>
-
+                      <p class="field-hint">
+                        El grup es crearà com a <strong>Cloud</strong>. Els grups sincronitzats
+                        des d'Active Directory no es poden crear des del portal.
+                      </p>
                     </div>
                   </div>
 
-                  <!-- Columna dreta -->
-                  <div class="create-user-col">
-                    <div class="form-group">
-                      <label for="newGroupType">Group type</label>
-                      <select id="newGroupType" name="groupType" class="users-input">
+                  <div class="create-user-actions">
+                    <button id="createGroupBtn" type="submit" class="btn btn-primary">
+                      Crear grup
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </article>
+
+            <!-- Formulari per eliminar grups seleccionats -->
+            <form method="POST" action="/tenant/groups/delete" data-confirm="true"
+              data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
+              data-confirm-message="<%= UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE %>"
+              data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>" data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
+
+
+              <article class="card users-card">
+                <div class="users-card-header">
+                  <div class="users-header-left">
+                    <h2>Llista de grups</h2>
+                    <p class="users-meta">
+                      <span class="users-meta-count">
+                        <%= groups && groups.length ? groups.length : 0 %>
+                      </span> grups trobats
+                    </p>
+                  </div>
+
+                  <div class="users-header-right">
+                    <div class="users-filters">
+                      <input id="groupSearch" type="text" class="users-search-input" placeholder="Cerca per nom"
+                        onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
+
+                      <select id="groupTypeFilter" class="users-type-filter">
+                        <option value="all">Tots els tipus</option>
                         <option value="security">Security</option>
                         <option value="m365">Microsoft 365</option>
                       </select>
-                      <small class="field-hint">
-                        Security: grup per permisos. Microsoft 365: correu, Teams, etc.
-                      </small>
+
+                      <select id="groupSourceFilter" class="users-type-filter">
+                        <option value="all">Tots els orígens</option>
+                        <option value="cloud">Cloud</option>
+                        <option value="synced">Synced (AD)</option>
+                      </select>
                     </div>
 
-                    <p class="field-hint">
-                      El grup es crearà com a <strong>Cloud</strong>. Els grups sincronitzats
-                      des d'Active Directory no es poden crear des del portal.
-                    </p>
+                    <button type="submit" class="btn btn-primary">
+                      Eliminar seleccionats
+                    </button>
                   </div>
                 </div>
 
-                <div class="create-user-actions">
-                  <button id="createGroupBtn" type="submit" class="btn btn-primary">
-                    Crear grup
-                  </button>
-                </div>
-              </div>
-            </form>
-          </article>
-
-          <!-- Formulari per eliminar grups seleccionats -->
-          <form method="POST" action="/tenant/groups/delete"
-  data-confirm="true"
-  data-confirm-title="<%= UI_MESSAGES.MODAL.CONFIRM_TITLE %>"
-  data-confirm-message="<%= UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE %>"
-  data-confirm-ok="<%= UI_MESSAGES.MODAL.OK %>"
-  data-confirm-cancel="<%= UI_MESSAGES.MODAL.CANCEL %>">
-
-
-            <article class="card users-card">
-              <div class="users-card-header">
-                <div class="users-header-left">
-                  <h2>Llista de grups</h2>
-                  <p class="users-meta">
-                    <span class="users-meta-count">
-                      <%= groups && groups.length ? groups.length : 0 %>
-                    </span> grups trobats
-                  </p>
-                </div>
-
-                <div class="users-header-right">
-                  <div class="users-filters">
-                    <input id="groupSearch" type="text" class="users-search-input" placeholder="Cerca per nom"
-                      onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
-
-                    <select id="groupTypeFilter" class="users-type-filter">
-                      <option value="all">Tots els tipus</option>
-                      <option value="security">Security</option>
-                      <option value="m365">Microsoft 365</option>
-                    </select>
-
-                    <select id="groupSourceFilter" class="users-type-filter">
-                      <option value="all">Tots els orígens</option>
-                      <option value="cloud">Cloud</option>
-                      <option value="synced">Synced (AD)</option>
-                    </select>
-                  </div>
-
-                  <button type="submit" class="btn btn-primary">
-                    Eliminar seleccionats
-                  </button>
-                </div>
-              </div>
-
-              <div class="users-card-body">
-                <% if (groups && groups.length> 0) { %>
-                  <table class="users-table">
-                    <thead>
-                      <tr>
-                        <th>Group name</th>
-                        <th>Group type</th>
-                        <th>Source</th>
-                        <th>Seleccionar</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% groups.forEach(function (g) { const types=g.groupTypes || []; const
-                        isM365=types.includes('Unified'); const typeLabel=isM365 ? 'Microsoft 365' : 'Security' ; const
-                        typeValue=isM365 ? 'm365' : 'security' ; const sourceLabel=g.onPremisesSyncEnabled
-                        ? 'Synced (AD)' : 'Cloud' ; %>
-                        <tr data-display-name="<%= g.displayName || '' %>" data-type="<%= typeValue %>"
-                          data-source="<%= sourceLabel.toLowerCase().includes('synced') ? 'synced' : 'cloud' %>">
-                          <td>
-                            <a href="/tenant/groups/<%= encodeURIComponent(g.id) %>" class="users-link">
-                              <%= g.displayName || '(Sense nom)' %>
-                            </a>
-                          </td>
-                          <td>
-                            <%= typeLabel %>
-                          </td>
-                          <td>
-                            <%= sourceLabel %>
-                          </td>
-                          <td class="users-select-cell">
-                            <input type="checkbox" name="groupIds" value="<%= g.id %>" />
-                          </td>
+                <div class="users-card-body">
+                  <% if (groups && groups.length> 0) { %>
+                    <table class="users-table">
+                      <thead>
+                        <tr>
+                          <th>Group name</th>
+                          <th>Group type</th>
+                          <th>Source</th>
+                          <th>Seleccionar</th>
                         </tr>
-                        <% }); %>
-                    </tbody>
-                  </table>
-                  <% } else { %>
-                    <p class="users-empty">
-                      No s'ha trobat cap grup o no es pot llegir la informació.
-                    </p>
-                    <% } %>
-              </div>
-            </article>
-          </form>
-    </section>
-  </main>
+                      </thead>
+                      <tbody>
+                        <% groups.forEach(function (g) { const types=g.groupTypes || []; const
+                          isM365=types.includes('Unified'); const typeLabel=isM365 ? 'Microsoft 365' : 'Security' ;
+                          const typeValue=isM365 ? 'm365' : 'security' ; const sourceLabel=g.onPremisesSyncEnabled
+                          ? 'Synced (AD)' : 'Cloud' ; %>
+                          <tr data-display-name="<%= g.displayName || '' %>" data-type="<%= typeValue %>"
+                            data-source="<%= sourceLabel.toLowerCase().includes('synced') ? 'synced' : 'cloud' %>">
+                            <td>
+                              <a href="/tenant/groups/<%= encodeURIComponent(g.id) %>" class="users-link">
+                                <%= g.displayName || '(Sense nom)' %>
+                              </a>
+                            </td>
+                            <td>
+                              <%= typeLabel %>
+                            </td>
+                            <td>
+                              <%= sourceLabel %>
+                            </td>
+                            <td class="users-select-cell">
+                              <input type="checkbox" name="groupIds" value="<%= g.id %>" />
+                            </td>
+                          </tr>
+                          <% }); %>
+                      </tbody>
+                    </table>
+                    <% } else { %>
+                      <p class="users-empty">
+                        No s'ha trobat cap grup o no es pot llegir la informació.
+                      </p>
+                      <% } %>
+                </div>
+              </article>
+            </form>
+      </section>
+    </main>
 
-  <footer class="footer">
-    <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
-  </footer>
+    <!-- JS: filtres + creació de grup (owners + dropdown + validació) -->
+    <script>
+      (function () {
+        // --- Filtres de la taula de grups ---
+        const searchInput = document.getElementById('groupSearch');
+        const typeFilter = document.getElementById('groupTypeFilter');
+        const sourceFilter = document.getElementById('groupSourceFilter');
+        const rows = Array.from(document.querySelectorAll('.users-table tbody tr'));
+        const countSpan = document.querySelector('.users-meta-count');
 
-  <!-- Modal (ha d'estar dins el body, al final) -->
-<%- include('../components/confirmModal', {
-  title: UI_MESSAGES.MODAL.CONFIRM_TITLE,
-  message: UI_MESSAGES.MODAL.CONFIRM_DELETE_MESSAGE,
-  okText: UI_MESSAGES.MODAL.OK,
-  cancelText: UI_MESSAGES.MODAL.CANCEL
-}) %>
+        function applyGroupFilters() {
+          const term = (searchInput && searchInput.value || '').trim().toLowerCase();
+          const type = (typeFilter && typeFilter.value || 'all').toLowerCase();
+          const source = (sourceFilter && sourceFilter.value || 'all').toLowerCase();
 
-<!-- JS del modal -->
-<script src="/js/confirmModal.js"></script>
+          let visibleCount = 0;
 
+          rows.forEach(row => {
+            const dn = (row.dataset.displayName || '').toLowerCase();
+            const groupType = (row.dataset.type || '').toLowerCase();
+            const groupSource = (row.dataset.source || '').toLowerCase();
 
-  <!-- JS: filtres + creació de grup (owners + dropdown + validació) -->
-  <script>
-    (function () {
-      // --- Filtres de la taula de grups ---
-      const searchInput = document.getElementById('groupSearch');
-      const typeFilter = document.getElementById('groupTypeFilter');
-      const sourceFilter = document.getElementById('groupSourceFilter');
-      const rows = Array.from(document.querySelectorAll('.users-table tbody tr'));
-      const countSpan = document.querySelector('.users-meta-count');
+            const matchesText = !term || dn.includes(term);
+            const matchesType = type === 'all' || groupType === type;
+            const matchesSource = source === 'all' || groupSource === source;
 
-      function applyGroupFilters() {
-        const term = (searchInput && searchInput.value || '').trim().toLowerCase();
-        const type = (typeFilter && typeFilter.value || 'all').toLowerCase();
-        const source = (sourceFilter && sourceFilter.value || 'all').toLowerCase();
+            const visible = matchesText && matchesType && matchesSource;
+            row.style.display = visible ? '' : 'none';
+            if (visible) visibleCount++;
+          });
 
-        let visibleCount = 0;
-
-        rows.forEach(row => {
-          const dn = (row.dataset.displayName || '').toLowerCase();
-          const groupType = (row.dataset.type || '').toLowerCase();
-          const groupSource = (row.dataset.source || '').toLowerCase();
-
-          const matchesText = !term || dn.includes(term);
-          const matchesType = type === 'all' || groupType === type;
-          const matchesSource = source === 'all' || groupSource === source;
-
-          const visible = matchesText && matchesType && matchesSource;
-          row.style.display = visible ? '' : 'none';
-          if (visible) visibleCount++;
-        });
-
-        if (countSpan) countSpan.textContent = visibleCount;
-      }
-
-      if (searchInput) searchInput.addEventListener('input', applyGroupFilters);
-      if (typeFilter) typeFilter.addEventListener('change', applyGroupFilters);
-      if (sourceFilter) sourceFilter.addEventListener('change', applyGroupFilters);
-
-      // --- Crear grup: gestió d'owners + dropdown + validació ---
-      const ownersInput = document.getElementById('newGroupOwnersInput');
-      const ownersChips = document.getElementById('ownersChips');
-      const ownersHidden = document.getElementById('ownersHidden');
-      const ownersDropdown = document.getElementById('ownersDropdown');
-      const groupNameInput = document.getElementById('newGroupDisplayName');
-      const groupDescInput = document.getElementById('newGroupDescription');
-      const createGroupForm = document.getElementById('createGroupForm');
-      const createGroupError = document.getElementById('createGroupError');
-      const groupNameError = document.getElementById('groupNameError');
-      const groupDescError = document.getElementById('groupDescError');
-      const groupOwnersError = document.getElementById('groupOwnersError');
-
-
-      // Usuaris del tenant injectats des del servidor
-      const allUsers = <%- JSON.stringify(users || []) %>;
-
-      const owners = [];
-
-      function themeHintColor() {
-        const rootStyles = getComputedStyle(document.documentElement);
-        return (rootStyles.getPropertyValue('--color2') || '#504845').trim();
-      }
-
-      function clearGroupErrors() {
-        [groupNameError, groupDescError, groupOwnersError].forEach(el => {
-          if (!el) return;
-          el.textContent = '';
-          el.style.color = '';
-        });
-      }
-
-      function setGroupError(el, msg) {
-        if (!el) return;
-        el.textContent = msg;
-        el.style.color = themeHintColor();
-      }
-
-
-      function updateOwnersHidden() {
-        if (ownersHidden) {
-          ownersHidden.value = owners.join(',');
+          if (countSpan) countSpan.textContent = visibleCount;
         }
-      }
 
-      function getOwnersFromHidden() {
-        if (!ownersHidden) return [];
-        const raw = ownersHidden.value || '';
-        return raw
-          .split(',')
-          .map(s => s.trim())
-          .filter(Boolean);
-      }
+        if (searchInput) searchInput.addEventListener('input', applyGroupFilters);
+        if (typeFilter) typeFilter.addEventListener('change', applyGroupFilters);
+        if (sourceFilter) sourceFilter.addEventListener('change', applyGroupFilters);
 
-      function renderOwnersChips() {
-        if (!ownersChips) return;
-        ownersChips.innerHTML = '';
+        // --- Crear grup: gestió d'owners + dropdown + validació ---
+        const ownersInput = document.getElementById('newGroupOwnersInput');
+        const ownersChips = document.getElementById('ownersChips');
+        const ownersHidden = document.getElementById('ownersHidden');
+        const ownersDropdown = document.getElementById('ownersDropdown');
+        const groupNameInput = document.getElementById('newGroupDisplayName');
+        const groupDescInput = document.getElementById('newGroupDescription');
+        const createGroupForm = document.getElementById('createGroupForm');
+        const createGroupError = document.getElementById('createGroupError');
+        const groupNameError = document.getElementById('groupNameError');
+        const groupDescError = document.getElementById('groupDescError');
+        const groupOwnersError = document.getElementById('groupOwnersError');
 
-        owners.forEach((upn, index) => {
-          const chip = document.createElement('span');
-          chip.className = 'owner-chip';
-          chip.textContent = upn + ' ';
 
-          const closeBtn = document.createElement('button');
-          closeBtn.type = 'button';
-          closeBtn.className = 'owner-chip-remove';
-          closeBtn.textContent = '×';
+        // Usuaris del tenant injectats des del servidor
+        const allUsers = <%- JSON.stringify(users || []) %>;
 
-          closeBtn.addEventListener('click', () => {
-            owners.splice(index, 1);
-            updateOwnersHidden();
-            renderOwnersChips();
+        const owners = [];
+
+        function themeHintColor() {
+          const rootStyles = getComputedStyle(document.documentElement);
+          return (rootStyles.getPropertyValue('--color2') || '#504845').trim();
+        }
+
+        function clearGroupErrors() {
+          [groupNameError, groupDescError, groupOwnersError].forEach(el => {
+            if (!el) return;
+            el.textContent = '';
+            el.style.color = '';
           });
+        }
 
-          chip.appendChild(closeBtn);
-          ownersChips.appendChild(chip);
-        });
-      }
+        function setGroupError(el, msg) {
+          if (!el) return;
+          el.textContent = msg;
+          el.style.color = themeHintColor();
+        }
 
-      // 🔽 Desplegable amb checkboxes + botó "Afegir seleccionats"
-      function buildOwnersDropdown() {
-        if (!ownersDropdown) return;
 
-        ownersDropdown.innerHTML = '';
+        function updateOwnersHidden() {
+          if (ownersHidden) {
+            ownersHidden.value = owners.join(',');
+          }
+        }
 
-        // HEADER: cerca + botó a la mateixa línia
-        const header = document.createElement('div');
-        header.className = 'owners-dropdown-header';
+        function getOwnersFromHidden() {
+          if (!ownersHidden) return [];
+          const raw = ownersHidden.value || '';
+          return raw
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+        }
 
-        const searchBox = document.createElement('input');
-        searchBox.type = 'text';
-        searchBox.placeholder = 'Cerca per nom o UPN';
-        searchBox.className = 'users-input owners-search-input';
+        function renderOwnersChips() {
+          if (!ownersChips) return;
+          ownersChips.innerHTML = '';
 
-        const addBtn = document.createElement('button');
-        addBtn.type = 'button';
-        addBtn.textContent = 'Afegir seleccionats';
-        addBtn.className = 'btn btn-primary owners-add-btn';
+          owners.forEach((upn, index) => {
+            const chip = document.createElement('span');
+            chip.className = 'owner-chip';
+            chip.textContent = upn + ' ';
 
-        header.appendChild(searchBox);
-        header.appendChild(addBtn);
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'owner-chip-remove';
+            closeBtn.textContent = '×';
 
-        // Llista amb scroll
-        const list = document.createElement('div');
-        list.id = 'ownersDropdownList';
-        list.className = 'owners-dropdown-list';
+            closeBtn.addEventListener('click', () => {
+              owners.splice(index, 1);
+              updateOwnersHidden();
+              renderOwnersChips();
+            });
 
-        ownersDropdown.appendChild(header);
-        ownersDropdown.appendChild(list);
-
-        function renderList(filterTerm = '') {
-          const term = (filterTerm || '').trim().toLowerCase();
-          list.innerHTML = '';
-
-          // 1) Filtrar usuaris per displayName o UPN
-          const filtered = (allUsers || []).filter(u => {
-            const dn = (u.displayName || '').toLowerCase();
-            const upn = (u.userPrincipalName || '').toLowerCase();
-
-            if (!term) return true; // sense text → tots
-
-            return dn.includes(term) || upn.includes(term);
+            chip.appendChild(closeBtn);
+            ownersChips.appendChild(chip);
           });
+        }
 
-          // 2) Tornar a pintar la llista amb els filtrats
-          filtered.forEach(u => {
-            const option = document.createElement('label');
-            option.className = 'owner-option';
+        // 🔽 Desplegable amb checkboxes + botó "Afegir seleccionats"
+        function buildOwnersDropdown() {
+          if (!ownersDropdown) return;
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'owner-option-checkbox';
-            checkbox.value = u.userPrincipalName || '';
+          ownersDropdown.innerHTML = '';
 
-            const info = document.createElement('div');
-            info.className = 'owner-option-info';
-            info.innerHTML = `
+          // HEADER: cerca + botó a la mateixa línia
+          const header = document.createElement('div');
+          header.className = 'owners-dropdown-header';
+
+          const searchBox = document.createElement('input');
+          searchBox.type = 'text';
+          searchBox.placeholder = 'Cerca per nom o UPN';
+          searchBox.className = 'users-input owners-search-input';
+
+          const addBtn = document.createElement('button');
+          addBtn.type = 'button';
+          addBtn.textContent = 'Afegir seleccionats';
+          addBtn.className = 'btn btn-primary owners-add-btn';
+
+          header.appendChild(searchBox);
+          header.appendChild(addBtn);
+
+          // Llista amb scroll
+          const list = document.createElement('div');
+          list.id = 'ownersDropdownList';
+          list.className = 'owners-dropdown-list';
+
+          ownersDropdown.appendChild(header);
+          ownersDropdown.appendChild(list);
+
+          function renderList(filterTerm = '') {
+            const term = (filterTerm || '').trim().toLowerCase();
+            list.innerHTML = '';
+
+            // 1) Filtrar usuaris per displayName o UPN
+            const filtered = (allUsers || []).filter(u => {
+              const dn = (u.displayName || '').toLowerCase();
+              const upn = (u.userPrincipalName || '').toLowerCase();
+
+              if (!term) return true; // sense text → tots
+
+              return dn.includes(term) || upn.includes(term);
+            });
+
+            // 2) Tornar a pintar la llista amb els filtrats
+            filtered.forEach(u => {
+              const option = document.createElement('label');
+              option.className = 'owner-option';
+
+              const checkbox = document.createElement('input');
+              checkbox.type = 'checkbox';
+              checkbox.className = 'owner-option-checkbox';
+              checkbox.value = u.userPrincipalName || '';
+
+              const info = document.createElement('div');
+              info.className = 'owner-option-info';
+              info.innerHTML = `
               <span class="owner-option-name">${u.displayName || '(Sense nom)'}</span>
               <span class="owner-option-upn">${u.userPrincipalName || ''}</span>
               <span class="owner-option-type">${u.userType || ''}</span>
             `;
 
-            option.appendChild(checkbox);
-            option.appendChild(info);
-            list.appendChild(option);
+              option.appendChild(checkbox);
+              option.appendChild(info);
+              list.appendChild(option);
+            });
+          }
+
+
+          renderList('');
+
+          // Filtrat
+          searchBox.addEventListener('input', (e) => {
+            renderList(e.target.value || '');
+          });
+
+          // Quan cliquem "Afegir seleccionats"
+          addBtn.addEventListener('click', () => {
+            const checked = list.querySelectorAll('.owner-option-checkbox:checked');
+
+            checked.forEach(cb => {
+              const upn = cb.value;
+              if (upn && !owners.includes(upn)) {
+                owners.push(upn);
+              }
+            });
+
+            updateOwnersHidden();
+            renderOwnersChips();
+
+            // Desmarquem després d'afegir
+            checked.forEach(cb => {
+              cb.checked = false;
+            });
           });
         }
 
-
-        renderList('');
-
-        // Filtrat
-        searchBox.addEventListener('input', (e) => {
-          renderList(e.target.value || '');
-        });
-
-        // Quan cliquem "Afegir seleccionats"
-        addBtn.addEventListener('click', () => {
-          const checked = list.querySelectorAll('.owner-option-checkbox:checked');
-
-          checked.forEach(cb => {
-            const upn = cb.value;
-            if (upn && !owners.includes(upn)) {
-              owners.push(upn);
-            }
+        // Obrir / tancar desplegable
+        if (ownersInput && ownersDropdown) {
+          ownersInput.addEventListener('focus', () => {
+            ownersDropdown.style.display = 'block';
           });
 
-          updateOwnersHidden();
-          renderOwnersChips();
-
-          // Desmarquem després d'afegir
-          checked.forEach(cb => {
-            cb.checked = false;
+          document.addEventListener('click', (e) => {
+            if (ownersInput.contains(e.target) || ownersDropdown.contains(e.target)) {
+              return;
+            }
+            ownersDropdown.style.display = 'none';
           });
-        });
-      }
+        }
 
-      // Obrir / tancar desplegable
-      if (ownersInput && ownersDropdown) {
-        ownersInput.addEventListener('focus', () => {
-          ownersDropdown.style.display = 'block';
-        });
+        // Afegir UPN manualment amb Enter
+        if (ownersInput) {
+          ownersInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const value = ownersInput.value.trim();
+              if (!value) return;
 
-        document.addEventListener('click', (e) => {
-          if (ownersInput.contains(e.target) || ownersDropdown.contains(e.target)) {
-            return;
-          }
-          ownersDropdown.style.display = 'none';
-        });
-      }
+              if (!owners.includes(value)) {
+                owners.push(value);
+                updateOwnersHidden();
+                renderOwnersChips();
+              }
 
-      // Afegir UPN manualment amb Enter
-      if (ownersInput) {
-        ownersInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            const value = ownersInput.value.trim();
-            if (!value) return;
-
-            if (!owners.includes(value)) {
-              owners.push(value);
-              updateOwnersHidden();
-              renderOwnersChips();
+              ownersInput.value = '';
             }
+          });
+        }
 
-            ownersInput.value = '';
-          }
-        });
-      }
+        function hasText(el) {
+          return el && el.value && el.value.trim().length > 0;
+        }
 
-      function hasText(el) {
-        return el && el.value && el.value.trim().length > 0;
-      }
-
-      if (createGroupForm) {
-        createGroupForm.addEventListener('submit', (e) => {
-          clearGroupErrors();
-          if (createGroupError) {
-            createGroupError.style.display = 'none';
-          }
-
-          // Si hi ha text al camp d'owners però no han premut Enter, l'afegim
-          if (ownersInput && ownersInput.value.trim()) {
-            const value = ownersInput.value.trim();
-            if (!owners.includes(value)) {
-              owners.push(value);
-              updateOwnersHidden();
-              renderOwnersChips();
-            }
-            ownersInput.value = '';
-          }
-
-          const hasName = hasText(groupNameInput);
-          const hasDescription = hasText(groupDescInput);
-          const hasAtLeastOneOwner = getOwnersFromHidden().length > 0;
-
-          if (!hasName || !hasDescription || !hasAtLeastOneOwner) {
-            e.preventDefault();
-
-            if (!hasName) setGroupError(groupNameError, "Has d'omplir el Group name.");
-            if (!hasDescription) setGroupError(groupDescError, "Has d'omplir la descripció.");
-            if (!hasAtLeastOneOwner) setGroupError(groupOwnersError, "Has d'afegir com a mínim un owner (UPN o seleccionat).");
-
+        if (createGroupForm) {
+          createGroupForm.addEventListener('submit', (e) => {
+            clearGroupErrors();
             if (createGroupError) {
-              createGroupError.style.display = 'block';
+              createGroupError.style.display = 'none';
             }
 
-            if (!hasName && groupNameInput) {
-              groupNameInput.focus();
-            } else if (!hasDescription && groupDescInput) {
-              groupDescInput.focus();
-            } else if (!hasAtLeastOneOwner && ownersInput) {
-              ownersInput.focus();
+            // Si hi ha text al camp d'owners però no han premut Enter, l'afegim
+            if (ownersInput && ownersInput.value.trim()) {
+              const value = ownersInput.value.trim();
+              if (!owners.includes(value)) {
+                owners.push(value);
+                updateOwnersHidden();
+                renderOwnersChips();
+              }
+              ownersInput.value = '';
             }
-          }
-        });
-      }
 
-      // Inicialització
-      applyGroupFilters();
-      buildOwnersDropdown();
-    })();
-  </script>
+            const hasName = hasText(groupNameInput);
+            const hasDescription = hasText(groupDescInput);
+            const hasAtLeastOneOwner = getOwnersFromHidden().length > 0;
+
+            if (!hasName || !hasDescription || !hasAtLeastOneOwner) {
+              e.preventDefault();
+
+              if (!hasName) setGroupError(groupNameError, "Has d'omplir el Group name.");
+              if (!hasDescription) setGroupError(groupDescError, "Has d'omplir la descripció.");
+              if (!hasAtLeastOneOwner) setGroupError(groupOwnersError, "Has d'afegir com a mínim un owner (UPN o seleccionat).");
+
+              if (createGroupError) {
+                createGroupError.style.display = 'block';
+              }
+
+              if (!hasName && groupNameInput) {
+                groupNameInput.focus();
+              } else if (!hasDescription && groupDescInput) {
+                groupDescInput.focus();
+              } else if (!hasAtLeastOneOwner && ownersInput) {
+                ownersInput.focus();
+              }
+            }
+          });
+        }
+
+        // Inicialització
+        applyGroupFilters();
+        buildOwnersDropdown();
+      })();
+    </script>
+
+    <footer class="footer">
+      <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+    </footer>
+
+    <!-- Modal global (únic, reutilitzable per logout i deletes) -->
+    <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
+      okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+
+      <script src="/js/confirmModal.js"></script>
+      <script src="/js/navbar.js"></script>
+
 
 </body>
 

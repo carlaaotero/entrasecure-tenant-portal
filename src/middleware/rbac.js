@@ -43,6 +43,24 @@ function isTenantAdmin(req) {
   return hasRole(req, 'Portal.TenantAdmin');
 }
 
+// Decideix quin rol mostrar a la UI (prioritat alta -> baixa)
+function getDisplayRole(req) {
+  const roles = getRoles(req).filter(Boolean);
+
+  const priority = [
+    'Portal.TenantAdmin',
+    'Portal.UserAdmin',
+    'Portal.GroupAdmin',
+    'Portal.AppAdmin',
+    'Portal.RoleAdmin',
+  ];
+
+  const found = priority.find(r => roles.includes(r));
+  return found || roles[0] || 'Default';
+
+}
+
+
 /**
  * Middleware principal:
  * requireRole('Portal.UserAdmin', 'Portal.GroupAdmin', ...)
@@ -83,16 +101,13 @@ function hasAnyRole(req, ...allowedRoles) {
   return allowedRoles.some(r => roles.includes(r));
 }
 
-// Compatibilitat amb codi antic: security.js espera requireTenantAdmin
-const requireTenantAdmin = requireRole('Portal.TenantAdmin');
-
 module.exports = {
   requireAuth,
   requireRole,
-  requireTenantAdmin,
-  
+
   hasRole,
   hasAnyRole,
   getRoles,
   isTenantAdmin,
+  getDisplayRole,
 };

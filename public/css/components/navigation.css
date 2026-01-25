@@ -1,0 +1,61 @@
+/* Back arrow button (stronger, pill-shaped) */
+.back-arrow {
+  position: absolute;
+  top: 1.2rem;
+  left: 1.5rem;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 36px;
+  padding: 0 14px;              /* fa el botó allargat */
+  border-radius: 999px;         /* pastilla */
+
+  text-decoration: none;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+
+  color: #ffffff;
+  background: var(--color3);    /* color fort del tema */
+
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease,
+    box-shadow 0.15s ease;
+}
+
+.back-arrow:hover {
+  background: rgba(103, 137, 166, 0.92); /* mateix to, lleugerament més clar */
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.14);
+}
+
+.back-arrow:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
+
+.back-arrow:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(224, 229, 239, 0.65),
+    0 4px 10px rgba(0,0,0,0.12);
+}
+
+
+.users-header,
+.identity-header {
+  position: relative;
+}
+
+/* The page container where the arrow is anchored */
+.tenant-users-main,
+.identity-main,
+.tenant-main {
+  position: relative;
+}

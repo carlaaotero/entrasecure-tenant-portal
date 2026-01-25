@@ -8,51 +8,25 @@
         <%= title %>
     </title>
 
+    <!-- Design foundation -->
     <link rel="stylesheet" href="/css/foundation.css" />
+    <!-- Utilities -->
     <link rel="stylesheet" href="/css/utilities.css" />
 
+    <!-- Components -->
     <link rel="stylesheet" href="/css/components/navbar.css" />
     <link rel="stylesheet" href="/css/components/button.css" />
     <link rel="stylesheet" href="/css/components/card.css" />
     <link rel="stylesheet" href="/css/components/avatar.css" />
+    <link rel="stylesheet" href="/css/components/confirmModal.css" />
 
     <link rel="stylesheet" href="/css/pages/tenantExplorer.css" />
     <link rel="stylesheet" href="/css/pages/tenantSecurity.css" />
 </head>
 
 <body>
-    <!-- Navbar (mateix patró que tens) -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <div class="brand">EntraSecure Tenant Portal</div>
-            <ul class="nav-links">
-                <li><a href="/" class="nav-link">Home</a></li>
-                <% if (user) { %>
-                    <li><a href="/me" class="nav-link">My Identity</a></li>
-                    <li><a href="/tenant" class="nav-link">Tenant Explorer</a></li>
-                    <li><a href="/security" class="nav-link nav-link-active">Security</a></li>
-                    <% } %>
-            </ul>
-        </div>
-        <div class="navbar-right">
-            <% if (user) { %>
-                <div class="user-pill">
-                    <span class="user-initial">
-                        <% if (user.name) { %>
-                            <%= user.name.charAt(0).toUpperCase() %>
-                                <% } else if (user.username) { %>
-                                    <%= user.username.charAt(0).toUpperCase() %>
-                                        <% } else { %>U<% } %>
-                    </span>
-                    <span class="user-name">
-                        <%= user.name || user.username || 'Usuari' %>
-                    </span>
-                </div>
-                <% } else { %>
-                    <a href="/auth/login" class="btn btn-outline-light">Login</a>
-                    <% } %>
-        </div>
-    </nav>
+    <!-- Navbar -->
+    <%- include('../components/navbar', { active: 'security' }) %>
 
     <main class="security-main">
         <section class="security-section">
@@ -530,6 +504,18 @@
 
         </section>
     </main>
+
+    <!-- Modal global (únic, reutilitzable per logout i deletes) -->
+    <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
+        okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+
+        <script src="/js/confirmModal.js"></script>
+        <script src="/js/navbar.js"></script>
+
+        <footer class="footer">
+            <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+        </footer>
+
 </body>
 
 </html>

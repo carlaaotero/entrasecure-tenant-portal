@@ -1,29 +1,33 @@
-.confirm-modal-overlay {
+/* public/css/components/confirmModal.css */
+
+/* Hidden by default */
+.confirm-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
-  display: none;
+  display: none;              /* IMPORTANT: amagat per defecte */
   align-items: center;
   justify-content: center;
+  background: rgba(0,0,0,0.45);
   z-index: 9999;
+  padding: 16px;
 }
 
-.confirm-modal-overlay.is-open {
+.confirm-modal.is-open {
   display: flex;
 }
 
 .confirm-modal-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px;
-  width: 100%;
-  max-width: 420px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  width: min(520px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
 }
 
 .confirm-modal-actions {
   display: flex;
+  gap: 10px;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
+  margin-top: 14px;
 }
+

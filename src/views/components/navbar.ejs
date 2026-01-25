@@ -1,0 +1,62 @@
+<nav class="navbar">
+  <div class="navbar-left">
+    <div class="brand">EntraSecure Tenant Portal</div>
+
+    <ul class="nav-links">
+      <li>
+        <a href="/" class="nav-link <%= active==='home' ? 'nav-link-active' : '' %>">Home</a>
+      </li>
+
+      <% if (user) { %>
+        <li><a href="/me" class="nav-link <%= active==='me' ? 'nav-link-active' : '' %>">My Identity</a></li>
+        <li><a href="/tenant" class="nav-link <%= active==='tenant' ? 'nav-link-active' : '' %>">Tenant Explorer</a></li>
+        <li><a href="/security" class="nav-link <%= active==='security' ? 'nav-link-active' : '' %>">Security</a></li>
+      <% } %>
+    </ul>
+  </div>
+
+  <div class="navbar-right">
+    <% if (user) { %>
+      <div class="user-menu">
+        <button type="button" class="user-pill" id="userMenuBtn" aria-haspopup="true" aria-expanded="false">
+          <span class="user-initial">
+            <%= (user.name || user.username || 'U').charAt(0).toUpperCase() %>
+          </span>
+
+          <%
+            const roleLabel = (portalRole && portalRole !== 'Default')
+              ? portalRole.replace('Portal.', '')
+              : 'Default';
+          %>
+
+          <span class="user-role"><%= roleLabel %></span>
+          <span class="user-separator">·</span>
+          <span class="user-name"><%= user.name || user.username || 'User' %></span>
+        </button>
+
+        <!-- Dropdown -->
+        <div class="user-dropdown" id="userDropdown" style="display:none;">
+          <a class="user-dropdown-item" href="/me">My Identity</a>
+
+          <button type="button" class="user-dropdown-item user-dropdown-danger" id="logoutBtn">
+            Logout
+          </button>
+
+          <form
+            id="logoutForm"
+            method="GET"
+            action="/auth/logout"
+            data-confirm="true"
+            data-confirm-title="Confirmació"
+            data-confirm-message="Segur que vols tancar la sessió?"
+            data-confirm-ok="Logout"
+            data-confirm-cancel="Cancel·lar"
+            style="display:none;">
+          </form>
+        </div>
+      </div>
+    <% } else { %>
+      <a href="/auth/login" class="btn btn-outline-light">Sign in</a>
+    <% } %>
+  </div>
+</nav>

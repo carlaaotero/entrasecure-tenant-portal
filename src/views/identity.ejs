@@ -18,6 +18,8 @@
   <link rel="stylesheet" href="/css/components/button.css" />
   <link rel="stylesheet" href="/css/components/card.css" />
   <link rel="stylesheet" href="/css/components/avatar.css" />
+  <link rel="stylesheet" href="/css/components/confirmModal.css" />
+
 
   <!-- Page-specific -->
   <link rel="stylesheet" href="/css/pages/identity.css" />
@@ -25,39 +27,8 @@
 
 <body>
   <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-left">
-      <div class="brand">EntraSecure Tenant Portal</div>
-      <ul class="nav-links">
-        <li><a href="/" class="nav-link">Home</a></li>
-        <% if (user) { %>
-          <li><a href="/me" class="nav-link nav-link-active">My Identity</a></li>
-          <li><a href="/tenant" class="nav-link">Tenant Explorer</a></li>
-          <li><a href="/security" class="nav-link">Security</a></li>
-          <% } %>
-      </ul>
-    </div>
-    <div class="navbar-right">
-      <% if (user) { %>
-        <div class="user-pill">
-          <span class="user-initial">
-            <% if (user.name) { %>
-              <%= user.name.charAt(0).toUpperCase() %>
-                <% } else if (user.username) { %>
-                  <%= user.username.charAt(0).toUpperCase() %>
-                    <% } else { %>
-                      U
-                      <% } %>
-          </span>
-          <span class="user-name">
-            <%= user.name || user.username || 'Usuari' %>
-          </span>
-        </div>
-        <% } else { %>
-          <a href="/auth/login" class="btn btn-outline-light">Login</a>
-          <% } %>
-    </div>
-  </nav>
+  <%- include('components/navbar', { active: 'me' }) %>
+
 
     <main class="identity-main">
     <section class="identity-layout">
@@ -239,6 +210,16 @@
     </section>
   </main>
 
+<!-- Modal global -->
+<%- include('components/confirmModal', {
+  title: 'Confirmació',
+  message: 'Segur que vols continuar?',
+  okText: 'Acceptar',
+  cancelText: 'Cancel·lar'
+}) %>
+
+<script src="/js/confirmModal.js"></script>
+<script src="/js/navbar.js"></script>
 
 
 

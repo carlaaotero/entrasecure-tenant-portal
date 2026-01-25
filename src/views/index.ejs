@@ -26,71 +26,8 @@
 </head>
 
 <body>
-  <!-- Simple navbar -->
-  <nav class="navbar">
-    <div class="navbar-left">
-      <div class="brand">EntraSecure Tenant Portal</div>
-      <ul class="nav-links">
-        <li>
-          <a href="/" class="nav-link nav-link-active">Home</a>
-        </li>
-        <% if (user) { %>
-          <li><a href="/me" class="nav-link">My Identity</a></li>
-          <li><a href="/tenant" class="nav-link">Tenant Explorer</a></li>
-          <li><a href="/security" class="nav-link">Security</a></li>
-        <% } %>
-      </ul>
-    </div>
-
-    <div class="navbar-right">
-      <% if (user) { %>
-        <div class="user-menu">
-  <button type="button" class="user-pill" id="userMenuBtn" aria-haspopup="true" aria-expanded="false">
-    <span class="user-initial">
-      <% if (user.name) { %>
-        <%= user.name.charAt(0).toUpperCase() %>
-      <% } else if (user.username) { %>
-        <%= user.username.charAt(0).toUpperCase() %>
-      <% } else { %>
-        U
-      <% } %>
-    </span>
-
-    <span class="user-name">
-      <%= user.name || user.username || 'User' %>
-    </span>
-  </button>
-
-  <!-- Dropdown -->
-  <div class="user-dropdown" id="userDropdown" style="display:none;">
-    <a class="user-dropdown-item" href="/me">My Identity</a>
-
-<button
-  type="button"
-  class="user-dropdown-item user-dropdown-danger"
-  id="logoutBtn">
-  Logout
-</button>
-
-<form
-  id="logoutForm"
-  method="GET"
-  action="/auth/logout"
-  data-confirm="true"
-  data-confirm-title="Confirmació"
-  data-confirm-message="Segur que vols tancar la sessió?"
-  data-confirm-ok="Logout"
-  data-confirm-cancel="Cancel·lar"
-  style="display:none;">
-</form>
-
-
-
-      <% } else { %>
-        <a href="/auth/login" class="btn btn-outline-light">Sign in</a>
-      <% } %>
-    </div>
-  </nav>
+  <!-- Navbar -->
+  <%- include('components/navbar', { active: 'home' }) %>
 
   <main>
     <% if (flash && flash.message) { %>
@@ -107,8 +44,7 @@
       <div class="hero-inner">
         <h1>Welcome to EntraSecure Tenant Portal</h1>
         <p class="hero-subtitle">
-          A learning portal to explore Microsoft Entra ID (Azure AD) through a custom web app built with Node.js,
-          Express and Microsoft Graph.
+          A custom web portal to explore identity, access control and governance in Microsoft Entra ID using Microsoft Graph
         </p>
 
         <% if (!user) { %>
@@ -148,9 +84,11 @@
       <div class="info-intro">
         <h2>About this portal</h2>
         <p>
-          EntraSecure Tenant Portal is my Bachelor's Thesis (Telematics Engineering). It is a self-built IAM portal that
-          reproduces and simplifies key features of the Microsoft Entra Admin Center, focusing on users, groups,
-          applications and roles through Microsoft Graph.
+          EntraSecure Tenant Portal is a web application developed as part of a Bachelor’s Thesis in Telematics Engineering.
+
+The portal provides a structured and simplified view of identity and access management within a Microsoft Entra ID tenant, focusing on users, groups, applications and roles.
+
+Its main purpose is to help analyze identity relationships, access assignments and governance aspects using Microsoft Graph, while taking into account the real limitations of a Microsoft Entra ID Free environment
         </p>
       </div>
 
@@ -158,21 +96,21 @@
         <article class="card">
           <h3>Project goals</h3>
           <ul>
-            <li>Explore IAM objects: users, groups, enterprise apps and directory roles.</li>
-            <li>Understand delegated access and token-based authentication (OIDC/OAuth2) with MSAL.</li>
-            <li>See identity relationships: memberships and role assignments.</li>
-            <li>Apply internal RBAC for the portal using App Roles (claims-based authorization).</li>
+            <li>Provide a clear view of IAM objects such as users, groups, applications and directory roles.</li>
+            <li>Visualize identity relationships, including memberships, ownership and role assignments.</li>
+            <li>Highlight governance and security aspects within a Microsoft Entra ID tenant.</li>
+            <li>Apply an internal RBAC model to protect portal functionality independently of tenant roles.</li>
           </ul>
         </article>
 
         <article class="card">
           <h3>Key technologies</h3>
           <ul class="tech-list">
-            <li><strong>Node.js</strong> v20.17.0</li>
-            <li><strong>Express</strong> 5 + <strong>EJS</strong> as view engine</li>
-            <li><strong>MSAL Node</strong> for OIDC / OAuth2 authentication</li>
-            <li><strong>Microsoft Graph API</strong> to access tenant data</li>
-            <li><strong>express-session</strong> for user session management</li>
+            <li><strong>Node.js</strong> and <strong>Express </strong> for the backend application logic.</li>
+            <li><strong>EJS</strong> for server-side rendering of the user interface.</li>
+            <li><strong>MSAL Node</strong> for OIDC / OAuth2 authentication against Microsoft Entra ID.</li>
+            <li><strong>Microsoft Graph API</strong> to retrieve and manage tenant data.</li>
+            <li><strong>Session-based access control </strong> combined with <strong>claims-based authorization</strong>.</li>
           </ul>
         </article>
       </div>
@@ -192,52 +130,7 @@
 }) %>
 
 <script src="/js/confirmModal.js"></script>
-
-<script>
-  (function () {
-    const btn = document.getElementById('userMenuBtn');
-    const dd = document.getElementById('userDropdown');
-    if (!btn || !dd) return;
-
-    function open() {
-      dd.style.display = 'block';
-      btn.setAttribute('aria-expanded', 'true');
-    }
-    function close() {
-      dd.style.display = 'none';
-      btn.setAttribute('aria-expanded', 'false');
-    }
-
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const isOpen = dd.style.display === 'block';
-      if (isOpen) close(); else open();
-    });
-
-    document.addEventListener('click', (e) => {
-      if (btn.contains(e.target) || dd.contains(e.target)) return;
-      close();
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') close();
-    });
-
-const logoutBtn = document.getElementById('logoutBtn');
-const logoutForm = document.getElementById('logoutForm');
-
-if (logoutBtn && logoutForm) {
-  logoutBtn.addEventListener('click', () => {
-    close(); // tanquem dropdown
-    logoutForm.requestSubmit ? logoutForm.requestSubmit() : logoutForm.submit();
-  });
-}
-
-
-  })();
-</script>
-
-
+<script src="/js/navbar.js"></script>
 
 </body>
 

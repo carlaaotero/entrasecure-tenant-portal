@@ -8,222 +8,209 @@
         <%= title %> · EntraSecure
     </title>
 
+    <!-- Design foundation -->
     <link rel="stylesheet" href="/css/foundation.css" />
+    <!-- Utilities -->
     <link rel="stylesheet" href="/css/utilities.css" />
+
+    <!-- Components -->
     <link rel="stylesheet" href="/css/components/navbar.css" />
     <link rel="stylesheet" href="/css/components/button.css" />
     <link rel="stylesheet" href="/css/components/card.css" />
     <link rel="stylesheet" href="/css/components/avatar.css" />
+    <link rel="stylesheet" href="/css/components/confirmModal.css" />
+    <link rel="stylesheet" href="/css/components/navigation.css" />
+
     <link rel="stylesheet" href="/css/pages/tenantUsers.css" />
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="navbar-left">
-            <div class="brand">EntraSecure Tenant Portal</div>
-            <ul class="nav-links">
-                <li><a href="/" class="nav-link">Home</a></li>
-                <% if (user) { %>
-                    <li><a href="/me" class="nav-link">My Identity</a></li>
-                    <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
-                    <li><a href="/security" class="nav-link">Security</a></li>
-                    <% } %>
-            </ul>
-        </div>
+    <!-- Navbar -->
+    <%- include('../components/navbar', { active: 'tenant' }) %>
 
-        <div class="navbar-right">
-            <% if (user) { %>
-                <div class="user-pill">
-                    <span class="user-initial">
-                        <% if (user.name) { %>
-                            <%= user.name.charAt(0).toUpperCase() %>
-                                <% } else if (user.username) { %>
-                                    <%= user.username.charAt(0).toUpperCase() %>
-                                        <% } else { %>U<% } %>
-                    </span>
-                    <span class="user-name">
-                        <%= user.name || user.username || 'Usuari' %>
-                    </span>
-                </div>
-                <% } else { %>
-                    <a href="/auth/login" class="btn btn-outline-light">Login</a>
-                    <% } %>
-        </div>
-    </nav>
+        <main class="tenant-users-main">
+            <a href="/tenant" class="back-arrow" aria-label="Tornar a Tenant Explorer">
+                ←
+            </a>
+            <section class="tenant-users-layout">
+                <header class="users-header">
+                    <h1>Aplicacions del tenant</h1>
+                    <p>
+                        Llista d'aplicacions (Enterprise apps / service principals) del tenant,
+                        amb el seu Application ID, Object ID i mode d'autenticació principal.
+                    </p>
+                </header>
 
-    <main class="tenant-users-main">
-        <section class="tenant-users-layout">
-            <header class="users-header">
-                <h1>Aplicacions del tenant</h1>
-                <p>
-                    Llista d'aplicacions (Enterprise apps / service principals) del tenant,
-                    amb el seu Application ID, Object ID i mode d'autenticació principal.
-                </p>
-            </header>
-
-            <article class="card users-card">
-                <div class="users-card-header">
-                    <div class="users-header-left">
-                        <h2>Llista d'aplicacions</h2>
-                        <p class="users-meta">
-                            <span class="users-meta-count">
-                                <%= apps && apps.length ? apps.length : 0 %>
-                            </span> aplicacions trobades
-                        </p>
-                    </div>
-
-                    <div class="users-header-right">
-                        <div class="users-filters">
-                            <input id="appSearch" type="text" class="users-search-input"
-                                placeholder="Cerca per nom o Application ID"
-                                onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
-
-                            <select id="appProtocolFilter" class="users-type-filter">
-                                <option value="all">Tots els protocols</option>
-                                <option value="oidc">OIDC / OAuth2</option>
-                                <option value="saml">SAML</option>
-                                <option value="other">Altres</option>
-                            </select>
-
-                            <select id="appScopeFilter" class="users-type-filter">
-                                <option value="mine" selected>Només les meves aplicacions</option>
-                                <option value="all">Totes les aplicacions</option>
-                                <option value="others">Només aplicacions de Microsoft / tercers</option>
-                            </select>
-
-                            <button type="button" id="showAllAppsBtn" class="btn btn-outline-light"
-                                style="color:#1c0f1b; border-color:#cbd5e1;">
-                                All
-                            </button>
-
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="users-card-body">
-                    <% if (apps && apps.length> 0) { %>
-                        <table class="users-table">
-                            <thead>
-                                <tr>
-                                    <th>Nom</th>
-                                    <th>Application ID</th>
-                                    <th>Object ID</th>
-                                    <th>Protocol</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% apps.forEach(function (a) { %>
-                                    <% const mode=(a.preferredSingleSignOnMode || '' ).toLowerCase(); const
-                                        isMine=Array.isArray(myAppIds) && myAppIds.includes(a.appId); let protocolLabel;
-                                        let protocolValue; if (mode==='saml' ) { protocolLabel='SAML' ;
-                                        protocolValue='saml' ; } else if (isMine) { protocolLabel='OIDC / OAuth2' ;
-                                        protocolValue='oidc' ; } else if (mode==='oidc' ) {protocolLabel='OIDC / OAuth2'
-                                        ; protocolValue='oidc' ; } else { protocolLabel='Altres' ; protocolValue='other'
-                                        ; } %>
-
-                                        <tr class="apps-row <%= isMine ? 'app-mine' : 'app-other' %>"
-                                            data-display-name="<%= (a.displayName || '').toLowerCase() %>"
-                                            data-appid="<%= (a.appId || '').toLowerCase() %>"
-                                            data-protocol="<%= protocolValue %>"
-                                            data-mine="<%= isMine ? 'true' : 'false' %>">
-                                            <td>
-                                                <a href="/tenant/apps/<%= encodeURIComponent(a.id) %>"
-                                                    class="users-link">
-                                                    <%= a.displayName || '(Sense nom)' %>
-                                                </a>
-                                                <% if (isMine) { %>
-                                                    <span
-                                                        style="font-size:0.75rem; margin-left:0.4rem; padding:0.1rem 0.45rem; border-radius:999px; background:#e0e5ef; color:#1c0f1b;">
-                                                        Mine
-                                                    </span>
-                                                    <% } %>
-                                            </td>
-                                            <td>
-                                                <%= a.appId || '—' %>
-                                            </td>
-                                            <td>
-                                                <%= a.id %>
-                                            </td>
-                                            <td>
-                                                <%= protocolLabel %>
-                                            </td>
-                                        </tr>
-                                        <% }); %>
-                            </tbody>
-
-
-
-
-                        </table>
-                        <% } else { %>
-                            <p class="users-empty">No s'ha trobat cap aplicació o no es pot llegir la informació.
+                <article class="card users-card">
+                    <div class="users-card-header">
+                        <div class="users-header-left">
+                            <h2>Llista d'aplicacions</h2>
+                            <p class="users-meta">
+                                <span class="users-meta-count">
+                                    <%= apps && apps.length ? apps.length : 0 %>
+                                </span> aplicacions trobades
                             </p>
-                            <% } %>
-                </div>
-            </article>
-        </section>
-    </main>
+                        </div>
 
-    <footer class="footer">
-        <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
-    </footer>
+                        <div class="users-header-right">
+                            <div class="users-filters">
+                                <input id="appSearch" type="text" class="users-search-input"
+                                    placeholder="Cerca per nom o Application ID"
+                                    onkeydown="if (event.key === 'Enter') { event.preventDefault(); }" />
 
-    <script>
-        (function () {
-            const searchInput = document.getElementById('appSearch');
-            const protoFilter = document.getElementById('appProtocolFilter');
-            const scopeFilter = document.getElementById('appScopeFilter');
-            const rows = Array.from(document.querySelectorAll('.apps-row'));
-            const countSpan = document.querySelector('.users-meta-count');
-            const showAllBtn = document.getElementById('showAllAppsBtn');
+                                <select id="appProtocolFilter" class="users-type-filter">
+                                    <option value="all">Tots els protocols</option>
+                                    <option value="oidc">OIDC / OAuth2</option>
+                                    <option value="saml">SAML</option>
+                                    <option value="other">Altres</option>
+                                </select>
 
-            function applyFilters() {
-                const term = (searchInput && searchInput.value || '').trim().toLowerCase();
-                const proto = (protoFilter && protoFilter.value || 'all').toLowerCase();
-                const scope = (scopeFilter && scopeFilter.value || 'all').toLowerCase();
+                                <select id="appScopeFilter" class="users-type-filter">
+                                    <option value="mine" selected>Només les meves aplicacions</option>
+                                    <option value="all">Totes les aplicacions</option>
+                                    <option value="others">Només aplicacions de Microsoft / tercers</option>
+                                </select>
 
-                let visibleCount = 0;
+                                <button type="button" id="showAllAppsBtn" class="btn btn-outline-light"
+                                    style="color:#1c0f1b; border-color:#cbd5e1;">
+                                    All
+                                </button>
 
-                rows.forEach(row => {
-                    const dn = (row.dataset.displayName || '').toLowerCase();
-                    const appId = (row.dataset.appid || '').toLowerCase();
-                    const p = (row.dataset.protocol || '').toLowerCase();
-                    const mine = (row.dataset.mine || 'false') === 'true';
+                            </div>
+                        </div>
 
-                    const matchesText = !term || dn.includes(term) || appId.includes(term);
-                    const matchesProto = proto === 'all' || p === proto;
-                    const matchesScope =
-                        scope === 'all' ||
-                        (scope === 'mine' && mine) ||
-                        (scope === 'others' && !mine);
+                    </div>
 
-                    const visible = matchesText && matchesProto && matchesScope;
+                    <div class="users-card-body">
+                        <% if (apps && apps.length> 0) { %>
+                            <table class="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Application ID</th>
+                                        <th>Object ID</th>
+                                        <th>Protocol</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% apps.forEach(function (a) { %>
+                                        <% const mode=(a.preferredSingleSignOnMode || '' ).toLowerCase(); const
+                                            isMine=Array.isArray(myAppIds) && myAppIds.includes(a.appId); let
+                                            protocolLabel; let protocolValue; if (mode==='saml' ) { protocolLabel='SAML'
+                                            ; protocolValue='saml' ; } else if (isMine) { protocolLabel='OIDC / OAuth2'
+                                            ; protocolValue='oidc' ; } else if (mode==='oidc' )
+                                            {protocolLabel='OIDC / OAuth2' ; protocolValue='oidc' ; } else {
+                                            protocolLabel='Altres' ; protocolValue='other' ; } %>
 
-                    row.style.display = visible ? '' : 'none';
-                    if (visible) visibleCount++;
-                });
+                                            <tr class="apps-row <%= isMine ? 'app-mine' : 'app-other' %>"
+                                                data-display-name="<%= (a.displayName || '').toLowerCase() %>"
+                                                data-appid="<%= (a.appId || '').toLowerCase() %>"
+                                                data-protocol="<%= protocolValue %>"
+                                                data-mine="<%= isMine ? 'true' : 'false' %>">
+                                                <td>
+                                                    <a href="/tenant/apps/<%= encodeURIComponent(a.id) %>"
+                                                        class="users-link">
+                                                        <%= a.displayName || '(Sense nom)' %>
+                                                    </a>
+                                                    <% if (isMine) { %>
+                                                        <span
+                                                            style="font-size:0.75rem; margin-left:0.4rem; padding:0.1rem 0.45rem; border-radius:999px; background:#e0e5ef; color:#1c0f1b;">
+                                                            Mine
+                                                        </span>
+                                                        <% } %>
+                                                </td>
+                                                <td>
+                                                    <%= a.appId || '—' %>
+                                                </td>
+                                                <td>
+                                                    <%= a.id %>
+                                                </td>
+                                                <td>
+                                                    <%= protocolLabel %>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                </tbody>
 
-                if (countSpan) {
-                    countSpan.textContent = visibleCount;
+
+
+
+                            </table>
+                            <% } else { %>
+                                <p class="users-empty">No s'ha trobat cap aplicació o no es pot llegir la informació.
+                                </p>
+                                <% } %>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <script>
+            (function () {
+                const searchInput = document.getElementById('appSearch');
+                const protoFilter = document.getElementById('appProtocolFilter');
+                const scopeFilter = document.getElementById('appScopeFilter');
+                const rows = Array.from(document.querySelectorAll('.apps-row'));
+                const countSpan = document.querySelector('.users-meta-count');
+                const showAllBtn = document.getElementById('showAllAppsBtn');
+
+                function applyFilters() {
+                    const term = (searchInput && searchInput.value || '').trim().toLowerCase();
+                    const proto = (protoFilter && protoFilter.value || 'all').toLowerCase();
+                    const scope = (scopeFilter && scopeFilter.value || 'all').toLowerCase();
+
+                    let visibleCount = 0;
+
+                    rows.forEach(row => {
+                        const dn = (row.dataset.displayName || '').toLowerCase();
+                        const appId = (row.dataset.appid || '').toLowerCase();
+                        const p = (row.dataset.protocol || '').toLowerCase();
+                        const mine = (row.dataset.mine || 'false') === 'true';
+
+                        const matchesText = !term || dn.includes(term) || appId.includes(term);
+                        const matchesProto = proto === 'all' || p === proto;
+                        const matchesScope =
+                            scope === 'all' ||
+                            (scope === 'mine' && mine) ||
+                            (scope === 'others' && !mine);
+
+                        const visible = matchesText && matchesProto && matchesScope;
+
+                        row.style.display = visible ? '' : 'none';
+                        if (visible) visibleCount++;
+                    });
+
+                    if (countSpan) {
+                        countSpan.textContent = visibleCount;
+                    }
                 }
-            }
 
-            if (searchInput) searchInput.addEventListener('input', applyFilters);
-            if (protoFilter) protoFilter.addEventListener('change', applyFilters);
-            if (scopeFilter) scopeFilter.addEventListener('change', applyFilters);
-            
-            if (showAllBtn) {
-                showAllBtn.addEventListener('click', () => {
-                    scopeFilter.value = 'all';
-                    applyFilters();
-                });
-            }
+                if (searchInput) searchInput.addEventListener('input', applyFilters);
+                if (protoFilter) protoFilter.addEventListener('change', applyFilters);
+                if (scopeFilter) scopeFilter.addEventListener('change', applyFilters);
+
+                if (showAllBtn) {
+                    showAllBtn.addEventListener('click', () => {
+                        scopeFilter.value = 'all';
+                        applyFilters();
+                    });
+                }
 
 
-            applyFilters();
-        })();
-    </script>
+                applyFilters();
+            })();
+        </script>
+
+        <!-- Modal global (únic, reutilitzable per logout i deletes) -->
+        <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
+            okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+
+            <script src="/js/confirmModal.js"></script>
+            <script src="/js/navbar.js"></script>
+
+            <footer class="footer">
+                <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+            </footer>
 
 </body>
 

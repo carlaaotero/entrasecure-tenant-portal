@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="/css/components/button.css" />
     <link rel="stylesheet" href="/css/components/card.css" />
     <link rel="stylesheet" href="/css/components/avatar.css" />
+    <link rel="stylesheet" href="/css/components/confirmModal.css" />
+    <link rel="stylesheet" href="/css/components/navigation.css" />
 
     <!-- Reutilitzem el layout de My Identity -->
     <link rel="stylesheet" href="/css/pages/identity.css" />
@@ -25,216 +27,195 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <div class="brand">EntraSecure Tenant Portal</div>
-            <ul class="nav-links">
-                <li><a href="/" class="nav-link">Home</a></li>
-                <% if (user) { %>
-                    <li><a href="/me" class="nav-link">My Identity</a></li>
-                    <li><a href="/tenant" class="nav-link nav-link-active">Tenant Explorer</a></li>
-                    <li><a href="/security" class="nav-link">Security</a></li>
+    <%- include('../components/navbar', { active: 'tenant' }) %>
+
+        <main class="identity-main">
+            <a href="/tenant/users" class="back-arrow" aria-label="Tornar a Tenant Explorer">
+                ←
+            </a>
+            <section class="identity-layout">
+                <% if (flash && flash.message) { %>
+                    <div class="card" style="margin: 12px 0; padding: 12px;">
+                        <strong>
+                            <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
+                        </strong>
+                        <span>
+                            <%= flash.message %>
+                        </span>
+                    </div>
                     <% } %>
-            </ul>
-        </div>
-        <div class="navbar-right">
-            <% if (user) { %>
-                <div class="user-pill">
-                    <span class="user-initial">
-                        <% if (user.name) { %>
-                            <%= user.name.charAt(0).toUpperCase() %>
-                                <% } else if (user.username) { %>
-                                    <%= user.username.charAt(0).toUpperCase() %>
-                                        <% } else { %>
-                                            U
-                                            <% } %>
-                    </span>
-                    <span class="user-name">
-                        <%= user.name || user.username || 'Usuari' %>
-                    </span>
-                </div>
-                <% } else { %>
-                    <a href="/auth/login" class="btn btn-outline-light">Login</a>
-                    <% } %>
-        </div>
-    </nav>
 
-    <main class="identity-main">
-        <section class="identity-layout">
-            <% if (flash && flash.message) { %>
-                <div class="card" style="margin: 12px 0; padding: 12px;">
-                    <strong>
-                        <%= flash.type==='error' ? 'Error' : (flash.type==='success' ? 'OK' : 'Info' ) %>:
-                    </strong>
-                    <span>
-                        <%= flash.message %>
-                    </span>
-                </div>
-                <% } %>
-
-                    <!-- Perfil usuari seleccionat -->
-                    <article class="card identity-profile-card">
-                        <div class="identity-avatar-wrapper">
-                            <div class="profile-avatar">
-                                <span>
-                                    <% const displayName=userProfile && userProfile.displayName ?
-                                        userProfile.displayName : userProfile && userProfile.userPrincipalName; const
-                                        initial=displayName ? displayName.charAt(0).toUpperCase() : 'U' ; %>
-                                        <%= initial %>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="identity-profile-info">
-                            <h2 class="identity-title">
-                                <%= userProfile && userProfile.displayName ? userProfile.displayName
-                                    : 'Usuari del tenant' %>
-                            </h2>
-                            <p class="identity-upn">
-                                <%= userProfile && userProfile.userPrincipalName ? userProfile.userPrincipalName : '' %>
-                            </p>
-                        </div>
-
-                        <dl class="identity-details">
-                            <div class="identity-detail-row">
-                                <dt>Display Name</dt>
-                                <dd>
-                                    <%= userProfile && userProfile.displayName || '—' %>
-                                </dd>
-                            </div>
-
-                            <div class="identity-detail-row">
-                                <dt>User Principal Name</dt>
-                                <dd>
-                                    <%= userProfile && userProfile.userPrincipalName || '—' %>
-                                </dd>
-                            </div>
-
-                            <div class="identity-detail-row">
-                                <dt>User Type</dt>
-                                <dd>
-                                    <%= userProfile && userProfile.userType || '—' %>
-                                </dd>
-                            </div>
-
-                            <div class="identity-detail-row">
-                                <dt>Created date time</dt>
-                                <dd>
-                                    <%= userProfile && userProfile.createdDateTime || '—' %>
-                                </dd>
-                            </div>
-
-                            <div class="identity-detail-row">
-                                <dt>Mail nickname</dt>
-                                <dd>
-                                    <%= userProfile && userProfile.mailNickname || '—' %>
-                                </dd>
-                            </div>
-
-                            <div class="identity-detail-row">
-                                <dt>Last password change date time</dt>
-                                <dd>
-                                    <% if (userProfile && userProfile.lastPasswordChangeDateTime) { %>
-                                        <%= userProfile.lastPasswordChangeDateTime %>
-                                            <% } else { %>
-                                                N/A
-                                                <% } %>
-                                </dd>
-                            </div>
-                        </dl>
-                    </article>
-
-                    <!-- Groups -->
-                    <article class="card identity-card identity-groups-card">
-                        <h3>Groups</h3>
-                        <div class="identity-card-content">
-                            <% if (groups && groups.length> 0) { %>
-                                <div class="identity-item-list">
-                                    <% groups.forEach(function (g) { %>
-                                        <div class="identity-item-card">
-                                            <div class="identity-item-title">
-                                                <%= g.displayName || '(Sense nom)' %>
-                                            </div>
-                                            <div class="identity-item-meta">
-                                                ID: <%= g.id %>
-                                            </div>
-                                        </div>
-                                        <% }); %>
+                        <!-- Perfil usuari seleccionat -->
+                        <article class="card identity-profile-card">
+                            <div class="identity-avatar-wrapper">
+                                <div class="profile-avatar">
+                                    <span>
+                                        <% const displayName=userProfile && userProfile.displayName ?
+                                            userProfile.displayName : userProfile && userProfile.userPrincipalName;
+                                            const initial=displayName ? displayName.charAt(0).toUpperCase() : 'U' ; %>
+                                            <%= initial %>
+                                    </span>
                                 </div>
-                                <% } else { %>
-                                    <p class="identity-empty">
-                                        Aquest usuari no forma part de cap grup (o no es pot llegir la informació).
-                                    </p>
-                                    <% } %>
-                        </div>
-                    </article>
+                            </div>
 
-                    <!-- Directory Roles -->
-                    <article class="card identity-card identity-roles-card">
-                        <h3>Directory Roles</h3>
-                        <div class="identity-card-content">
-                            <% if (roles && roles.length> 0) { %>
-                                <div class="identity-item-list">
-                                    <% roles.forEach(function (r) { %>
-                                        <div class="identity-item-card">
-                                            <div class="identity-item-title">
-                                                <%= r.displayName || '(Sense nom)' %>
-                                            </div>
-                                            <div class="identity-item-meta">
-                                                ID: <%= r.id %>
-                                            </div>
-                                        </div>
-                                        <% }); %>
+                            <div class="identity-profile-info">
+                                <h2 class="identity-title">
+                                    <%= userProfile && userProfile.displayName ? userProfile.displayName
+                                        : 'Usuari del tenant' %>
+                                </h2>
+                                <p class="identity-upn">
+                                    <%= userProfile && userProfile.userPrincipalName ? userProfile.userPrincipalName
+                                        : '' %>
+                                </p>
+                            </div>
+
+                            <dl class="identity-details">
+                                <div class="identity-detail-row">
+                                    <dt>Display Name</dt>
+                                    <dd>
+                                        <%= userProfile && userProfile.displayName || '—' %>
+                                    </dd>
                                 </div>
-                                <% } else { %>
-                                    <p class="identity-empty">
-                                        Aquest usuari no té rols de directori assignats (o no es poden llegir).
-                                    </p>
-                                    <% } %>
-                        </div>
-                    </article>
 
-                    <!-- Applications -->
-                    <article class="card identity-card identity-apps-card">
-                        <h3>Applications (App Role Assignments)</h3>
-                        <div class="identity-card-content">
-                            <% if (apps && apps.length> 0) { %>
-                                <div class="identity-item-list">
-                                    <% apps.forEach(function (a) { %>
-                                        <div class="identity-item-card">
-                                            <div class="identity-item-title">
-                                                <%= a.resourceDisplayName || '(Aplicació sense nom)' %>
-                                            </div>
-                                            <div class="identity-item-meta">
-                                                App Role ID: <%= a.appRoleId %>
-                                            </div>
-                                        </div>
-                                        <% }); %>
+                                <div class="identity-detail-row">
+                                    <dt>User Principal Name</dt>
+                                    <dd>
+                                        <%= userProfile && userProfile.userPrincipalName || '—' %>
+                                    </dd>
                                 </div>
-                                <% } else { %>
-                                    <p class="identity-empty">
-                                        No s'han trobat aplicacions amb rols assignats per aquest usuari.
-                                    </p>
-                                    <% } %>
-                        </div>
-                    </article>
 
-                    <!-- Card educativa -->
-                    <article class="card identity-card identity-edu-card">
-                        <h3>Com llegir aquesta informació</h3>
-                        <div class="identity-card-content">
-                            <p class="identity-edu">
-                                <%= helpfulInfo %>
-                            </p>
-                        </div>
-                    </article>
+                                <div class="identity-detail-row">
+                                    <dt>User Type</dt>
+                                    <dd>
+                                        <%= userProfile && userProfile.userType || '—' %>
+                                    </dd>
+                                </div>
 
-        </section>
-    </main>
+                                <div class="identity-detail-row">
+                                    <dt>Created date time</dt>
+                                    <dd>
+                                        <%= userProfile && userProfile.createdDateTime || '—' %>
+                                    </dd>
+                                </div>
 
-    <footer class="footer">
-        <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
-    </footer>
+                                <div class="identity-detail-row">
+                                    <dt>Mail nickname</dt>
+                                    <dd>
+                                        <%= userProfile && userProfile.mailNickname || '—' %>
+                                    </dd>
+                                </div>
+
+                                <div class="identity-detail-row">
+                                    <dt>Last password change date time</dt>
+                                    <dd>
+                                        <% if (userProfile && userProfile.lastPasswordChangeDateTime) { %>
+                                            <%= userProfile.lastPasswordChangeDateTime %>
+                                                <% } else { %>
+                                                    N/A
+                                                    <% } %>
+                                    </dd>
+                                </div>
+                            </dl>
+                        </article>
+
+                        <!-- Groups -->
+                        <article class="card identity-card identity-groups-card">
+                            <h3>Groups</h3>
+                            <div class="identity-card-content">
+                                <% if (groups && groups.length> 0) { %>
+                                    <div class="identity-item-list">
+                                        <% groups.forEach(function (g) { %>
+                                            <div class="identity-item-card">
+                                                <div class="identity-item-title">
+                                                    <%= g.displayName || '(Sense nom)' %>
+                                                </div>
+                                                <div class="identity-item-meta">
+                                                    ID: <%= g.id %>
+                                                </div>
+                                            </div>
+                                            <% }); %>
+                                    </div>
+                                    <% } else { %>
+                                        <p class="identity-empty">
+                                            Aquest usuari no forma part de cap grup (o no es pot llegir la informació).
+                                        </p>
+                                        <% } %>
+                            </div>
+                        </article>
+
+                        <!-- Directory Roles -->
+                        <article class="card identity-card identity-roles-card">
+                            <h3>Directory Roles</h3>
+                            <div class="identity-card-content">
+                                <% if (roles && roles.length> 0) { %>
+                                    <div class="identity-item-list">
+                                        <% roles.forEach(function (r) { %>
+                                            <div class="identity-item-card">
+                                                <div class="identity-item-title">
+                                                    <%= r.displayName || '(Sense nom)' %>
+                                                </div>
+                                                <div class="identity-item-meta">
+                                                    ID: <%= r.id %>
+                                                </div>
+                                            </div>
+                                            <% }); %>
+                                    </div>
+                                    <% } else { %>
+                                        <p class="identity-empty">
+                                            Aquest usuari no té rols de directori assignats (o no es poden llegir).
+                                        </p>
+                                        <% } %>
+                            </div>
+                        </article>
+
+                        <!-- Applications -->
+                        <article class="card identity-card identity-apps-card">
+                            <h3>Applications (App Role Assignments)</h3>
+                            <div class="identity-card-content">
+                                <% if (apps && apps.length> 0) { %>
+                                    <div class="identity-item-list">
+                                        <% apps.forEach(function (a) { %>
+                                            <div class="identity-item-card">
+                                                <div class="identity-item-title">
+                                                    <%= a.resourceDisplayName || '(Aplicació sense nom)' %>
+                                                </div>
+                                                <div class="identity-item-meta">
+                                                    App Role ID: <%= a.appRoleId %>
+                                                </div>
+                                            </div>
+                                            <% }); %>
+                                    </div>
+                                    <% } else { %>
+                                        <p class="identity-empty">
+                                            No s'han trobat aplicacions amb rols assignats per aquest usuari.
+                                        </p>
+                                        <% } %>
+                            </div>
+                        </article>
+
+                        <!-- Card educativa -->
+                        <article class="card identity-card identity-edu-card">
+                            <h3>Com llegir aquesta informació</h3>
+                            <div class="identity-card-content">
+                                <p class="identity-edu">
+                                    <%= helpfulInfo %>
+                                </p>
+                            </div>
+                        </article>
+
+            </section>
+        </main>
+
+        <!-- Modal global -->
+        <%- include('../components/confirmModal', { title: 'Confirmació' , message: 'Segur que vols continuar?' ,
+            okText: 'Acceptar' , cancelText: 'Cancel·lar' }) %>
+
+            <script src="/js/confirmModal.js"></script>
+            <script src="/js/navbar.js"></script>
+
+            <footer class="footer">
+                <small>&copy; <%= new Date().getFullYear() %> EntraSecure · TFG</small>
+            </footer>
 </body>
 
 </html>
