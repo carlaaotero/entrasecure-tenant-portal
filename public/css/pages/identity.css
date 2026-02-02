@@ -324,4 +324,24 @@
   background: #be123c;
 }
 
+/* --- Flash messages (Identity pages) --- */
+.identity-flash-wrapper {
+  max-width: 1400px;
+  margin: 1.2rem auto 0;
+  padding: 0 1.5rem;
+
+  /* reserva espai a l'esquerra perquè no se solapi amb la back-arrow */
+  padding-left: calc(1.5rem + 86px);
+}
+
+.identity-flash-wrapper .flash-card {
+  padding: 0.9rem 1rem;
+}
+
+/* En mòbil, no cal reservar espai perquè tot s'ajusta */
+@media (max-width: 700px) {
+  .identity-flash-wrapper {
+    padding-left: 1.5rem;
+  }
+}
 

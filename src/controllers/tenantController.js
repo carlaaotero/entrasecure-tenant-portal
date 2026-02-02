@@ -412,6 +412,28 @@ async function addOwnersToApp(accessToken, spId, ownerKeys) {
     }
 }
 
+async function getDefaultAppRoleId(accessToken, spId) {
+    // Llegim els appRoles del Service Principal (Enterprise App)
+    const sp = await callGraph(
+        `/servicePrincipals/${spId}?$select=appRoles`,
+        accessToken
+    );
+
+    const roles = sp.appRoles || [];
+
+    // Busquem el role "Default" (pots ajustar criteri si vols)
+    const defaultRole = roles.find(r =>
+        r.isEnabled === true &&
+        (
+            (r.value && r.value.toLowerCase() === 'default') ||
+            (r.displayName && r.displayName.toLowerCase() === 'default')
+        )
+    );
+
+    // Si no existeix, fem fallback al 0000... (per no rebentar del tot)
+    return defaultRole ? defaultRole.id : '00000000-0000-0000-0000-000000000000';
+}
+
 
 // Afegir usuaris assignats a una Enterprise App (appRoleAssignedTo)
 // Per UX simple (com groups), assignem el "default app role" (GUID buit).
@@ -419,6 +441,8 @@ async function addUsersToApp(accessToken, spId, userKeys) {
     if (!userKeys || !spId) return;
 
     const keys = Array.isArray(userKeys) ? userKeys : [userKeys];
+
+    const defaultAppRoleId = await getDefaultAppRoleId(accessToken, spId);
 
     for (const rawKey of keys) {
         const key = (rawKey || '').trim();
@@ -435,8 +459,7 @@ async function addUsersToApp(accessToken, spId, userKeys) {
             const body = {
                 principalId: userId,
                 resourceId: spId,
-                // default appRole (equivalent a "Default Access" quan l'app no té roles)
-                appRoleId: '00000000-0000-0000-0000-000000000000',
+                appRoleId: defaultAppRoleId,
             };
 
             // POST /servicePrincipals/{id}/appRoleAssignedTo

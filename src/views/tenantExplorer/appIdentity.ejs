@@ -556,7 +556,7 @@
                     // Obrir/tancar desplegable
                     if (input && dropdown) {
                         input.addEventListener('focus', () => {
-                            if (!dropdown.hasChildNodes()) buildDropdown();
+                            if (dropdown.children.length === 0) buildDropdown();
                             dropdown.style.display = 'block';
                         });
 
